@@ -92,6 +92,11 @@
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
+- **FR-006**: System MUST define UI components, hooks, and service integrations using TypeScript and Tailwind CSS.
+- **FR-007**: System MUST handle all UI states including loading, empty, and error conditions.
+- **FR-008**: System MUST isolate API calls within the service layer and use mocks if backend endpoints are pending.
+- **FR-009**: System MUST ensure responsive design across desktop, tablet, and mobile platforms.
+- **FR-010**: Features using 3D or animations MUST implement proper memory cleanup and lazy-loading.
 
 *Example of marking unclear requirements:*
 
@@ -102,6 +107,17 @@
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
+
+### Access Control *(include for protected APIs)*
+
+- **Actor/Role**: [Role name and allowed operations]
+- **Protected API**: [Endpoint or workflow requiring JWT authentication and RBAC]
+- **Denied Behavior**: [Expected result when the user is unauthenticated or lacks role]
+
+### Validation Rules *(include for API input)*
+
+- **DTO/Input**: [Field-level validation rules, required/optional fields, boundaries]
+- **Invalid Input Behavior**: [Expected error response and user-visible outcome]
 
 ## Success Criteria *(mandatory)*
 

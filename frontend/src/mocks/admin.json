@@ -1,0 +1,15 @@
+{
+  "stats": {
+    "totalUsers": 12540,
+    "totalDocuments": 4530,
+    "totalGroups": 120,
+    "activeUsersToday": 890
+  },
+  "users": [
+    { "id": "1", "email": "student1@uni.edu", "fullName": "Alice Smith", "role": "STUDENT", "status": "ACTIVE", "joinedAt": "2025-01-10T10:00:00Z" },
+    { "id": "2", "email": "prof.jones@uni.edu", "fullName": "Dr. Bob Jones", "role": "LECTURER", "status": "ACTIVE", "joinedAt": "2024-05-12T08:30:00Z" },
+    { "id": "3", "email": "spammy@email.com", "fullName": "Spam Account", "role": "STUDENT", "status": "SUSPENDED", "joinedAt": "2026-06-01T14:20:00Z" },
+    { "id": "4", "email": "admin@sys.edu", "fullName": "System Admin", "role": "ADMIN", "status": "ACTIVE", "joinedAt": "2023-01-01T00:00:00Z" },
+    { "id": "5", "email": "mod.helper@uni.edu", "fullName": "Forum Mod", "role": "MODERATOR", "status": "ACTIVE", "joinedAt": "2025-08-01T00:00:00Z" }
+  ]
+}

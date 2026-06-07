@@ -40,7 +40,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Frontend Architecture & Modularity**: State how the feature will be structured (e.g., `components`, `services`, `hooks`, `types`) using React/Next.js and TypeScript.
+- **Backend Boundary & Mocking**: Define the API service contracts required. State if temporary mocks are needed and how they will be structured.
+- **UI/UX & States**: Describe the UI states (loading, empty, error, responsive behavior) and ensure alignment with the academic aesthetic (white, green, soft red).
+- **Animation & 3D Boundaries**: If animation or 3D is used, justify its placement (mainly homepage), ensure lazy-loading, and specify memory cleanup strategies.
+- **AI & Citation Handling**: For AI features, verify how citations/sources are displayed and how processing/error states are handled.
 
 ## Project Structure
 

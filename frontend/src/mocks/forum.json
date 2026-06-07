@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "title": "Best practices for training large language models on limited hardware",
+    "content": "I am working on my thesis and only have access to a single RTX 3090. What are some effective strategies to fine-tune a 7B model? Should I look into LoRA or QLoRA?",
+    "authorName": "Jane Doe",
+    "authorRole": "STUDENT",
+    "category": "Computer Science",
+    "tags": ["LLM", "Machine Learning", "Hardware"],
+    "createdAt": "2026-06-01T10:30:00Z",
+    "likes": 42,
+    "commentsCount": 2,
+    "comments": [
+      {
+        "id": "c1",
+        "postId": "1",
+        "authorName": "Dr. Alan Turing",
+        "authorRole": "FACULTY",
+        "content": "QLoRA is highly recommended for your setup. It allows 4-bit quantization, which fits perfectly within 24GB VRAM.",
+        "createdAt": "2026-06-01T11:00:00Z",
+        "likes": 15
+      },
+      {
+        "id": "c2",
+        "postId": "1",
+        "authorName": "John Smith",
+        "authorRole": "STUDENT",
+        "content": "I successfully used Unsloth for this! It speeds up fine-tuning massively and reduces memory footprint.",
+        "createdAt": "2026-06-01T14:20:00Z",
+        "likes": 8
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "title": "Quantum entanglement in macroscopic systems",
+    "content": "Is there any recent empirical evidence showing entanglement maintained at a macroscopic level? The literature from 2024 suggested some breakthroughs in supercooled states.",
+    "authorName": "Marie Curie",
+    "authorRole": "STUDENT",
+    "category": "Physics",
+    "tags": ["Quantum Mechanics", "Experimental Physics"],
+    "createdAt": "2026-06-05T09:15:00Z",
+    "likes": 128,
+    "commentsCount": 0,
+    "comments": []
+  }
+]

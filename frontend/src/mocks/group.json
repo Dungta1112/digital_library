@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1",
+    "name": "Advanced NLP Researchers",
+    "description": "A group dedicated to discussing the latest papers in natural language processing, transformer architectures, and efficient fine-tuning methods.",
+    "topic": "Artificial Intelligence",
+    "membersCount": 15,
+    "isJoined": true,
+    "members": [
+      { "id": "u1", "name": "Jane Doe", "role": "ADMIN" },
+      { "id": "u2", "name": "John Smith", "role": "MEMBER" }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Quantum Computing Study Group",
+    "description": "Weekly study sessions covering basic to advanced quantum algorithms, entanglement theories, and hardware limitations.",
+    "topic": "Physics",
+    "membersCount": 8,
+    "isJoined": false,
+    "members": [
+      { "id": "u3", "name": "Marie Curie", "role": "ADMIN" }
+    ]
+  },
+  {
+    "id": "3",
+    "name": "Frontend Architecture Patterns",
+    "description": "Discussing modern web development, React server components, and scalable monorepo setups.",
+    "topic": "Computer Science",
+    "membersCount": 42,
+    "isJoined": false,
+    "members": [
+      { "id": "u4", "name": "Dan Abramov", "role": "ADMIN" }
+    ]
+  }
+]

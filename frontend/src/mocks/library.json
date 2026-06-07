@@ -1,0 +1,54 @@
+[
+  {
+    "id": "1",
+    "title": "Machine Learning in Healthcare: A Comprehensive Review",
+    "authors": ["Alice Smith", "Bob Jones"],
+    "abstract": "An overview of ML applications in modern medicine, covering diagnostics, patient care, and predictive modeling.",
+    "publicationYear": 2025,
+    "category": "Computer Science",
+    "keywords": ["AI", "Healthcare", "Machine Learning"],
+    "pdfUrl": "/sample.pdf",
+    "coverImageUrl": "https://picsum.photos/seed/doc1/300/400",
+    "viewCount": 1500,
+    "saveCount": 340
+  },
+  {
+    "id": "2",
+    "title": "Quantum Computing Fundamentals",
+    "authors": ["Charlie Brown", "David Miller"],
+    "abstract": "Introduction to qubits, entanglement, and quantum algorithms for computer science students.",
+    "publicationYear": 2024,
+    "category": "Physics",
+    "keywords": ["Quantum", "Computing", "Physics"],
+    "pdfUrl": "/sample2.pdf",
+    "coverImageUrl": "https://picsum.photos/seed/doc2/300/400",
+    "viewCount": 850,
+    "saveCount": 120
+  },
+  {
+    "id": "3",
+    "title": "The Impact of Artificial Intelligence on Climate Change",
+    "authors": ["Elena Rodriguez"],
+    "abstract": "How AI models are predicting climate patterns and optimizing renewable energy grids.",
+    "publicationYear": 2023,
+    "category": "Environmental Science",
+    "keywords": ["AI", "Climate", "Energy"],
+    "pdfUrl": "/sample3.pdf",
+    "coverImageUrl": "https://picsum.photos/seed/doc3/300/400",
+    "viewCount": 2100,
+    "saveCount": 500
+  },
+  {
+    "id": "4",
+    "title": "Advanced Data Structures and Algorithms",
+    "authors": ["Frank Williams"],
+    "abstract": "A deep dive into advanced graph algorithms, dynamic programming, and computational complexity.",
+    "publicationYear": 2022,
+    "category": "Computer Science",
+    "keywords": ["Algorithms", "Data Structures", "CS"],
+    "pdfUrl": "/sample4.pdf",
+    "coverImageUrl": "https://picsum.photos/seed/doc4/300/400",
+    "viewCount": 3200,
+    "saveCount": 890
+  }
+]

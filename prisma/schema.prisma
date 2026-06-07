@@ -1,0 +1,452 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+  DISABLED
+}
+
+enum RoleCode {
+  GUEST
+  STUDENT
+  LECTURER
+  CONTENT_MANAGER
+  ADMIN
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  HIDDEN
+  DELETED
+}
+
+enum ReportStatus {
+  PENDING
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum StudyGroupVisibility {
+  PUBLIC
+  REQUEST_TO_JOIN
+  PRIVATE
+}
+
+enum MembershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum ForumPostStatus {
+  PUBLISHED
+  LOCKED
+  DELETED
+}
+
+enum AuditAction {
+  DOCUMENT_UPLOAD
+  DOCUMENT_APPROVE
+  DOCUMENT_REJECT
+  REPORT_HANDLE
+  ACCOUNT_LOCK
+  ACCOUNT_UNLOCK
+  ROLE_ASSIGN
+  CONTENT_DELETE
+  SYSTEM_CONFIG_UPDATE
+  DOCUMENT_DOWNLOAD
+  DOCUMENT_REPORT
+}
+
+model User {
+  id                   String                  @id @default(uuid())
+  email                String                  @unique
+  passwordHash         String                  @map("password_hash")
+  refreshTokenHash     String?                 @map("refresh_token_hash")
+  fullName             String                  @map("full_name")
+  studentCode          String?                 @unique @map("student_code")
+  lecturerCode         String?                 @unique @map("lecturer_code")
+  avatarUrl            String?                 @map("avatar_url")
+  status               UserStatus              @default(ACTIVE)
+  lastLoginAt          DateTime?               @map("last_login_at")
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
+  roles                UserRole[]
+  assignedRoles        UserRole[]              @relation("AssignedRoles")
+  documents            Document[]              @relation("DocumentOwner")
+  approvedDocuments    Document[]              @relation("DocumentApprover")
+  documentReviews      DocumentReview[]        @relation("DocumentReviewer")
+  documentFavorites    DocumentFavorite[]
+  documentRatings      DocumentRating[]
+  documentReports      DocumentReport[]        @relation("DocumentReporter")
+  handledDocReports    DocumentReport[]        @relation("DocumentReportHandler")
+  forumPosts           ForumPost[]             @relation("ForumPostAuthor")
+  lockedForumPosts     ForumPost[]             @relation("ForumPostLocker")
+  forumComments        ForumComment[]
+  forumReports         ForumReport[]           @relation("ForumReporter")
+  handledForumReports  ForumReport[]           @relation("ForumReportHandler")
+  studyGroups          StudyGroup[]            @relation("StudyGroupOwner")
+  groupMemberships     StudyGroupMember[]
+  groupDocuments       StudyGroupDocument[]
+  groupPosts           StudyGroupPost[]
+  groupComments        StudyGroupComment[]
+  moderationLogs       ContentModerationLog[]
+  updatedConfigs       SystemConfig[]
+  auditLogs            AuditLog[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  code        RoleCode         @unique
+  name        String
+  description String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  code        String           @unique
+  name        String
+  description String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  roleId       String   @map("role_id")
+  assignedById String?  @map("assigned_by_id")
+  assignedAt   DateTime @default(now()) @map("assigned_at")
+  user         User     @relation(fields: [userId], references: [id])
+  role         Role     @relation(fields: [roleId], references: [id])
+  assignedBy   User?    @relation("AssignedRoles", fields: [assignedById], references: [id])
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model DocumentCategory {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  documents   Document[]
+
+  @@map("document_categories")
+}
+
+model Document {
+  id                String               @id @default(uuid())
+  ownerId           String               @map("owner_id")
+  categoryId        String?              @map("category_id")
+  title             String
+  description       String?
+  metadata          Json?
+  status            DocumentStatus       @default(PENDING_REVIEW)
+  visibility        String               @default("PUBLIC")
+  rejectionReason   String?              @map("rejection_reason")
+  approvedById      String?              @map("approved_by_id")
+  approvedAt        DateTime?            @map("approved_at")
+  viewCount         Int                  @default(0) @map("view_count")
+  downloadCount     Int                  @default(0) @map("download_count")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  deletedAt         DateTime?            @map("deleted_at")
+  owner             User                 @relation("DocumentOwner", fields: [ownerId], references: [id])
+  category          DocumentCategory?    @relation(fields: [categoryId], references: [id])
+  approvedBy        User?                @relation("DocumentApprover", fields: [approvedById], references: [id])
+  files             DocumentFile[]
+  favorites         DocumentFavorite[]
+  reviews           DocumentReview[]
+  ratings           DocumentRating[]
+  reports           DocumentReport[]
+  groupDocuments    StudyGroupDocument[]
+
+  @@map("documents")
+}
+
+model DocumentFile {
+  id              String   @id @default(uuid())
+  documentId      String   @map("document_id")
+  storageProvider String   @map("storage_provider")
+  bucket          String?
+  objectKey       String   @map("object_key")
+  originalName    String   @map("original_name")
+  mimeType        String   @map("mime_type")
+  sizeBytes       Int      @map("size_bytes")
+  checksum        String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  document        Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_files")
+}
+
+model DocumentFavorite {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId])
+  @@map("document_favorites")
+}
+
+model DocumentReview {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  reviewerId String   @map("reviewer_id")
+  status     String
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  document   Document @relation(fields: [documentId], references: [id])
+  reviewer   User     @relation("DocumentReviewer", fields: [reviewerId], references: [id])
+
+  @@map("document_reviews")
+}
+
+model DocumentRating {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId])
+  @@map("document_ratings")
+}
+
+model DocumentReport {
+  id             String       @id @default(uuid())
+  documentId     String       @map("document_id")
+  reporterId     String       @map("reporter_id")
+  reason         String
+  description    String?
+  status         ReportStatus @default(PENDING)
+  handledById    String?      @map("handled_by_id")
+  resolutionNote String?      @map("resolution_note")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  document       Document     @relation(fields: [documentId], references: [id])
+  reporter       User         @relation("DocumentReporter", fields: [reporterId], references: [id])
+  handledBy      User?        @relation("DocumentReportHandler", fields: [handledById], references: [id])
+
+  @@map("document_reports")
+}
+
+model ForumPost {
+  id           String            @id @default(uuid())
+  authorId     String            @map("author_id")
+  title        String
+  content      String
+  status       ForumPostStatus   @default(PUBLISHED)
+  lockedById   String?           @map("locked_by_id")
+  lockedAt     DateTime?         @map("locked_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  deletedAt    DateTime?         @map("deleted_at")
+  author       User              @relation("ForumPostAuthor", fields: [authorId], references: [id])
+  lockedBy     User?             @relation("ForumPostLocker", fields: [lockedById], references: [id])
+  comments     ForumComment[]
+  reports      ForumReport[]
+
+  @@map("forum_posts")
+}
+
+model ForumComment {
+  id        String          @id @default(uuid())
+  postId    String          @map("post_id")
+  authorId  String          @map("author_id")
+  parentId  String?         @map("parent_id")
+  content   String
+  deletedAt DateTime?       @map("deleted_at")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  post      ForumPost       @relation(fields: [postId], references: [id])
+  author    User            @relation(fields: [authorId], references: [id])
+  parent    ForumComment?   @relation("ForumCommentReplies", fields: [parentId], references: [id])
+  replies   ForumComment[]  @relation("ForumCommentReplies")
+  reports   ForumReport[]
+
+  @@map("forum_comments")
+}
+
+model ForumReport {
+  id             String        @id @default(uuid())
+  postId         String?       @map("post_id")
+  commentId      String?       @map("comment_id")
+  reporterId     String        @map("reporter_id")
+  reason         String
+  description    String?
+  status         ReportStatus  @default(PENDING)
+  handledById    String?       @map("handled_by_id")
+  resolutionNote String?       @map("resolution_note")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  post           ForumPost?    @relation(fields: [postId], references: [id])
+  comment        ForumComment? @relation(fields: [commentId], references: [id])
+  reporter       User          @relation("ForumReporter", fields: [reporterId], references: [id])
+  handledBy      User?         @relation("ForumReportHandler", fields: [handledById], references: [id])
+
+  @@map("forum_reports")
+}
+
+model StudyGroup {
+  id          String                 @id @default(uuid())
+  ownerId     String                 @map("owner_id")
+  name        String
+  description String?
+  visibility  StudyGroupVisibility
+  isActive    Boolean                @default(true) @map("is_active")
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  owner       User                   @relation("StudyGroupOwner", fields: [ownerId], references: [id])
+  members     StudyGroupMember[]
+  documents   StudyGroupDocument[]
+  posts       StudyGroupPost[]
+
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  id        String           @id @default(uuid())
+  groupId   String           @map("group_id")
+  userId    String           @map("user_id")
+  role      String           @default("MEMBER")
+  status    MembershipStatus @default(PENDING)
+  joinedAt  DateTime?        @map("joined_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  group     StudyGroup       @relation(fields: [groupId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+  @@map("study_group_members")
+}
+
+model StudyGroupDocument {
+  id         String     @id @default(uuid())
+  groupId    String     @map("group_id")
+  documentId String     @map("document_id")
+  sharedById String     @map("shared_by_id")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  group      StudyGroup @relation(fields: [groupId], references: [id])
+  document   Document   @relation(fields: [documentId], references: [id])
+  sharedBy   User       @relation(fields: [sharedById], references: [id])
+
+  @@unique([groupId, documentId])
+  @@map("study_group_documents")
+}
+
+model StudyGroupPost {
+  id        String              @id @default(uuid())
+  groupId   String              @map("group_id")
+  authorId  String              @map("author_id")
+  title     String
+  content   String
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+  deletedAt DateTime?           @map("deleted_at")
+  group     StudyGroup          @relation(fields: [groupId], references: [id])
+  author    User                @relation(fields: [authorId], references: [id])
+  comments  StudyGroupComment[]
+
+  @@map("study_group_posts")
+}
+
+model StudyGroupComment {
+  id          String         @id @default(uuid())
+  groupPostId String         @map("group_post_id")
+  authorId    String         @map("author_id")
+  content     String
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  deletedAt   DateTime?      @map("deleted_at")
+  groupPost   StudyGroupPost @relation(fields: [groupPostId], references: [id])
+  author      User           @relation(fields: [authorId], references: [id])
+
+  @@map("study_group_comments")
+}
+
+model ContentModerationLog {
+  id          String   @id @default(uuid())
+  moderatorId String   @map("moderator_id")
+  targetType  String   @map("target_type")
+  targetId    String   @map("target_id")
+  action      String
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  moderator   User     @relation(fields: [moderatorId], references: [id])
+
+  @@map("content_moderation_logs")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedById String?  @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+
+  @@map("system_configs")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  actorId   String?     @map("actor_id")
+  action    AuditAction
+  targetType String     @map("target_type")
+  targetId   String?    @map("target_id")
+  metadata   Json?
+  ipAddress  String?    @map("ip_address")
+  userAgent  String?    @map("user_agent")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  actor      User?      @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
