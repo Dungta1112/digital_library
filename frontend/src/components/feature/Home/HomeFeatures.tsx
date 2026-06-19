@@ -15,7 +15,7 @@ const features = [
 
 export function HomeFeatures() {
   return (
-    <section className="relative py-24 bg-white overflow-hidden z-10">
+    <section className="relative py-24 bg-white dark:bg-slate-950 overflow-hidden z-10 transition-colors duration-300">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.h2 
@@ -23,7 +23,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6"
           >
             Tính năng nổi bật
           </motion.h2>
@@ -32,7 +32,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-gray-600 leading-relaxed"
+            className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed"
           >
             Mọi chức năng được thiết kế để hỗ trợ học tập, nghiên cứu và trao đổi học thuật trong một trải nghiệm thống nhất.
           </motion.p>
@@ -46,17 +46,17 @@ export function HomeFeatures() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="group relative p-6 rounded-3xl bg-[rgba(255,255,255,0.72)] backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] hover:border-transparent hover:shadow-[0_0_25px_rgba(22,163,74,0.15)] transition-all duration-300"
+              className="group relative p-6 rounded-3xl bg-[rgba(255,255,255,0.72)] dark:bg-slate-900/80 backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] dark:border-slate-800 hover:border-transparent hover:shadow-[0_0_25px_rgba(22,163,74,0.15)] transition-all duration-300"
             >
               {/* Hover gradient border illusion */}
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-400 to-red-400 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity duration-300" />
               
               <div className="relative z-10 flex flex-col h-full">
-                <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-sm mb-4 border border-green-100 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-slate-800 text-green-600 dark:text-green-400 flex items-center justify-center font-bold text-sm mb-4 border border-green-100 dark:border-slate-700 group-hover:bg-green-600 dark:group-hover:bg-green-600 group-hover:text-white dark:group-hover:text-white transition-colors duration-300">
                   {index + 1}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed flex-grow">{feature.desc}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed flex-grow">{feature.desc}</p>
               </div>
             </motion.div>
           ))}

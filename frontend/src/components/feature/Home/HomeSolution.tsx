@@ -27,7 +27,7 @@ const solutions = [
 
 export function HomeSolution() {
   return (
-    <section className="relative py-24 bg-[#F8FAF7] overflow-hidden z-10 border-t border-[rgba(22,163,74,0.08)]">
+    <section className="relative py-24 bg-[#F8FAF7] dark:bg-slate-900 overflow-hidden z-10 border-t border-[rgba(22,163,74,0.08)] dark:border-slate-800 transition-colors duration-300">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <motion.div
@@ -35,7 +35,7 @@ export function HomeSolution() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center rounded-full border border-green-200 bg-white px-4 py-1.5 text-sm text-green-700 font-medium mb-8 shadow-sm"
+            className="inline-flex items-center rounded-full border border-green-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-1.5 text-sm text-green-700 dark:text-green-400 font-medium mb-8 shadow-sm"
           >
             Hệ sinh thái toàn diện
           </motion.div>
@@ -45,7 +45,7 @@ export function HomeSolution() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6"
           >
             Giải pháp thư viện số thông minh
           </motion.h2>
@@ -54,7 +54,7 @@ export function HomeSolution() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-gray-600 leading-relaxed"
+            className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed"
           >
             Một nền tảng học tập tích hợp thư viện tài liệu, trợ lý AI, diễn đàn học thuật và nhóm học tập, giúp người dùng tiếp cận tri thức nhanh hơn và có hệ thống hơn.
           </motion.p>
@@ -69,17 +69,17 @@ export function HomeSolution() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
-              className="group relative p-8 rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group relative p-8 rounded-[2rem] bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[rgba(22,163,74,0.1)] to-transparent rounded-bl-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[rgba(22,163,74,0.1)] dark:from-[rgba(22,163,74,0.05)] to-transparent rounded-bl-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="flex items-start gap-6 relative z-10">
-                <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-[#F8FAF7] border border-[rgba(22,163,74,0.1)] flex items-center justify-center text-3xl group-hover:border-green-300 group-hover:bg-green-50 transition-colors duration-300">
+                <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-[#F8FAF7] dark:bg-slate-900 border border-[rgba(22,163,74,0.1)] dark:border-slate-800 flex items-center justify-center text-3xl group-hover:border-green-300 dark:group-hover:border-green-800 group-hover:bg-green-50 dark:group-hover:bg-slate-800 transition-colors duration-300">
                   {solution.icon}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-700 transition-colors">{solution.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{solution.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">{solution.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{solution.description}</p>
                 </div>
               </div>
             </motion.div>

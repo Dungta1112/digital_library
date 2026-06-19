@@ -41,10 +41,10 @@ export function SystemConfig() {
   const groups = ['GENERAL', 'LIBRARY', 'SECURITY'];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Cấu hình hệ thống</h2>
-        <div className="text-sm text-gray-500">Thay đổi các tham số hoạt động của hệ thống</div>
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-300">
+      <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50 transition-colors duration-300">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors duration-300">Cấu hình hệ thống</h2>
+        <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Thay đổi các tham số hoạt động của hệ thống</div>
       </div>
       
       <div className="p-6">
@@ -54,17 +54,17 @@ export function SystemConfig() {
           
           return (
             <div key={group} className="mb-8 last:mb-0">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 pb-2 border-b border-gray-100 dark:border-slate-800 flex items-center gap-2 transition-colors duration-300">
                 <span className="w-1.5 h-6 bg-green-500 rounded-full"></span>
                 {group === 'GENERAL' ? 'Cài đặt chung' : group === 'LIBRARY' ? 'Thư viện số' : 'Bảo mật'}
               </h3>
               
               <div className="space-y-4">
                 {groupConfigs.map(config => (
-                  <div key={config.key} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 gap-4">
+                  <div key={config.key} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-700 gap-4 transition-colors duration-300">
                     <div className="flex-1">
-                      <p className="font-bold text-gray-900">{config.label}</p>
-                      <p className="text-xs text-gray-400 font-mono mt-0.5">{config.key}</p>
+                      <p className="font-bold text-gray-900 dark:text-white transition-colors duration-300">{config.label}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 font-mono mt-0.5 transition-colors duration-300">{config.key}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       {config.type === 'boolean' ? (
@@ -75,12 +75,12 @@ export function SystemConfig() {
                             checked={config.value as boolean}
                             onChange={(e) => handleChange(config.key, e.target.checked)}
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 transition-colors duration-300"></div>
                         </label>
                       ) : (
                         <input 
                           type={config.type} 
-                          className="border border-gray-300 rounded-lg text-sm px-3 py-2 w-32 focus:ring-green-500 focus:border-green-500"
+                          className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg text-sm px-3 py-2 w-32 focus:ring-green-500 focus:border-green-500 transition-colors duration-300"
                           value={config.value as string | number}
                           onChange={(e) => handleChange(config.key, config.type === 'number' ? Number(e.target.value) : e.target.value)}
                         />
