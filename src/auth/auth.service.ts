@@ -7,7 +7,7 @@ import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService, private readonly jwt: JwtService) {}
+  constructor(private readonly prisma: PrismaService, private readonly jwt: JwtService) { }
 
   async register(dto: RegisterDto) {
     const passwordHash = await bcrypt.hash(dto.password, Number(process.env.BCRYPT_ROUNDS ?? 12));
