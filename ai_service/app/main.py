@@ -1,43 +1,62 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer, util
+import ollama
+import chromadb
 
-app = FastAPI()
+app = FastAPI(title="Digital Library AI Service với Ollama")
 
-# Tải mô hình ngôn ngữ (hỗ trợ tốt tiếng Việt)
-model = SentenceTransformer('keepitreal/vietnamese-sbert')
+# 1. Khởi tạo ChromaDB lưu local
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+collection = chroma_client.get_or_create_collection(name="local_books")
 
-# Giả lập kho sách trong thư viện
-BOOK_DATABASE = [
-    {"id": 1, "title": "Nhập môn Lập trình Python", "description": "Sách hướng dẫn cơ bản về Python cho người mới bắt đầu, cú pháp đơn giản."},
-    {"id": 2, "title": "Bảo mật thông tin và Mã hóa", "description": "Giới thiệu các thuật toán mã hóa, an toàn mạng và phòng chống hacker."},
-    {"id": 3, "title": "Cấu trúc dữ liệu và Giải thuật", "description": "Sách chuyên sâu về cây nhị phân, đồ thị và các thuật toán tối ưu bằng Java."}
-]
-
-# Tạo sẵn vector cho kho sách
-book_descriptions = [book["description"] for book in BOOK_DATABASE]
-book_embeddings = model.encode(book_descriptions, convert_to_tensor=True)
+class BookData(BaseModel):
+    id: str
+    title: str
+    description: str
 
 class SearchRequest(BaseModel):
     query: str
+    top_k: int = 3
 
-@post("/api/ai/search-books")
+# API số hóa sách dùng Ollama Embedding
+@app.post("/api/ai/sync-books")
+def sync_books(books: list[BookData]):
+    for book in books:
+        full_text = f"Tên sách: {book.title}. Nội dung mô tả: {book.description}"
+        
+        # Gọi Ollama local để sinh Vector Embedding
+        response = ollama.embeddings(model="nomic-embed-text", prompt=full_text)
+        vector_embedding = response["embedding"]
+        
+        # Lưu vào ChromaDB
+        collection.upsert(
+            ids=[book.id],
+            embeddings=[vector_embedding],
+            metadatas=[{"title": book.title, "description": book.description}]
+        )
+    return {"status": "success", "message": f"Ollama đã số hóa {len(books)} cuốn sách."}
+
+# API Tìm kiếm sách thông minh bằng Ollama
+@app.post("/api/ai/search-books")
 def search_books(request: SearchRequest):
-    # 1. Mã hóa câu hỏi của người dùng
-    query_embedding = model.encode(request.query, convert_to_tensor=True)
+    # Biến câu hỏi của user thành Vector bằng chính model nomic-embed-text
+    query_response = ollama.embeddings(model="nomic-embed-text", prompt=request.query)
+    query_vector = query_response["embedding"]
     
-    # 2. Tính toán độ tương đồng giữa câu hỏi và mô tả sách
-    cos_scores = util.cos_sim(query_embedding, book_embeddings)[0]
+    # Truy vấn tìm sách có nghĩa gần nhất
+    results = collection.query(
+        query_embeddings=[query_vector],
+        n_results=request.top_k
+    )
     
-    # 3. Lấy ra cuốn sách có điểm cao nhất
-    best_match_idx = cos_scores.argmax().item()
-    best_score = cos_scores[best_match_idx].item()
-    
-    # Nếu độ tương đồng > 0.4 thì coi như tìm thấy
-    if best_score > 0.4:
-        return {
-            "suggested_book": BOOK_DATABASE[best_match_idx],
-            "confidence": best_score
-        }
-    
-    return {"message": "Không tìm thấy cuốn sách nào phù hợp."}
+    suggested_books = []
+    if results['ids'] and results['ids'][0]:
+        for i in range(len(results['ids'][0])):
+            suggested_books.append({
+                "id": results['ids'][0][i],
+                "title": results['metadatas'][0][i]['title'],
+                "description": results['metadatas'][0][i]['description'],
+                "distance": results['distances'][0][i]
+            })
+            
+    return {"query": request.query, "results": suggested_books}
