@@ -13,3 +13,4 @@ coverage/
 .specify/
 specs/
 AGENTS.md
+/.vs
