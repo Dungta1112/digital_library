@@ -8,9 +8,6 @@ import { ok } from '../common/response/api-response';
 import { StatisticsService } from './statistics.service';
 
 @ApiTags('Statistics')
-@ApiProtected()
-@Roles('ADMIN')
-@UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('statistics')
 export class StatisticsController {
   constructor(private readonly service: StatisticsService) {}

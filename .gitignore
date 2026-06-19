@@ -13,4 +13,8 @@ coverage/
 .specify/
 specs/
 AGENTS.md
-/.vs
+
+# Python & AI
+.venv/
+__pycache__/
+chroma_db/
