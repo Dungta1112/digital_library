@@ -53,15 +53,15 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-[#f8fafc] relative">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10 sticky top-0">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-300 relative">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center shadow-sm z-10 sticky top-0 transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl shadow-inner">
+          <div className="w-10 h-10 bg-green-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-300">
             🤖
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Trợ lý AI Học thuật</h1>
-            <p className="text-xs text-gray-500 font-medium">Nghiên cứu • Tổng hợp • Trích dẫn</p>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight transition-colors duration-300">Trợ lý AI Học thuật</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors duration-300">Nghiên cứu • Tổng hợp • Trích dẫn</p>
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function AIChatPage() {
           
           {loading && (
             <div className="flex w-full justify-start mb-6">
-              <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-none p-4 shadow-sm flex gap-3 items-center w-[100px]">
+              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl rounded-bl-none p-4 shadow-sm flex gap-3 items-center w-[100px] transition-colors duration-300">
                 <div className="flex gap-1.5 mx-auto">
                    <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce"></div>
                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>

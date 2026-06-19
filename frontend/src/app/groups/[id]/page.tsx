@@ -23,29 +23,29 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   }, [id]);
 
   if (loading || !group) {
-    return <div className="min-h-screen bg-gray-50 py-10"><div className="container mx-auto px-4 max-w-5xl animate-pulse h-[400px] bg-gray-200 rounded-3xl"></div></div>;
+    return <div className="min-h-screen bg-gray-50 dark:bg-slate-950 py-10 transition-colors duration-300"><div className="container mx-auto px-4 max-w-5xl animate-pulse h-[400px] bg-gray-200 dark:bg-slate-800 rounded-3xl transition-colors duration-300"></div></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/80 py-10">
+    <div className="min-h-screen bg-gray-50/80 dark:bg-slate-950 py-10 transition-colors duration-300">
       <div className="container mx-auto px-4 max-w-5xl">
-        <Link href="/groups" className="text-sm font-bold text-gray-500 hover:text-purple-700 mb-8 inline-flex items-center bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm transition-all hover:shadow-md">
+        <Link href="/groups" className="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-400 mb-8 inline-flex items-center bg-white dark:bg-slate-900 px-5 py-2.5 rounded-full border border-gray-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md duration-300">
           ← Back to Study Groups
         </Link>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <div className="bg-white p-8 md:p-10 rounded-3xl border border-gray-200 shadow-sm mb-8 relative overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm mb-8 relative overflow-hidden transition-colors duration-300">
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-400 to-indigo-500"></div>
-              <span className="text-sm font-bold px-4 py-1.5 bg-purple-50 text-purple-700 rounded-lg tracking-wide inline-block mb-6 border border-purple-100">{group.topic}</span>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">{group.name}</h1>
-              <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10">{group.description}</p>
+              <span className="text-sm font-bold px-4 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg tracking-wide inline-block mb-6 border border-purple-100 dark:border-purple-800/50 transition-colors duration-300">{group.topic}</span>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight transition-colors duration-300">{group.name}</h1>
+              <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl leading-relaxed mb-10 transition-colors duration-300">{group.description}</p>
               
-              <div className="pt-8 border-t border-gray-100 mt-6">
+              <div className="pt-8 border-t border-gray-100 dark:border-slate-800 mt-6 transition-colors duration-300">
                 {group.isJoined ? (
                   <GroupChat groupId={group.id} />
                 ) : (
-                  <div className="text-center py-16 bg-gray-50/50 rounded-2xl border border-gray-200 border-dashed text-gray-500">
+                  <div className="text-center py-16 bg-gray-50/50 dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-slate-800 border-dashed text-gray-500 dark:text-gray-400 transition-colors duration-300">
                      Join the group to view activity and participate in discussions.
                   </div>
                 )}
@@ -54,22 +54,22 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           </div>
           
           <div className="md:col-span-1">
-            <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm mb-6">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm mb-6 transition-colors duration-300">
               <GroupAction group={group} onJoinSuccess={() => setGroup({...group, isJoined: true, membersCount: group.membersCount + 1})} />
             </div>
             
-            <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
-              <h3 className="font-extrabold text-gray-900 mb-6 flex items-center gap-3 text-lg">
-                👥 Members <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-bold">{group.membersCount}</span>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm transition-colors duration-300">
+              <h3 className="font-extrabold text-gray-900 dark:text-white mb-6 flex items-center gap-3 text-lg transition-colors duration-300">
+                👥 Members <span className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-bold transition-colors duration-300">{group.membersCount}</span>
               </h3>
               <div className="space-y-5">
                 {group.members?.map(m => (
                   <div key={m.id} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg shadow-inner border border-gray-200">👤</div>
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-inner border border-gray-200 dark:border-slate-700 transition-colors duration-300">👤</div>
                     <div>
-                      <p className="font-bold text-gray-900 text-sm flex flex-col items-start gap-1">
+                      <p className="font-bold text-gray-900 dark:text-white text-sm flex flex-col items-start gap-1 transition-colors duration-300">
                         {m.name}
-                        {m.role === 'ADMIN' && <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-widest font-black">Admin</span>}
+                        {m.role === 'ADMIN' && <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-black transition-colors duration-300">Admin</span>}
                       </p>
                     </div>
                   </div>

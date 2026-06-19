@@ -48,17 +48,17 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full h-[100vh] overflow-hidden bg-[#F8FAF7] flex items-center">
+    <section ref={containerRef} className="relative w-full h-[100vh] overflow-hidden bg-[#F8FAF7] dark:bg-slate-900 flex items-center transition-colors duration-300">
       {/* Background Orbs */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-10 left-10 w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] rounded-full bg-[rgba(22,163,74,0.22)] blur-[120px] animate-float-slow" />
-        <div className="absolute bottom-10 right-10 w-[45vw] h-[45vw] max-w-[650px] max-h-[650px] rounded-full bg-[rgba(220,38,38,0.12)] blur-[130px] animate-float-medium" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35vw] h-[35vw] max-w-[500px] max-h-[500px] rounded-full bg-[rgba(6,95,70,0.14)] blur-[140px] animate-float-fast" />
+        <div className="absolute top-10 left-10 w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] rounded-full bg-[rgba(22,163,74,0.22)] dark:bg-[rgba(22,163,74,0.15)] blur-[120px] animate-float-slow" />
+        <div className="absolute bottom-10 right-10 w-[45vw] h-[45vw] max-w-[650px] max-h-[650px] rounded-full bg-[rgba(220,38,38,0.12)] dark:bg-[rgba(220,38,38,0.08)] blur-[130px] animate-float-medium" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35vw] h-[35vw] max-w-[500px] max-h-[500px] rounded-full bg-[rgba(6,95,70,0.14)] dark:bg-[rgba(6,95,70,0.1)] blur-[140px] animate-float-fast" />
       </div>
 
       {/* Background Overlays */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.4)_0%,rgba(248,250,247,0.8)_100%)] pointer-events-none" />
-      <div className="absolute inset-0 z-0 bg-gradient-to-t from-[rgba(248,250,247,1)] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.4)_0%,rgba(248,250,247,0.8)_100%)] dark:bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.4)_0%,rgba(15,23,42,0.8)_100%)] pointer-events-none transition-colors duration-300" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-[rgba(248,250,247,1)] dark:from-[rgba(15,23,42,1)] via-transparent to-transparent pointer-events-none transition-colors duration-300" />
 
       <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
         {/* Left: Text Content */}
@@ -76,7 +76,7 @@ export function HeroSection() {
             <div className="h-[1px] w-8 bg-green-600/30" />
           </motion.div>
 
-          <h1 className="font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-gray-900 mb-4">
+          <h1 className="font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-gray-900 dark:text-white mb-4">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.2 }}
-            className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed max-w-lg"
+            className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed max-w-lg"
           >
             Nền tảng thư viện số tích hợp tìm kiếm tài liệu, trợ lý AI, diễn đàn học thuật và nhóm học tập dành cho sinh viên, giảng viên và nhà nghiên cứu.
           </motion.p>
@@ -112,7 +112,7 @@ export function HeroSection() {
             <Link href="/library" className="px-8 py-4 rounded-full bg-green-600 text-white font-medium shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:bg-gradient-to-r hover:from-green-600 hover:to-red-600 hover:shadow-[0_0_35px_rgba(22,163,74,0.4)] transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2">
               Khám phá thư viện
             </Link>
-            <Link href="/ai" className="px-8 py-4 rounded-full bg-[rgba(255,255,255,0.72)] backdrop-blur-[20px] text-gray-900 font-medium border border-[rgba(22,163,74,0.18)] hover:border-green-600 hover:shadow-[0_0_25px_rgba(22,163,74,0.12)] transition-all duration-300 group flex items-center gap-2">
+            <Link href="/ai" className="px-8 py-4 rounded-full bg-[rgba(255,255,255,0.72)] dark:bg-[rgba(15,23,42,0.72)] backdrop-blur-[20px] text-gray-900 dark:text-white font-medium border border-[rgba(22,163,74,0.18)] dark:border-[rgba(22,163,74,0.3)] hover:border-green-600 dark:hover:border-green-500 hover:shadow-[0_0_25px_rgba(22,163,74,0.12)] transition-all duration-300 group flex items-center gap-2">
               Hỏi AI ngay
               <span className="transform transition-transform duration-300 group-hover:translate-x-1">→</span>
             </Link>
@@ -130,28 +130,28 @@ export function HeroSection() {
             <motion.div
               animate={{ y: [0, -15, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[10%] left-[10%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] shadow-sm flex items-center gap-3"
+              className="absolute top-[10%] left-[10%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] dark:bg-slate-800/80 backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] dark:border-slate-700 shadow-sm flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg">🤖</div>
-              <span className="text-sm font-medium text-gray-800">AI tóm tắt tài liệu</span>
+              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center text-lg">🤖</div>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">AI tóm tắt tài liệu</span>
             </motion.div>
 
             <motion.div
               animate={{ y: [0, 15, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute top-[40%] -right-[5%] lg:right-[5%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] shadow-sm flex items-center gap-3"
+              className="absolute top-[40%] -right-[5%] lg:right-[5%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] dark:bg-slate-800/80 backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] dark:border-slate-700 shadow-sm flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">🔍</div>
-              <span className="text-sm font-medium text-gray-800">Tìm kiếm thông minh</span>
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">🔍</div>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Tìm kiếm thông minh</span>
             </motion.div>
 
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-              className="absolute bottom-[20%] left-[20%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] shadow-sm flex items-center gap-3"
+              className="absolute bottom-[20%] left-[20%] px-5 py-3 rounded-2xl bg-[rgba(255,255,255,0.72)] dark:bg-slate-800/80 backdrop-blur-[20px] border border-[rgba(22,163,74,0.12)] dark:border-slate-700 shadow-sm flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg">💬</div>
-              <span className="text-sm font-medium text-gray-800">Diễn đàn học thuật</span>
+              <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 flex items-center justify-center text-lg">💬</div>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Diễn đàn học thuật</span>
             </motion.div>
           </div>
         </div>
@@ -164,18 +164,18 @@ export function HeroSection() {
         transition={{ duration: 1, delay: 2 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
       >
-        <div className="w-6 h-10 rounded-full border-2 border-gray-300 flex justify-center p-1">
+        <div className="w-6 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600 flex justify-center p-1">
           <motion.div
             animate={{ y: [0, 16, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="w-1.5 h-1.5 rounded-full bg-green-500"
           />
         </div>
-        <span className="text-xs text-gray-500 font-medium tracking-wide uppercase">Cuộn để khám phá</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide uppercase">Cuộn để khám phá</span>
       </motion.div>
 
       {/* Overlay for GSAP fade to next section */}
-      <div ref={overlayRef} className="absolute inset-0 bg-white/80 pointer-events-none opacity-0 z-30" />
+      <div ref={overlayRef} className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 pointer-events-none opacity-0 z-30" />
     </section>
   );
 }
