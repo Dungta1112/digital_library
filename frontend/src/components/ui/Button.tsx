@@ -10,7 +10,7 @@ export function Button({ variant = 'primary', size = 'md', className = '', ...pr
   
   const variants = {
     primary: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-600 shadow-md hover:shadow-lg',
-    secondary: 'bg-transparent text-gray-900 border-2 border-gray-900 hover:bg-gray-50 focus:ring-gray-900',
+    secondary: 'bg-transparent text-gray-900 dark:text-gray-200 border-2 border-gray-900 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 focus:ring-gray-900 dark:focus:ring-gray-300',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
   };
   

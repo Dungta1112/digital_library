@@ -21,9 +21,9 @@ export function LibraryControls({ query, setQuery, category, setCategory, onSear
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 p-6 md:p-8 bg-white border border-gray-100 rounded-3xl shadow-sm">
+    <div className="flex flex-col gap-6 p-6 md:p-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl shadow-sm transition-colors duration-300">
       <div>
-        <h3 className="font-bold text-gray-900 mb-3 text-lg">Tìm kiếm</h3>
+        <h3 className="font-bold text-gray-900 dark:text-white mb-3 text-lg">Tìm kiếm</h3>
         <Input 
           placeholder="Tên tài liệu, tác giả..."
           value={query}
@@ -34,10 +34,10 @@ export function LibraryControls({ query, setQuery, category, setCategory, onSear
         <Button onClick={onSearch} size="md" className="w-full h-11 font-semibold shadow-md mt-3">Tìm</Button>
       </div>
       
-      <div className="w-full h-px bg-gray-100"></div>
+      <div className="w-full h-px bg-gray-100 dark:bg-slate-800 transition-colors duration-300"></div>
 
       <div>
-        <h3 className="font-bold text-gray-900 mb-4 text-lg">Chuyên mục</h3>
+        <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-lg">Chuyên mục</h3>
         <div className="flex flex-col gap-1.5">
           {categories.map(c => {
             const isActive = category === c.id;
@@ -47,8 +47,8 @@ export function LibraryControls({ query, setQuery, category, setCategory, onSear
                 onClick={() => setCategory(c.id)}
                 className={`text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   isActive 
-                    ? 'bg-green-50 text-green-700 border border-green-200 shadow-sm' 
-                    : 'text-gray-600 hover:bg-gray-50 border border-transparent'
+                    ? 'bg-green-50 dark:bg-slate-800 text-green-700 dark:text-green-400 border border-green-200 dark:border-slate-700 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 border border-transparent'
                 }`}
               >
                 {c.name}
@@ -75,7 +75,7 @@ export function Pagination({ page, totalPages, setPage }: { page: number, totalP
       >
         ← Trước
       </Button>
-      <span className="text-sm font-semibold text-gray-700 px-4 py-2 bg-gray-100 rounded-md">
+      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 px-4 py-2 bg-gray-100 dark:bg-slate-800 rounded-md transition-colors duration-300">
         Trang {page} / {totalPages}
       </span>
       <Button 
