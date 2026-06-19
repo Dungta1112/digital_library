@@ -72,6 +72,22 @@ async function main() {
     create: { userId: admin.id, roleId: adminRole.id }
   });
 
+  const lecturerRole = await prisma.role.findUniqueOrThrow({ where: { code: 'LECTURER' } });
+  const lecturer = await prisma.user.upsert({
+    where: { email: 'lecturer@example.edu' },
+    update: {},
+    create: {
+      email: 'lecturer@example.edu',
+      passwordHash,
+      fullName: 'Demo Lecturer'
+    }
+  });
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: lecturer.id, roleId: lecturerRole.id } },
+    update: {},
+    create: { userId: lecturer.id, roleId: lecturerRole.id }
+  });
+
   const configs = [
     { key: 'upload.allowed_file_types', value: ['application/pdf'], description: 'Allowed upload MIME types' },
     { key: 'upload.max_file_size_bytes', value: 20971520, description: 'Maximum upload size' },

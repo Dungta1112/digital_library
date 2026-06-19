@@ -4,3 +4,4 @@ pydantic==2.7.4
 requests==2.32.3
 chromadb==0.5.0
 ollama==0.2.1
+numpy<2.0.0
