@@ -16,6 +16,13 @@
   --animate-float-fast: float-fast 6s infinite ease-in-out;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
 @keyframes float-slow {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-30px); }

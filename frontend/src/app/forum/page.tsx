@@ -19,12 +19,12 @@ export default function ForumPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-16">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-slate-950 py-16 transition-colors duration-300">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
           <div className="max-w-2xl">
-            <h1 className="font-playfair text-5xl md:text-6xl font-bold text-gray-900 mb-4 tracking-tight">Diễn đàn Học thuật</h1>
-            <p className="text-xl text-gray-600 font-light tracking-tight leading-relaxed">Trao đổi nghiên cứu, đặt câu hỏi và cộng tác cùng bạn học.</p>
+            <h1 className="font-playfair text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight transition-colors duration-300">Diễn đàn Học thuật</h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 font-light tracking-tight leading-relaxed transition-colors duration-300">Trao đổi nghiên cứu, đặt câu hỏi và cộng tác cùng bạn học.</p>
           </div>
           {can('POST_FORUM') && (
             <Button className="h-12 px-6 shadow-md font-semibold shrink-0">
@@ -35,7 +35,7 @@ export default function ForumPage() {
         
         {loading ? (
           <div className="space-y-6">
-            {[1,2,3].map(i => <div key={i} className="h-48 bg-white rounded-3xl animate-pulse border border-gray-100 shadow-sm"></div>)}
+            {[1,2,3].map(i => <div key={i} className="h-48 bg-white dark:bg-slate-900 rounded-3xl animate-pulse border border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-300"></div>)}
           </div>
         ) : (
           <div className="space-y-6">

@@ -1,0 +1,1 @@
+Hoàn thiện hệ thống Dark Mode, sửa lỗi hiển thị icon Theme Toggle và cập nhật dữ liệu seed

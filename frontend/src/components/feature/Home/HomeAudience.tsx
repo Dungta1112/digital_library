@@ -27,7 +27,7 @@ const audiences = [
 
 export function HomeAudience() {
   return (
-    <section className="relative py-24 bg-white overflow-hidden z-10">
+    <section className="relative py-24 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden z-10">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.h2 
@@ -35,7 +35,7 @@ export function HomeAudience() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 transition-colors duration-300"
           >
             Nền tảng dành cho ai?
           </motion.h2>
@@ -50,13 +50,13 @@ export function HomeAudience() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
-              className="p-8 rounded-[2rem] bg-[#F8FAF7] border border-gray-100 flex flex-col items-center text-center hover:shadow-xl hover:border-green-200 transition-all duration-300"
+              className="p-8 rounded-[2rem] bg-[#F8FAF7] dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col items-center text-center hover:shadow-xl hover:border-green-200 dark:hover:border-green-800 transition-all duration-300"
             >
-              <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center text-3xl mb-6">
+              <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-3xl mb-6 transition-colors duration-300">
                 {audience.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{audience.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 transition-colors duration-300">{audience.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed transition-colors duration-300">
                 {audience.description}
               </p>
             </motion.div>
