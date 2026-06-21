@@ -56,4 +56,24 @@ export class ForumController {
   async report(@CurrentUser() user: RequestUser, @Body() dto: CreateForumReportDto) {
     return created(await this.service.report(user.id, dto));
   }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Patch('posts/:postId/comments/:commentId')
+    async updateComment(@CurrentUser() user: RequestUser, @Param('commentId') commentId: string, @Body() dto: { content: string }) {
+        return ok(await this.service.updateComment(user.id, commentId, dto.content));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Delete('posts/:postId/comments/:commentId')
+    async deleteComment(@CurrentUser() user: RequestUser, @Param('commentId') commentId: string) {
+        return ok(await this.service.deleteComment(user.id, commentId));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Patch('posts/:postId/comments/:commentId/accept')
+    async acceptAnswer(@CurrentUser() user: RequestUser, @Param('postId') postId: string, @Param('commentId') commentId: string) {
+        return ok(await this.service.acceptAnswer(user.id, postId, commentId));
+    }
 }

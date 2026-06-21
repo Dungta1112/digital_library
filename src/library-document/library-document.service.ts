@@ -90,4 +90,30 @@ export class LibraryDocumentService {
       throw new ForbiddenException('Document is not approved');
     }
   }
+    async addNote(userId: string, documentId: string, content: string) {
+        await this.ensureApproved(documentId);
+        return this.prisma.documentNote.create({ data: { userId, documentId, content } });
+    }
+
+    async getNotes(userId: string, documentId: string) {
+        return this.prisma.documentNote.findMany({ where: { userId, documentId } });
+    }
+
+    async deleteNote(userId: string, noteId: string) {
+        const note = await this.prisma.documentNote.findUnique({ where: { id: noteId } });
+        if (!note || note.userId !== userId) throw new ForbiddenException('Not allowed');
+        return this.prisma.documentNote.delete({ where: { id: noteId } });
+    }
+
+    async addHistory(userId: string, documentId: string) {
+        return this.prisma.documentHistory.create({ data: { userId, documentId } });
+    }
+
+    async getHistory(userId: string) {
+        return this.prisma.documentHistory.findMany({
+            where: { userId },
+            include: { document: true },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
 }
