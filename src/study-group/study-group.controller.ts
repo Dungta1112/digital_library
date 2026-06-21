@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
 import { ApiProtected } from '../common/decorators/api-docs.decorator';
@@ -65,4 +65,17 @@ export class StudyGroupController {
   async comment(@CurrentUser() user: RequestUser, @Param('groupPostId') groupPostId: string, @Body() dto: CreateGroupCommentDto) {
     return created(await this.service.comment(user.id, groupPostId, dto));
   }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Post(':groupId/leave')
+    async leave(@CurrentUser() user: RequestUser, @Param('groupId') groupId: string) {
+        return ok(await this.service.leave(user.id, groupId));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Delete(':groupId/members/:userId')
+    async removeMember(@CurrentUser() user: RequestUser, @Param('groupId') groupId: string, @Param('userId') userId: string) {
+        return ok(await this.service.removeMember(user.id, groupId, userId));
+    }
 }
