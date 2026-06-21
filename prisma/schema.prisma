@@ -105,10 +105,11 @@ model User {
   moderationLogs       ContentModerationLog[]
   updatedConfigs       SystemConfig[]
   auditLogs            AuditLog[]
+  following            UserFollow[] @relation("UserFollowers")
+  followers            UserFollow[] @relation("UserFollowing")
   notifications        Notification[]
   documentNotes        DocumentNote[]
   documentHistory      DocumentHistory[]
-
 
   @@map("users")
 }
@@ -458,6 +459,18 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@map("user_follows")
+}
+
 model Notification {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
@@ -468,7 +481,8 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
-=======
+}
+  
 model DocumentNote {
   id         String   @id @default(uuid())
   userId     String   @map("user_id")
@@ -493,3 +507,4 @@ model DocumentHistory {
   @@map("document_history")
 
 }
+

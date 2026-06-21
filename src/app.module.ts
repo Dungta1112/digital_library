@@ -17,8 +17,8 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { CategoriesModule } from './categories/categories.module';
 import { NotificationModule } from './notification/notification.module';
+import { FollowModule } from './follow/follow.module';
 import { AiModule } from './ai/ai.module';
-
 
 @Module({
   imports: [
@@ -40,7 +40,9 @@ import { AiModule } from './ai/ai.module';
     SystemConfigModule,
     CategoriesModule,
     NotificationModule,
+    FollowModule,
     AiModule
+
 
   ]
 })
