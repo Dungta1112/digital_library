@@ -16,6 +16,7 @@ import { AdminManagementModule } from './admin-management/admin-management.modul
 import { StatisticsModule } from './statistics/statistics.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { CategoriesModule } from './categories/categories.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { CategoriesModule } from './categories/categories.module';
     AdminManagementModule,
     StatisticsModule,
     SystemConfigModule,
-    CategoriesModule
+    CategoriesModule,
+    NotificationModule
   ]
 })
 export class AppModule {}

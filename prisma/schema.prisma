@@ -105,6 +105,7 @@ model User {
   moderationLogs       ContentModerationLog[]
   updatedConfigs       SystemConfig[]
   auditLogs            AuditLog[]
+  notifications        Notification[]
 
   @@map("users")
 }
@@ -449,4 +450,16 @@ model AuditLog {
   actor      User?      @relation(fields: [actorId], references: [id])
 
   @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  content   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
 }
