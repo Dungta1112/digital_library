@@ -105,6 +105,8 @@ model User {
   moderationLogs       ContentModerationLog[]
   updatedConfigs       SystemConfig[]
   auditLogs            AuditLog[]
+  documentNotes        DocumentNote[]
+  documentHistory      DocumentHistory[]
 
   @@map("users")
 }
@@ -198,6 +200,8 @@ model Document {
   ratings           DocumentRating[]
   reports           DocumentReport[]
   groupDocuments    StudyGroupDocument[]
+  notes             DocumentNote[]
+  history           DocumentHistory[]
 
   @@map("documents")
 }
@@ -449,4 +453,28 @@ model AuditLog {
   actor      User?      @relation(fields: [actorId], references: [id])
 
   @@map("audit_logs")
+}
+
+model DocumentNote {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_notes")
+}
+
+model DocumentHistory {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_history")
 }
