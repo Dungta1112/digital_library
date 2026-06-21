@@ -309,6 +309,7 @@ model ForumComment {
   parent    ForumComment?   @relation("ForumCommentReplies", fields: [parentId], references: [id])
   replies   ForumComment[]  @relation("ForumCommentReplies")
   reports   ForumReport[]
+  isAccepted Boolean @default(false) @map("is_accepted")
 
   @@map("forum_comments")
 }

@@ -77,4 +77,26 @@ export class AuthService {
       })
     };
   }
+    async forgotPassword(email: string) {
+        const user = await this.prisma.user.findUnique({ where: { email } });
+        if (!user) return { message: 'If email exists, reset link will be sent' };
+
+        const token = await this.jwt.signAsync(
+            { sub: user.id, email: user.email },
+            { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '15m' }
+        );
+
+        // TODO: gửi email chứa token này cho user
+        return { token };
+    }
+
+    async resetPassword(token: string, newPassword: string) {
+        const payload = await this.jwt.verifyAsync(token, { secret: process.env.JWT_ACCESS_SECRET });
+        const passwordHash = await bcrypt.hash(newPassword, Number(process.env.BCRYPT_ROUNDS ?? 12));
+        await this.prisma.user.update({
+            where: { id: payload.sub },
+            data: { passwordHash }
+        });
+        return { message: 'Password updated' };
+    }
 }
