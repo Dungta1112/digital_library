@@ -17,6 +17,8 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { CategoriesModule } from './categories/categories.module';
 import { NotificationModule } from './notification/notification.module';
+import { AiModule } from './ai/ai.module';
+
 
 @Module({
   imports: [
@@ -37,7 +39,9 @@ import { NotificationModule } from './notification/notification.module';
     StatisticsModule,
     SystemConfigModule,
     CategoriesModule,
-    NotificationModule
+    NotificationModule,
+    AiModule
+
   ]
 })
 export class AppModule {}
