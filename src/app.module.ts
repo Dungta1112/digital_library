@@ -18,6 +18,7 @@ import { SystemConfigModule } from './system-config/system-config.module';
 import { CategoriesModule } from './categories/categories.module';
 import { NotificationModule } from './notification/notification.module';
 import { FollowModule } from './follow/follow.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -39,7 +40,10 @@ import { FollowModule } from './follow/follow.module';
     SystemConfigModule,
     CategoriesModule,
     NotificationModule,
-    FollowModule
+    FollowModule,
+    AiModule
+
+
   ]
 })
 export class AppModule {}
