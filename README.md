@@ -37,11 +37,40 @@ Hệ thống **Digital Library** và diễn đàn học thuật dành cho các c
 |---|---|---|
 | **Node.js** | v18+ | `node -v` |
 | **npm** | v9+ | `npm -v` |
-| **Docker Desktop** | Latest | `docker --version` |
-| **Docker Compose** | v2+ (đi kèm Docker Desktop) | `docker compose version` |
+| **Docker & Docker Compose** | Latest | `docker --version` |
 | **Git** | Latest | `git --version` |
 
-> **💡 Lưu ý:** Docker Desktop trên Windows đã bao gồm Docker Compose v2. Không cần cài thêm `docker-compose` riêng.
+---
+
+## 🐋 Hướng dẫn cài đặt Docker (Đặc biệt cho Windows)
+
+Hệ thống yêu cầu Docker để chạy cơ sở dữ liệu (PostgreSQL, Redis, MinIO) mà không cần cài đặt phức tạp lên máy thật.
+
+### Dành cho Windows (Đề xuất dùng Docker Desktop)
+
+1. **Bật ảo hoá (Virtualization):**
+   - Đảm bảo tính năng **Virtualization** đã được bật trong BIOS/UEFI. Bạn có thể kiểm tra bằng cách mở Task Manager -> Tab Performance -> CPU -> Nhìn chữ "Virtualization: Enabled".
+2. **Cài đặt WSL 2 (Windows Subsystem for Linux):**
+   - Mở PowerShell dưới quyền Admin (Run as Administrator) và gõ:
+     ```powershell
+     wsl --install
+     ```
+   - Khởi động lại máy tính nếu được yêu cầu.
+3. **Tải và cài đặt Docker Desktop:**
+   - Truy cập trang chủ: [Tải Docker Desktop cho Windows](https://docs.docker.com/desktop/install/windows-install/)
+   - Chạy file `.exe` vừa tải về. Trong lúc cài đặt, đảm bảo đã tích chọn **"Use WSL 2 instead of Hyper-V"**.
+   - Sau khi cài xong, mở ứng dụng Docker Desktop và chờ icon cá voi chuyển sang màu xanh (Engine running).
+   - *Lưu ý:* Docker Desktop đã tích hợp sẵn **Docker Compose**, bạn không cần cài thêm.
+
+### Dành cho macOS & Linux
+- **macOS:** Tải Docker Desktop tương tự Windows tại trang chủ Docker.
+- **Linux (Ubuntu):**
+  ```bash
+  sudo apt update
+  sudo apt install docker.io docker-compose-v2
+  sudo systemctl enable docker
+  sudo systemctl start docker
+  ```
 
 ---
 
@@ -468,13 +497,6 @@ npm run seed
 
 1. Kiểm tra biến `NEXT_PUBLIC_API_BASE_URL` trong `frontend/.env.local`
 2. Nếu chưa có backend, đặt `NEXT_PUBLIC_USE_MOCKS=true` để dùng mock data
-
-### Không seed được (bcrypt lỗi trên Windows)
-
-```powershell
-# Rebuild bcrypt native module
-npm rebuild bcrypt
-```
 
 ---
 
