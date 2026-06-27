@@ -34,3 +34,8 @@ export class FollowController {
 
     @ApiProtected()
     @UseGuards(JwtAuthGuard)
+    @Get('me/followers')
+    async getFollowers(@CurrentUser() user: RequestUser) {
+        return ok(await this.service.getFollowers(user.id));
+    }
+}

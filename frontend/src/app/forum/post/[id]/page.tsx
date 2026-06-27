@@ -62,7 +62,7 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800 flex gap-2 transition-colors duration-300">
-            {post.tags.map(tag => (
+            {post.tags?.map(tag => (
               <span key={tag} className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-md transition-colors duration-300">#{tag}</span>
             ))}
           </div>

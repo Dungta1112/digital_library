@@ -11,12 +11,34 @@ export default function ForumPage() {
   const [loading, setLoading] = useState(true);
   const { can } = usePermissions();
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     ForumService.getPosts().then(p => {
       setPosts(p);
       setLoading(false);
     });
   }, []);
+
+  const handleCreatePost = async () => {
+    if (!newTitle.trim() || !newContent.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const newPost = await ForumService.createPost(newTitle, newContent);
+      setPosts([newPost, ...posts]);
+      setIsModalOpen(false);
+      setNewTitle('');
+      setNewContent('');
+    } catch (e) {
+      console.error(e);
+      alert('Có lỗi xảy ra khi đăng bài');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-slate-950 py-16 transition-colors duration-300">
@@ -27,7 +49,7 @@ export default function ForumPage() {
             <p className="text-xl text-gray-600 dark:text-gray-400 font-light tracking-tight leading-relaxed transition-colors duration-300">Trao đổi nghiên cứu, đặt câu hỏi và cộng tác cùng bạn học.</p>
           </div>
           {can('POST_FORUM') && (
-            <Button className="h-12 px-6 shadow-md font-semibold shrink-0">
+            <Button onClick={() => setIsModalOpen(true)} className="h-12 px-6 shadow-md font-semibold shrink-0">
               <span className="mr-2">✍️</span> Bài viết mới
             </Button>
           )}
@@ -43,6 +65,33 @@ export default function ForumPage() {
           </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Tạo bài viết mới</h2>
+            <input 
+              type="text" 
+              placeholder="Tiêu đề bài viết" 
+              className="w-full mb-4 rounded-xl border border-gray-300 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800 p-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all shadow-inner"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+            />
+            <textarea 
+              placeholder="Nội dung chi tiết..." 
+              className="w-full mb-6 min-h-[200px] rounded-xl border border-gray-300 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800 p-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all shadow-inner resize-y"
+              value={newContent}
+              onChange={e => setNewContent(e.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
+              <Button disabled={isSubmitting || !newTitle.trim() || !newContent.trim()} onClick={handleCreatePost}>
+                {isSubmitting ? 'Đang đăng...' : 'Đăng bài viết'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
