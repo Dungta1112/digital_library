@@ -277,38 +277,58 @@ npm run test:contract
 
 ## 🔧 Biến môi trường (.env)
 
-### Backend (`/.env`)
+Dự án sử dụng file `.env` cho backend và `.env.local` cho frontend. Dưới đây là nội dung mẫu của file `.env.example` dành cho backend, bạn có thể copy và tạo thành file `.env` ở thư mục gốc:
 
-| Biến | Mô tả | Giá trị mặc định |
-|---|---|---|
-| **Database** | | |
-| `DATABASE_URL` | Connection string PostgreSQL | `postgresql://postgres:123456@localhost:5432/ailibrary` |
-| **JWT** | | |
-| `JWT_ACCESS_SECRET` | Secret key cho access token | `change-me` ⚠️ |
-| `JWT_REFRESH_SECRET` | Secret key cho refresh token | `change-me` ⚠️ |
-| `JWT_ACCESS_EXPIRES_IN` | Thời gian sống access token | `15m` |
-| `JWT_REFRESH_EXPIRES_IN` | Thời gian sống refresh token | `7d` |
-| `BCRYPT_ROUNDS` | Số vòng hash mật khẩu | `12` |
-| **Storage** | | |
-| `STORAGE_DRIVER` | Driver lưu file: `local` hoặc `minio` | `local` |
-| `LOCAL_STORAGE_PATH` | Đường dẫn lưu file (khi dùng local) | `./storage` |
-| `MINIO_ENDPOINT` | Host của MinIO server | `localhost` |
-| `MINIO_PORT` | Port của MinIO API | `9000` |
-| `MINIO_ACCESS_KEY` | Access key đăng nhập MinIO | `minioadmin` |
-| `MINIO_SECRET_KEY` | Secret key đăng nhập MinIO | `minioadmin` |
-| `MINIO_BUCKET` | Tên bucket lưu trữ | `documents` |
-| `MINIO_USE_SSL` | Bật SSL cho MinIO | `false` |
-| **Redis** | | |
-| `REDIS_URL` | Connection string Redis | `redis://localhost:6379` |
-| `CACHE_ENABLED` | Bật/tắt Redis cache | `false` |
-| **Server** | | |
-| `PORT` | Port chạy backend | `3000` |
-| `ALLOWED_HOSTS` | CORS allowed origins (`*` = tất cả) | `*` |
-| **Seed (tuỳ chọn)** | | |
-| `SEED_ADMIN_EMAIL` | Email tài khoản admin mặc định | `admin@example.edu` |
-| `SEED_ADMIN_PASSWORD` | Mật khẩu tài khoản admin mặc định | `Admin123!` |
+```env
+# ── Database (PostgreSQL) ────────────────────────────────────
+DATABASE_URL=postgresql://postgres:123456@localhost:5432/ailibrary
 
-### Frontend (`/frontend/.env.local`)
+# ── JWT Authentication ───────────────────────────────────────
+JWT_ACCESS_SECRET=change-me
+JWT_REFRESH_SECRET=change-me
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+BCRYPT_ROUNDS=12
+
+# ── File Storage (MinIO) ────────────────────────────────────
+STORAGE_DRIVER=local
+LOCAL_STORAGE_PATH=./storage
+MINIO_ENDPOINT=localhost
+MINIO_PORT=9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=documents
+MINIO_USE_SSL=false
+
+# ── Redis Cache ──────────────────────────────────────────────
+REDIS_URL=redis://localhost:6379
+CACHE_ENABLED=false
+
+# ── Server ───────────────────────────────────────────────────
+PORT=3000
+ALLOWED_HOSTS=*
+
+# ── Seed (optional) ─────────────────────────────────────────
+# SEED_ADMIN_EMAIL=admin@example.edu
+# SEED_ADMIN_PASSWORD=Admin123!
+
+# ── AI Service (Ollama - 8GB VRAM Optimized) ────────────────
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_CHAT_MODEL=qwen2.5:7b
+OLLAMA_EMBED_MODEL=nomic-embed-text
+AI_MAX_TOKENS=4096
+AI_TEMPERATURE=0.7
+AI_CONTEXT_WINDOW=4096
+AI_TOP_K_RETRIEVAL=20
+AI_TOP_K_CONTEXT=5
+AI_RATE_LIMIT_STUDENT=10
+AI_RATE_LIMIT_LECTURER=20
+AI_RATE_LIMIT_ADMIN=0
+AI_MAX_MESSAGE_LENGTH=2000
+AI_SYSTEM_PROMPT="Bạn là trợ lý AI học thuật của Thư viện số. Trả lời chính xác bằng tiếng Việt, CHỈ dựa trên nội dung tài liệu được cung cấp trong CONTEXT. Nếu CONTEXT không đủ thông tin, hãy nói rõ. KHÔNG bịa thông tin. Luôn trích dẫn nguồn tài liệu."
+```
+
+### Chi tiết Frontend (`/frontend/.env.local`)
 
 | Biến | Mô tả | Giá trị mặc định |
 |---|---|---|
