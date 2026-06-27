@@ -68,45 +68,56 @@ export function GroupChat({ groupId }: { groupId: string }) {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-[500px] transition-colors duration-300">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-[#313338] transition-colors duration-300">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 px-6 py-4 border-b border-gray-100 dark:border-slate-800 shadow-sm z-10 flex items-center justify-between transition-colors duration-300">
-        <h3 className="font-extrabold text-gray-900 dark:text-white flex items-center gap-2 transition-colors duration-300">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          Thảo luận trực tiếp
+      <div className="h-12 px-4 flex items-center border-b border-gray-200 dark:border-[#1e1f22] shadow-sm flex-shrink-0 bg-white dark:bg-[#313338] transition-colors duration-300 z-10">
+        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-base transition-colors duration-300">
+          <span className="text-gray-400 dark:text-gray-500 text-xl font-light">#</span>
+          thảo-luận-chung
         </h3>
-        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-full transition-colors duration-300">Real-time</span>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30 dark:bg-slate-950/50 transition-colors duration-300">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-6 space-y-6 transition-colors duration-300">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">
-            <span className="text-3xl mb-2">👋</span>
-            <p>Chưa có tin nhắn nào. Hãy là người đầu tiên bắt đầu cuộc trò chuyện!</p>
+          <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-[#2b2d31] rounded-full flex items-center justify-center mb-4 text-2xl">👋</div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to the beginning of the chat!</h1>
+            <p>This is the start of your conversation.</p>
           </div>
         ) : (
-          messages.map(msg => {
-            const isMe = user && (msg.senderId === user.id || msg.senderId === 'current-user');
-            
+          messages.map((msg, index) => {
+            const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId && 
+              (new Date(msg.timestamp).getTime() - new Date(messages[index - 1].timestamp).getTime() < 300000); // 5 mins
+
             return (
-              <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                <div className={`flex items-end gap-2 max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {!isMe && (
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 flex-shrink-0 flex items-center justify-center text-xs font-bold border border-indigo-200 dark:border-indigo-800/50 transition-colors duration-300">
-                      {msg.senderName.charAt(0).toUpperCase()}
+              <div key={msg.id} className={`flex group hover:bg-gray-50 dark:hover:bg-[#2e3035] -mx-4 px-4 py-0.5 transition-colors ${isConsecutive ? 'mt-0.5' : 'mt-4'}`}>
+                {!isConsecutive ? (
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 flex-shrink-0 flex items-center justify-center text-sm font-bold mt-0.5 cursor-pointer hover:opacity-80 transition-opacity">
+                    {msg.senderName.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <div className="w-10 flex-shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-[10px] text-gray-400 dark:text-gray-500 font-medium select-none pt-1.5">
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
+                
+                <div className="ml-4 flex-1 min-w-0">
+                  {!isConsecutive && (
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="font-medium text-gray-900 dark:text-white hover:underline cursor-pointer transition-colors text-[15px]">
+                        {msg.senderName}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {new Date(msg.timestamp).toLocaleDateString() === new Date().toLocaleDateString() 
+                          ? `Today at ${new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                          : new Date(msg.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                   )}
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-colors duration-300 ${
-                    isMe 
-                      ? 'bg-green-600 text-white rounded-br-sm shadow-md shadow-green-600/20' 
-                      : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-700 shadow-sm rounded-bl-sm'
-                  }`}>
+                  <div className="text-gray-800 dark:text-[#dbdee1] text-[15px] leading-[1.375rem] whitespace-pre-wrap break-words">
                     {msg.content}
                   </div>
-                </div>
-                <div className={`text-[10px] text-gray-400 dark:text-gray-500 mt-1 px-1 transition-colors duration-300 ${isMe ? 'text-right' : 'text-left ml-10'}`}>
-                  {isMe ? 'Bạn' : msg.senderName} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             );
@@ -116,22 +127,25 @@ export function GroupChat({ groupId }: { groupId: string }) {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 transition-colors duration-300">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+      <div className="px-4 pb-6 pt-2 bg-white dark:bg-[#313338] transition-colors duration-300">
+        <form onSubmit={handleSendMessage} className="relative flex items-center">
+          <div className="absolute left-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer transition-colors">
+            <span className="text-xl leading-none">⊕</span>
+          </div>
           <Input
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
-            placeholder={user ? "Nhập tin nhắn..." : "Vui lòng đăng nhập để chat"}
+            placeholder={user ? "Message #thảo-luận-chung" : "Vui lòng đăng nhập để chat"}
             disabled={!user || sending}
-            className="flex-1 rounded-full bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-950 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm h-11 transition-colors duration-300"
+            className="w-full pl-12 pr-12 py-3 bg-gray-100 dark:bg-[#383a40] border-none focus:ring-0 text-gray-900 dark:text-[#dbdee1] placeholder:text-gray-500 dark:placeholder:text-[#87898f] rounded-lg text-[15px] transition-colors"
           />
-          <Button 
+          <button 
             type="submit" 
             disabled={!user || !inputValue.trim() || sending} 
-            className="rounded-full w-11 h-11 p-0 flex items-center justify-center shrink-0 shadow-md"
+            className="absolute right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
-            ➤
-          </Button>
+            <span className="text-lg">➤</span>
+          </button>
         </form>
       </div>
     </div>

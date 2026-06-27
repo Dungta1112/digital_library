@@ -41,7 +41,7 @@ async function bootstrap() {
 
   const allowedHosts = process.env.ALLOWED_HOSTS || '*';
   app.enableCors({
-    origin: allowedHosts === '*' ? '*' : allowedHosts.split(','),
+    origin: allowedHosts === '*' ? true : allowedHosts.split(','),
     credentials: true,
   });
 

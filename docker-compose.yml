@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # ── PostgreSQL ─────────────────────────────────────────────
   postgres:
@@ -38,6 +40,42 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - miniodata:/data
+
+  # ── Backend (Node.js/NestJS) ───────────────────────────────
+  backend:
+    build:
+      context: .
+    container_name: ailibrary-backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - ai_service
+
+  # ── AI Service (Python FastAPI) ────────────────────────────
+  ai_service:
+    build:
+      context: ./ai_service
+    container_name: ailibrary-ai
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./ai_service:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
 
 volumes:
   pgdata:

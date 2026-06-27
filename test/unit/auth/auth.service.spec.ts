@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 describe('AuthService security expectations', () => {
   it('hashes passwords with bcrypt-compatible hashes', async () => {
