@@ -24,6 +24,11 @@ export const ForumService = {
     }
   },
 
+  async createPost(title: string, content: string): Promise<ForumPost> {
+    const res = await apiClient.post<any, ForumPost>('/forum/posts', { title, content });
+    return res;
+  },
+
   async createComment(postId: string, content: string): Promise<ForumComment> {
     const res = await apiClient.post<any, ForumComment>(`/forum/posts/${postId}/comments`, { content });
     return res;
