@@ -27,57 +27,80 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/80 dark:bg-slate-950 py-10 transition-colors duration-300">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <Link href="/groups" className="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-400 mb-8 inline-flex items-center bg-white dark:bg-slate-900 px-5 py-2.5 rounded-full border border-gray-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md duration-300">
-          ← Back to Study Groups
-        </Link>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm mb-8 relative overflow-hidden transition-colors duration-300">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-400 to-indigo-500"></div>
-              <span className="text-sm font-bold px-4 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg tracking-wide inline-block mb-6 border border-purple-100 dark:border-purple-800/50 transition-colors duration-300">{group.topic}</span>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight transition-colors duration-300">{group.name}</h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl leading-relaxed mb-10 transition-colors duration-300">{group.description}</p>
-              
-              <div className="pt-8 border-t border-gray-100 dark:border-slate-800 mt-6 transition-colors duration-300">
-                {group.isJoined ? (
-                  <GroupChat groupId={group.id} />
-                ) : (
-                  <div className="text-center py-16 bg-gray-50/50 dark:bg-slate-900/50 rounded-2xl border border-gray-200 dark:border-slate-800 border-dashed text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                     Join the group to view activity and participate in discussions.
-                  </div>
-                )}
-              </div>
-            </div>
+    <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-[#313338] transition-colors duration-300">
+      {/* Left Sidebar */}
+      <div className="w-72 bg-gray-50 dark:bg-[#2b2d31] flex flex-col flex-shrink-0 border-r border-gray-200 dark:border-[#1e1f22]">
+        {/* Header */}
+        <div className="h-12 px-4 flex items-center shadow-sm border-b border-gray-200 dark:border-[#1e1f22] flex-shrink-0">
+          <Link href="/groups" className="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+            ← Back to Study Groups
+          </Link>
+        </div>
+
+        {/* Group Info & Members List (Scrollable) */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+          <div className="mb-6">
+            <span className="text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-sm mb-2 inline-block">
+              {group.topic}
+            </span>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+              {group.name}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              {group.description}
+            </p>
           </div>
-          
-          <div className="md:col-span-1">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm mb-6 transition-colors duration-300">
+
+          {!group.isJoined && (
+            <div className="mb-6">
               <GroupAction group={group} onJoinSuccess={() => setGroup({...group, isJoined: true, membersCount: group.membersCount + 1})} />
             </div>
-            
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm transition-colors duration-300">
-              <h3 className="font-extrabold text-gray-900 dark:text-white mb-6 flex items-center gap-3 text-lg transition-colors duration-300">
-                👥 Members <span className="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs px-3 py-1 rounded-full font-bold transition-colors duration-300">{group.membersCount}</span>
-              </h3>
-              <div className="space-y-5">
-                {group.members?.map(m => (
-                  <div key={m.id} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-inner border border-gray-200 dark:border-slate-700 transition-colors duration-300">👤</div>
-                    <div>
-                      <p className="font-bold text-gray-900 dark:text-white text-sm flex flex-col items-start gap-1 transition-colors duration-300">
-                        {m.name}
-                        {m.role === 'ADMIN' && <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-black transition-colors duration-300">Admin</span>}
-                      </p>
+          )}
+
+          <div className="mt-4">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+              Members — {group.membersCount}
+            </h3>
+            <div className="space-y-1">
+              {group.members?.map(m => (
+                <div key={m.id} className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-200/50 dark:hover:bg-[#3f4147] rounded cursor-pointer group/member transition-colors">
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {m.name.charAt(0).toUpperCase()}
                     </div>
+                    {/* Status indicator (fake) */}
+                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-gray-50 dark:border-[#2b2d31] rounded-full"></div>
                   </div>
-                ))}
-              </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate group-hover/member:text-gray-900 dark:group-hover/member:text-white transition-colors">
+                      {m.name}
+                    </span>
+                    {m.role === 'ADMIN' && (
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#313338]">
+        {group.isJoined ? (
+          <GroupChat groupId={group.id} />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center p-8 max-w-sm">
+              <div className="w-20 h-20 bg-gray-100 dark:bg-[#2b2d31] rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🔒</div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Private Channel</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Join the group to view activity and participate in discussions.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
