@@ -41,8 +41,8 @@ export default function LibraryPage() {
     <div className="min-h-screen bg-gray-50/50 dark:bg-slate-950 pt-8 pb-16 transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 mt-10 text-center md:text-left max-w-4xl">
-          <h1 className="font-playfair text-5xl md:text-6xl font-bold text-gray-900 dark:text-white tracking-tight mb-6">Thư viện Học thuật</h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 font-light tracking-tight leading-relaxed">Duyệt, tìm kiếm và khám phá các tài liệu khoa học trên nhiều lĩnh vực.</p>
+          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white tracking-tight mb-6">Thư viện Học thuật</h1>
+          <p className="text-xl text-slate-600 dark:text-slate-400 font-light tracking-tight leading-relaxed">Duyệt, tìm kiếm và khám phá các tài liệu khoa học trên nhiều lĩnh vực.</p>
         </div>
         
         <div className="flex flex-col lg:flex-row gap-8 items-start">

@@ -7,7 +7,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand Info */}
           <div className="md:col-span-2">
-            <h3 className="font-playfair text-xl font-bold text-gray-900 dark:text-white mb-4">Smart Digital Library</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">Smart Digital Library</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
               Nền tảng thư viện số tích hợp tìm kiếm tài liệu, trợ lý AI, diễn đàn học thuật và nhóm học tập dành cho sinh viên, giảng viên và nhà nghiên cứu.
             </p>

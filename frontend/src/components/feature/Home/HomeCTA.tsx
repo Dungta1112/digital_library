@@ -1,48 +1,57 @@
 'use client';
 
 import { motion } from 'framer-motion';
-
 import Link from 'next/link';
+import { ArrowRight } from '@phosphor-icons/react';
 
 export function HomeCTA() {
   return (
-    <section className="relative py-32 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden z-10">
+    <section className="relative py-24 md:py-32 bg-slate-950 transition-colors duration-300 overflow-hidden z-10 border-t border-slate-900">
       <div className="container mx-auto px-6 relative z-10">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="relative max-w-5xl mx-auto p-12 md:p-16 rounded-[3rem] bg-[rgba(255,255,255,0.72)] dark:bg-slate-900/80 backdrop-blur-[20px] border border-[rgba(22,163,74,0.18)] dark:border-slate-800 text-center overflow-hidden shadow-2xl transition-colors duration-300"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-4xl mx-auto text-center"
         >
-          {/* Subtle gradient glows behind the panel */}
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-            <div className="absolute -top-[50%] -left-[20%] w-[70%] h-[150%] bg-green-400/10 blur-[100px] rounded-full transform -rotate-12" />
-            <div className="absolute -bottom-[50%] -right-[20%] w-[70%] h-[150%] bg-red-400/10 blur-[100px] rounded-full transform rotate-12" />
+          <div className="inline-flex items-center gap-3 mb-8">
+            <div className="h-[1px] w-8 bg-emerald-500/50" />
+            <span className="text-xs font-bold tracking-[0.2em] text-emerald-400 uppercase">
+              Bắt đầu ngay hôm nay
+            </span>
+            <div className="h-[1px] w-8 bg-emerald-500/50" />
           </div>
 
-          <div className="relative z-10">
-            <h2 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight max-w-3xl mx-auto transition-colors duration-300">
-              Sẵn sàng khám phá tri thức theo cách thông minh hơn?
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed transition-colors duration-300">
-              Bắt đầu với thư viện số, đặt câu hỏi cho AI hoặc tham gia cộng đồng học thuật ngay hôm nay.
-            </p>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 tracking-tight leading-tight">
+            Sẵn sàng khám phá tri thức <br className="hidden md:block" />
+            theo cách thông minh hơn?
+          </h2>
+          
+          <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Hàng ngàn tài liệu học thuật cùng sự hỗ trợ của trí tuệ nhân tạo đang chờ bạn khám phá.
+          </p>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-              <Link href="/library" className="w-full sm:w-auto px-8 py-4 rounded-full bg-green-600 text-white font-medium shadow-[0_0_20px_rgba(22,163,74,0.3)] hover:bg-gradient-to-r hover:from-green-600 hover:to-red-600 hover:shadow-[0_0_35px_rgba(22,163,74,0.4)] transition-all duration-300 transform hover:-translate-y-1 block">
-                Khám phá thư viện
-              </Link>
-              <Link href="/ai" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white dark:bg-slate-900 text-gray-900 dark:text-white font-medium border border-gray-200 dark:border-slate-700 hover:border-[rgba(22,163,74,0.4)] dark:hover:border-green-800 hover:shadow-[0_0_25px_rgba(22,163,74,0.12)] transition-all duration-300 block">
-                Hỏi AI ngay
-              </Link>
-              <Link href="/forum" className="w-full sm:w-auto px-8 py-4 rounded-full bg-transparent text-gray-700 dark:text-gray-300 font-medium hover:text-green-700 dark:hover:text-green-400 transition-colors block">
-                Tham gia diễn đàn →
-              </Link>
-            </div>
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Link 
+              href="/library" 
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm hover:shadow-emerald-500/20 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group"
+            >
+              Khám phá thư viện
+            </Link>
+            <Link 
+              href="/ai" 
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-slate-900 text-white font-medium border border-slate-700 hover:border-emerald-500 hover:bg-slate-800 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group"
+            >
+              Hỏi AI ngay
+              <ArrowRight weight="bold" className="w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </div>
         </motion.div>
       </div>
+      
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 z-0" style={{ backgroundImage: 'radial-gradient(circle at center, #10b981 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
     </section>
   );
 }
