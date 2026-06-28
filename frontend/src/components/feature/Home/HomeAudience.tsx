@@ -35,7 +35,7 @@ export function HomeAudience() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="font-playfair text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 transition-colors duration-300"
+            className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 transition-colors duration-300 tracking-tight"
           >
             Nền tảng dành cho ai?
           </motion.h2>

@@ -7,6 +7,7 @@ import { ChatMessage } from '@/components/feature/AI/ChatMessage';
 import { ChatInput } from '@/components/feature/AI/ChatInput';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useRouter } from 'next/navigation';
+import { Robot } from '@phosphor-icons/react';
 
 export default function AIChatPage() {
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
@@ -53,15 +54,15 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-[#f8fafc] dark:bg-slate-950 transition-colors duration-300 relative">
-      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center shadow-sm z-10 sticky top-0 transition-colors duration-300">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-300">
-            🤖
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300 relative">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 py-4 flex justify-between items-center shadow-sm z-10 sticky top-0 transition-colors duration-300">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-900/20 rounded-full border border-emerald-100 dark:border-emerald-800/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm transition-colors duration-300">
+            <Robot weight="duotone" className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight transition-colors duration-300">Trợ lý AI Học thuật</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors duration-300">Nghiên cứu • Tổng hợp • Trích dẫn</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white leading-tight transition-colors duration-300 tracking-tight">Trợ lý AI Học thuật</h1>
+            <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest transition-colors duration-300 mt-0.5">Nghiên cứu • Tổng hợp • Trích dẫn</p>
           </div>
         </div>
       </div>
@@ -74,11 +75,11 @@ export default function AIChatPage() {
           
           {loading && (
             <div className="flex w-full justify-start mb-6">
-              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl rounded-bl-none p-4 shadow-sm flex gap-3 items-center w-[100px] transition-colors duration-300">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl rounded-bl-sm p-5 shadow-sm flex gap-3 items-center w-[100px] h-[60px] transition-colors duration-300">
                 <div className="flex gap-1.5 mx-auto">
-                   <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-bounce"></div>
-                   <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                   <div className="w-2.5 h-2.5 bg-green-600 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
+                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                   <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                 </div>
               </div>
             </div>

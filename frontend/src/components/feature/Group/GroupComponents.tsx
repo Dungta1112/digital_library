@@ -4,25 +4,49 @@ import { StudyGroup } from '@/types/group';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { GroupService } from '@/services/group.service';
+import { UsersThree, CheckCircle, ArrowRight, BookOpenText } from '@phosphor-icons/react';
 
 export function GroupCard({ group }: { group: StudyGroup }) {
   return (
-    <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full group hover:-translate-y-2">
-      <div className="flex justify-between items-start mb-6">
-        <span className="text-xs font-bold px-4 py-2 bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-400 rounded-full tracking-wide border border-purple-100 dark:border-slate-700 transition-colors duration-300">{group.topic}</span>
-        {group.isJoined && <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800/50 flex items-center gap-1 shadow-sm transition-colors duration-300">✅ Đã tham gia</span>}
+    <Link href={`/groups/${group.id}`} className="block group">
+      <div className="relative bg-white dark:bg-slate-900/80 p-6 rounded-xl border border-gray-200/80 dark:border-slate-700/50 transition-all duration-300 flex flex-col h-full hover:border-emerald-500/40 dark:hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 dark:hover:shadow-emerald-500/5 active:scale-[0.98]">
+        {/* Topic + Status Row */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-md transition-colors duration-300">
+            {group.topic || 'General'}
+          </span>
+          {group.isJoined && (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle weight="fill" className="w-4 h-4" />
+              Joined
+            </span>
+          )}
+        </div>
+
+        {/* Group Name */}
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors duration-200">
+          {group.name}
+        </h3>
+
+        {/* Description */}
+        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed flex-grow mb-5 transition-colors duration-300">
+          {group.description}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-slate-800 transition-colors duration-300">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <UsersThree weight="duotone" className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <span className="font-medium">{group.membersCount ?? group.members?.length ?? 0}</span>
+            <span className="hidden sm:inline">members</span>
+          </div>
+          <span className="flex items-center gap-1 text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-200">
+            View
+            <ArrowRight weight="bold" className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </span>
+        </div>
       </div>
-      <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-3 group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">{group.name}</h3>
-      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-6 leading-relaxed flex-grow transition-colors duration-300">{group.description}</p>
-      <div className="flex items-center justify-between mt-auto pt-5 border-t border-gray-100 dark:border-slate-800 transition-colors duration-300">
-        <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2 transition-colors duration-300">
-          <span className="text-lg">👥</span> {group.membersCount} thành viên
-        </span>
-        <Link href={`/groups/${group.id}`}>
-          <Button size="sm" variant="secondary" className="hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-700 dark:hover:text-purple-400 transition-colors font-semibold">Xem chi tiết</Button>
-        </Link>
-      </div>
-    </div>
+    </Link>
   );
 }
 
@@ -30,7 +54,12 @@ export function GroupAction({ group, onJoinSuccess }: { group: StudyGroup, onJoi
   const [loading, setLoading] = useState(false);
   
   if (group.isJoined) {
-    return <Button disabled variant="secondary" className="w-full h-12 text-green-700 bg-green-50 border-green-200 font-bold opacity-100">✅ Đã là thành viên</Button>;
+    return (
+      <button disabled className="w-full flex items-center justify-center gap-2 h-11 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm font-semibold cursor-default transition-colors duration-300">
+        <CheckCircle weight="fill" className="w-5 h-5" />
+        Already a member
+      </button>
+    );
   }
   
   const handleJoin = async () => {
@@ -45,7 +74,9 @@ export function GroupAction({ group, onJoinSuccess }: { group: StudyGroup, onJoi
     }
   };
 
-  return <Button onClick={handleJoin} disabled={loading} className="w-full h-12 shadow-md text-base font-bold tracking-wide">
-    {loading ? 'Đang tham gia...' : '👋 Tham gia nhóm'}
-  </Button>;
+  return (
+    <Button onClick={handleJoin} disabled={loading} className="w-full h-11 text-sm font-semibold tracking-wide active:scale-[0.98]">
+      {loading ? 'Joining...' : 'Join group'}
+    </Button>
+  );
 }
