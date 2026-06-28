@@ -5,12 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/services/api.client';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { 
+  Compass, MagnifyingGlass, Books, UserCircle, Gear, Bell, SignOut, 
+  User, CheckCircle, Star, DownloadSimple, Users, BookOpenText, 
+  ArrowRight, Book, GraduationCap, CalendarBlank, PencilSimple, ShareNetwork, ClockCounterClockwise
+} from '@phosphor-icons/react';
 
 type TabKey = 'overview' | 'history' | 'reviews';
 
 export default function ProfilePage() {
-  const { user, isLoading, login, token } = useAuth();
+  const { user, isLoading, login, token, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [editing, setEditing] = useState(false);
@@ -43,14 +49,14 @@ export default function ProfilePage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   const roleLabel = user.role === 'ADMIN' ? 'Quản trị viên' : user.role === 'LECTURER' ? 'Giảng viên' : user.role === 'CONTENT_MANAGER' ? 'Kiểm duyệt viên' : 'Sinh viên';
-  const roleBadge = user.role === 'ADMIN' ? 'bg-red-50 text-red-600 border-red-100' : user.role === 'LECTURER' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-green-50 text-green-600 border-green-100';
+  const roleBadge = user.role === 'ADMIN' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50' : user.role === 'LECTURER' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50' : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50';
   const memberSince = 'Tham gia Tháng 6, 2026';
 
   const tabs: { key: TabKey; label: string }[] = [
@@ -60,35 +66,35 @@ export default function ProfilePage() {
   ];
 
   const sidebarLinks = [
-    { icon: '📊', label: 'Khám phá', href: '/library' },
-    { icon: '🔍', label: 'Tìm kiếm', href: '/library' },
-    { icon: '📚', label: 'Tủ sách của tôi', href: '/my-documents' },
-    { icon: '👤', label: 'Hồ sơ cá nhân', href: '/profile', active: true },
+    { icon: <Compass weight="duotone" className="w-5 h-5" />, label: 'Khám phá', href: '/library' },
+    { icon: <MagnifyingGlass weight="duotone" className="w-5 h-5" />, label: 'Tìm kiếm', href: '/library' },
+    { icon: <Books weight="duotone" className="w-5 h-5" />, label: 'Tủ sách của tôi', href: '/my-documents' },
+    { icon: <UserCircle weight="duotone" className="w-5 h-5" />, label: 'Hồ sơ cá nhân', href: '/profile', active: true },
   ];
 
   const settingsLinks = [
-    { icon: '⚙️', label: 'Tài khoản', href: '/settings' },
-    { icon: '🔔', label: 'Thông báo', href: '/settings', badge: 3 },
+    { icon: <Gear weight="duotone" className="w-5 h-5" />, label: 'Cài đặt tài khoản', href: '/settings' },
+    { icon: <Bell weight="duotone" className="w-5 h-5" />, label: 'Thông báo', href: '/settings', badge: 3 },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 flex transition-colors duration-300">
       {/* ========== LEFT SIDEBAR ========== */}
-      <aside className="hidden lg:flex flex-col w-[260px] bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-64px)] shrink-0 z-10">
-        <div className="flex-1 overflow-y-auto px-4 py-6">
+      <aside className="hidden lg:flex flex-col w-[260px] bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 sticky top-16 h-[calc(100vh-64px)] shrink-0 z-10 transition-colors duration-300">
+        <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
           {/* Main Nav */}
-          <nav className="space-y-1 mb-6">
+          <nav className="space-y-1.5 mb-8">
             {sidebarLinks.map(link => (
               <Link
                 key={link.label}
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                   link.active
-                    ? 'bg-green-50 text-green-700 shadow-sm border border-green-100'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-800/50'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white border border-transparent'
                 }`}
               >
-                <span className="text-lg">{link.icon}</span>
+                {link.icon}
                 {link.label}
               </Link>
             ))}
@@ -96,18 +102,18 @@ export default function ProfilePage() {
 
           {/* Settings Section */}
           <div className="mb-6">
-            <p className="px-4 mb-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Cài đặt</p>
-            <nav className="space-y-1">
+            <p className="px-4 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Hệ thống</p>
+            <nav className="space-y-1.5">
               {settingsLinks.map(link => (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white border border-transparent transition-all"
                 >
-                  <span className="text-lg">{link.icon}</span>
+                  {link.icon}
                   {link.label}
                   {link.badge && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                       {link.badge}
                     </span>
                   )}
@@ -118,135 +124,115 @@ export default function ProfilePage() {
         </div>
 
         {/* Logout */}
-        <div className="px-4 py-4 border-t border-gray-100">
+        <div className="px-4 py-4 border-t border-slate-200/80 dark:border-slate-800">
           <button
-            onClick={() => { const { logout } = useAuth; }}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all w-full"
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all w-full"
           >
-            <span className="text-lg">🚪</span> Đăng xuất
+            <SignOut weight="bold" className="w-5 h-5" /> Đăng xuất
           </button>
         </div>
       </aside>
 
       {/* ========== MAIN CONTENT ========== */}
       <main className="flex-1 min-w-0">
-        {/* Cover Photo */}
-        <div className="relative h-48 md:h-64 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-400 overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-4 right-10 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
-            <div className="absolute bottom-0 left-20 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
-            <div className="absolute top-10 left-1/2 w-24 h-24 bg-white/15 rounded-full blur-xl" />
-          </div>
-          <button className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-2.5 rounded-full hover:bg-white/30 transition-all border border-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </button>
+        {/* Cover Photo - Darker, academic feel */}
+        <div className="relative h-56 md:h-72 bg-emerald-950 overflow-hidden">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-800 via-emerald-950 to-slate-950"></div>
+          <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
         </div>
 
         {/* Profile Header */}
-        <div className="px-6 md:px-10 -mt-16 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end gap-5 mb-6">
+        <div className="px-6 md:px-12 -mt-20 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end gap-6 mb-8">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-32 h-32 rounded-full bg-white p-1 shadow-xl">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-green-100 to-emerald-50 flex items-center justify-center text-5xl font-bold text-green-600 border-2 border-white">
+              <div className="w-36 h-36 rounded-[2rem] bg-white dark:bg-slate-900 p-1.5 shadow-xl rotate-3 hover:rotate-0 transition-transform duration-500">
+                <div className="w-full h-full rounded-[1.7rem] bg-emerald-50 dark:bg-slate-800 flex items-center justify-center text-5xl font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-slate-700">
                   {user.fullName.charAt(0).toUpperCase()}
                 </div>
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full border-[3px] border-white flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
               </div>
             </div>
 
             {/* Name & Meta */}
-            <div className="flex-1 pt-2">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+            <div className="flex-1 pt-4 pb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
                 {editing ? (
-                  <Input value={fullName} onChange={e => setFullName(e.target.value)} className="text-2xl font-bold max-w-xs" />
+                  <Input value={fullName} onChange={e => setFullName(e.target.value)} className="text-2xl font-bold max-w-xs bg-white dark:bg-slate-800" />
                 ) : (
                   user.fullName
                 )}
               </h1>
-              <p className="text-gray-500 text-sm mt-0.5 font-medium">@{user.email.split('@')[0]}</p>
-              <div className="flex items-center flex-wrap gap-3 mt-3">
-                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${roleBadge}`}>
-                  <span>🎓</span> {roleLabel}
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">@{user.email.split('@')[0]}</p>
+              <div className="flex items-center flex-wrap gap-4 mt-4">
+                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border uppercase tracking-wider ${roleBadge}`}>
+                  <GraduationCap weight="bold" className="w-4 h-4" /> {roleLabel}
                 </span>
-                <span className="text-xs text-gray-400 flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <CalendarBlank weight="bold" className="w-4 h-4 text-slate-400" />
                   {memberSince}
                 </span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 shrink-0 mt-2 md:mt-0">
+            <div className="flex items-center gap-3 shrink-0 pb-2 md:pb-4 mt-4 md:mt-0">
               {editing ? (
                 <>
-                  <button
+                  <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all shadow-md shadow-green-600/20 disabled:opacity-50"
+                    className="h-11 px-6 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-sm active:scale-95 transition-all font-semibold"
                   >
-                    {saving ? 'Đang lưu...' : '✓ Lưu'}
-                  </button>
-                  <button
+                    {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </Button>
+                  <Button
+                    variant="secondary"
                     onClick={() => { setEditing(false); setFullName(user.fullName); }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition-all"
+                    className="h-11 px-6 rounded-xl font-semibold"
                   >
                     Hủy
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button
+                  <Button
+                    variant="secondary"
                     onClick={() => setEditing(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+                    className="h-11 px-5 rounded-xl font-semibold shadow-sm flex items-center gap-2"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Tùy chỉnh
-                  </button>
-                  <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all shadow-md shadow-green-600/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                    </svg>
-                    Chia sẻ
-                  </button>
+                    <PencilSimple weight="bold" className="w-4 h-4" /> Tùy chỉnh
+                  </Button>
+                  <Button className="h-11 px-5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-sm active:scale-95 transition-all font-semibold flex items-center gap-2">
+                    <ShareNetwork weight="bold" className="w-4 h-4" /> Chia sẻ
+                  </Button>
                 </>
               )}
             </div>
           </div>
 
           {message && (
-            <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${message.startsWith('Lỗi') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+            <div className={`mb-6 p-4 rounded-xl text-sm font-medium border ${message.startsWith('Lỗi') ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50' : 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50'}`}>
               {message}
             </div>
           )}
 
           {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <div className="flex gap-0">
+          <div className="border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex gap-8 px-2">
               {tabs.map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`relative px-6 py-4 text-sm font-semibold transition-all ${
+                  className={`relative pb-4 pt-2 text-sm font-bold transition-all uppercase tracking-wider ${
                     activeTab === tab.key
-                      ? 'text-green-700'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                   }`}
                 >
                   {tab.label}
                   {activeTab === tab.key && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-green-600 rounded-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-500 rounded-t-full" />
                   )}
                 </button>
               ))}
@@ -255,7 +241,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab Content */}
-        <div className="px-6 md:px-10 py-8">
+        <div className="px-6 md:px-12 py-8">
           {activeTab === 'overview' && <OverviewTab user={user} bio={bio} />}
           {activeTab === 'history' && <HistoryTab />}
           {activeTab === 'reviews' && <ReviewsTab />}
@@ -272,41 +258,47 @@ function OverviewTab({ user, bio }: { user: any; bio: string }) {
       {/* Left Column (2/5) */}
       <div className="lg:col-span-2 space-y-6">
         {/* Bio */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-4">
-            <span className="text-lg">👤</span> Giới thiệu
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 transition-colors duration-300">
+          <h3 className="flex items-center gap-3 text-base font-bold text-slate-900 dark:text-white mb-5 tracking-tight">
+            <UserCircle weight="duotone" className="w-6 h-6 text-emerald-600 dark:text-emerald-500" /> 
+            Giới thiệu
           </h3>
-          <p className="text-sm text-gray-600 leading-relaxed">{bio}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{bio}</p>
         </div>
 
         {/* Stats */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 transition-colors duration-300">
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-4 p-4 bg-green-50/70 rounded-xl border border-green-100/50">
-              <div className="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center text-xl shrink-0">📖</div>
+            <div className="flex flex-col items-start gap-3 p-5 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/30">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <CheckCircle weight="bold" className="w-5 h-5" />
+              </div>
               <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Đã đọc</p>
-                <p className="text-2xl font-black text-gray-900 tracking-tight">128</p>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Đã đọc</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">128</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-blue-50/70 rounded-xl border border-blue-100/50">
-              <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0">📚</div>
+            <div className="flex flex-col items-start gap-3 p-5 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-800/30">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <BookOpenText weight="bold" className="w-5 h-5" />
+              </div>
               <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Đang đọc</p>
-                <p className="text-2xl font-black text-gray-900 tracking-tight">3</p>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Đang đọc</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">3</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Interests */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-4">
-            <span className="text-lg">🏷️</span> Sở thích
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 transition-colors duration-300">
+          <h3 className="flex items-center gap-3 text-base font-bold text-slate-900 dark:text-white mb-5 tracking-tight">
+            <Books weight="duotone" className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+            Sở thích
           </h3>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {['Khoa học Máy tính', 'AI & Machine Learning', 'Toán học', 'Vật lý', 'Tiểu thuyết'].map(tag => (
-              <span key={tag} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs font-semibold rounded-full border border-gray-100 hover:bg-green-50 hover:text-green-700 hover:border-green-100 transition-colors cursor-pointer">
+              <span key={tag} className="px-4 py-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[13px] font-semibold rounded-full border border-slate-200 dark:border-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 dark:hover:border-emerald-800 transition-colors cursor-pointer shadow-sm">
                 {tag}
               </span>
             ))}
@@ -317,13 +309,14 @@ function OverviewTab({ user, bio }: { user: any; bio: string }) {
       {/* Right Column (3/5) */}
       <div className="lg:col-span-3 space-y-6">
         {/* Continue Reading */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="flex items-center gap-2 text-base font-bold text-gray-900">
-              <span className="text-lg">🕐</span> Tiếp tục đọc
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 transition-colors duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="flex items-center gap-3 text-base font-bold text-slate-900 dark:text-white tracking-tight">
+              <ClockCounterClockwise weight="duotone" className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+              Tiếp tục đọc
             </h3>
-            <button className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-              Xem tất cả →
+            <button className="text-sm font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors flex items-center gap-1">
+              Xem tất cả <ArrowRight weight="bold" className="w-4 h-4" />
             </button>
           </div>
           <div className="space-y-4">
@@ -333,7 +326,7 @@ function OverviewTab({ user, bio }: { user: any; bio: string }) {
               type="Ebook"
               progress={68}
               timeLeft="~3 giờ 15 phút"
-              color="from-amber-400 to-orange-500"
+              color="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
             />
             <ReadingCard
               title="Clean Code"
@@ -341,7 +334,7 @@ function OverviewTab({ user, bio }: { user: any; bio: string }) {
               type="Sách nói"
               progress={32}
               timeLeft="~5 giờ 40 phút"
-              color="from-blue-400 to-indigo-500"
+              color="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
             />
             <ReadingCard
               title="Cấu trúc dữ liệu và giải thuật"
@@ -349,33 +342,34 @@ function OverviewTab({ user, bio }: { user: any; bio: string }) {
               type="Tài liệu"
               progress={85}
               timeLeft="~45 phút"
-              color="from-green-400 to-emerald-500"
+              color="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
             />
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-5">
-            <span className="text-lg">⚡</span> Hoạt động gần đây
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 transition-colors duration-300">
+          <h3 className="flex items-center gap-3 text-base font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
+            <UserCircle weight="duotone" className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+            Hoạt động gần đây
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-200 before:to-transparent dark:before:from-slate-800">
             {[
-              { action: 'Đã hoàn thành đọc', target: '"Nhập môn Machine Learning"', time: '2 giờ trước', icon: '✅' },
-              { action: 'Đã đánh giá 5⭐', target: '"Lập trình Python nâng cao"', time: '1 ngày trước', icon: '⭐' },
-              { action: 'Đã tải xuống', target: '"Giáo trình Vật lý đại cương"', time: '2 ngày trước', icon: '⬇️' },
-              { action: 'Đã tham gia nhóm', target: '"Nghiên cứu AI - K20"', time: '3 ngày trước', icon: '👥' },
+              { action: 'Đã hoàn thành đọc', target: '"Nhập môn Machine Learning"', time: '2 giờ trước', icon: <CheckCircle weight="fill" className="w-5 h-5 text-emerald-500" /> },
+              { action: 'Đã đánh giá 5⭐', target: '"Lập trình Python nâng cao"', time: '1 ngày trước', icon: <Star weight="fill" className="w-5 h-5 text-amber-500" /> },
+              { action: 'Đã tải xuống', target: '"Giáo trình Vật lý đại cương"', time: '2 ngày trước', icon: <DownloadSimple weight="bold" className="w-5 h-5 text-blue-500" /> },
+              { action: 'Đã tham gia nhóm', target: '"Nghiên cứu AI - K20"', time: '3 ngày trước', icon: <Users weight="bold" className="w-5 h-5 text-indigo-500" /> },
             ].map((activity, i) => (
-              <div key={i} className="flex items-start gap-3 group">
-                <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-sm shrink-0 group-hover:bg-green-50 transition-colors">
+              <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10 transition-transform group-hover:scale-110">
                   {activity.icon}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-medium">{activity.action}</span>{' '}
-                    <span className="font-bold text-gray-900">{activity.target}</span>
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm group-hover:border-slate-200 dark:group-hover:border-slate-700 transition-colors">
+                  <div className="flex flex-col mb-1">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">{activity.action}</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-[15px]">{activity.target}</span>
+                  </div>
+                  <time className="text-xs font-medium text-slate-400 dark:text-slate-500">{activity.time}</time>
                 </div>
               </div>
             ))}
@@ -391,32 +385,32 @@ function ReadingCard({ title, author, type, progress, timeLeft, color }: {
   title: string; author: string; type: string; progress: number; timeLeft: string; color: string;
 }) {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-100 hover:shadow-sm transition-all group">
+    <div className="flex items-center gap-5 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-md transition-all group">
       {/* Book Cover */}
-      <div className={`w-16 h-20 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center shrink-0 shadow-md`}>
-        <span className="text-white text-2xl">📕</span>
+      <div className={`w-16 h-20 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${color}`}>
+        <Book weight="duotone" className="w-8 h-8 opacity-80" />
       </div>
 
       {/* Book Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
+        <div className="flex items-start justify-between gap-3 mb-1">
           <div className="min-w-0">
-            <h4 className="text-sm font-bold text-gray-900 truncate">{title}</h4>
-            <p className="text-xs text-gray-500">{author}</p>
+            <h4 className="text-base font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{title}</h4>
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400">{author}</p>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0 uppercase">
+          <span className="text-[10px] font-bold px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md shrink-0 uppercase tracking-wider">
             {type}
           </span>
         </div>
         {/* Progress */}
-        <div className="mt-2.5">
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="font-semibold text-gray-700">{progress}% hoàn thành</span>
-            <span className="text-gray-400">Còn {timeLeft}</span>
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-xs mb-2 font-medium">
+            <span className="text-slate-700 dark:text-slate-300">{progress}% hoàn thành</span>
+            <span className="text-slate-400">Còn {timeLeft}</span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-500"
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -424,8 +418,8 @@ function ReadingCard({ title, author, type, progress, timeLeft, color }: {
       </div>
 
       {/* Continue Button */}
-      <button className="px-4 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors shrink-0 border border-green-100 opacity-0 group-hover:opacity-100">
-        Đọc tiếp
+      <button className="w-10 h-10 flex items-center justify-center text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0">
+        <ArrowRight weight="bold" className="w-5 h-5" />
       </button>
     </div>
   );
@@ -442,40 +436,45 @@ function HistoryTab() {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900">Lịch sử đọc & mượn tài liệu</h3>
+    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden transition-colors duration-300">
+      <div className="p-8 border-b border-slate-100 dark:border-slate-800">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+          <BookOpenText weight="duotone" className="w-6 h-6 text-emerald-600" />
+          Lịch sử đọc & mượn tài liệu
+        </h3>
       </div>
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
-          <tr>
-            <th className="px-6 py-4 text-left">Tài liệu</th>
-            <th className="px-6 py-4 text-left">Loại</th>
-            <th className="px-6 py-4 text-left">Ngày</th>
-            <th className="px-6 py-4 text-left">Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {history.map((item, i) => (
-            <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-              <td className="px-6 py-4 font-bold text-gray-900">{item.title}</td>
-              <td className="px-6 py-4">
-                <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full">{item.type}</span>
-              </td>
-              <td className="px-6 py-4 text-gray-500">{item.date}</td>
-              <td className="px-6 py-4">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                  item.status === 'Hoàn thành'
-                    ? 'bg-green-50 text-green-600 border border-green-100'
-                    : 'bg-yellow-50 text-yellow-600 border border-yellow-100'
-                }`}>
-                  {item.status}
-                </span>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-50 dark:bg-slate-950/50 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+            <tr>
+              <th className="px-8 py-5">Tài liệu</th>
+              <th className="px-8 py-5">Loại</th>
+              <th className="px-8 py-5">Ngày mượn</th>
+              <th className="px-8 py-5">Trạng thái</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {history.map((item, i) => (
+              <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
+                <td className="px-8 py-5 font-bold text-slate-900 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{item.title}</td>
+                <td className="px-8 py-5">
+                  <span className="text-[11px] font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md uppercase tracking-wider">{item.type}</span>
+                </td>
+                <td className="px-8 py-5 text-slate-500 dark:text-slate-400 font-medium">{item.date}</td>
+                <td className="px-8 py-5">
+                  <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border ${
+                    item.status === 'Hoàn thành'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50'
+                      : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50'
+                  }`}>
+                    {item.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -489,21 +488,21 @@ function ReviewsTab() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {reviews.map((review, i) => (
-        <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
+        <div key={i} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 hover:shadow-md hover:border-emerald-500/30 transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
             <div>
-              <h4 className="font-bold text-gray-900">{review.title}</h4>
-              <p className="text-xs text-gray-400 mt-0.5">{review.date}</p>
+              <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-1">{review.title}</h4>
+              <p className="text-xs text-slate-400 font-medium">{review.date}</p>
             </div>
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/10 px-3 py-1.5 rounded-full border border-amber-100 dark:border-amber-900/30">
               {Array.from({ length: 5 }).map((_, j) => (
-                <span key={j} className={`text-sm ${j < review.rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
+                <Star key={j} weight={j < review.rating ? "fill" : "regular"} className={`w-4 h-4 ${j < review.rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} />
               ))}
             </div>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">{review.comment}</p>
         </div>
       ))}
     </div>
