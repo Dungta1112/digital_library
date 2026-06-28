@@ -19,10 +19,10 @@ export function HomeAIShowcase() {
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              className="font-playfair text-4xl md:text-5xl font-bold mb-6 leading-tight"
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-4xl md:text-5xl font-bold mb-6 leading-tight tracking-tight"
             >
-              Học tập nhanh hơn với <span className="text-green-300">trợ lý AI học thuật</span>
+              Học tập nhanh hơn với <br className="hidden md:block" /><span className="text-emerald-300">trợ lý AI học thuật.</span>
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, x: -30 }}

@@ -45,7 +45,7 @@ export function HomeTrust() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="font-playfair text-4xl md:text-5xl font-bold mb-6"
+            className="text-4xl md:text-5xl font-bold mb-6 tracking-tight"
           >
             Xây dựng hệ sinh thái học tập số
           </motion.h2>
