@@ -42,16 +42,16 @@ export function UserTable({ users, onUpdate }: { users: AdminUserRecord[], onUpd
               <th className="px-6 py-5 text-right">Hành động</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-slate-800 transition-colors duration-300">
             {users.map(user => (
-              <tr key={user.id} className="hover:bg-gray-50/80 transition-colors">
-                <td className="px-6 py-4 font-bold text-gray-900">{user.fullName}</td>
+              <tr key={user.id} className="hover:bg-gray-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                <td className="px-6 py-4 font-bold text-gray-900 dark:text-white transition-colors duration-300">{user.fullName}</td>
                 <td className="px-6 py-4">{user.email}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wider uppercase ${
-                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                    user.role === 'FACULTY' ? 'bg-orange-100 text-orange-700' :
-                    'bg-blue-50 text-blue-700'
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wider uppercase transition-colors duration-300 ${
+                    user.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                    user.role === 'FACULTY' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                    'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                   }`}>
                     {user.role}
                   </span>
@@ -59,11 +59,11 @@ export function UserTable({ users, onUpdate }: { users: AdminUserRecord[], onUpd
                 <td className="px-6 py-4 font-medium">{new Date(user.joinedAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4">
                   {user.status === 'ACTIVE' ? (
-                    <span className="text-green-700 bg-green-50 px-2.5 py-1 rounded-md text-xs font-bold flex items-center w-max gap-1.5 border border-green-100 shadow-sm">
+                    <span className="text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2.5 py-1 rounded-md text-xs font-bold flex items-center w-max gap-1.5 border border-green-100 dark:border-green-800/50 shadow-sm transition-colors duration-300">
                       <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Hoạt động
                     </span>
                   ) : (
-                    <span className="text-red-700 bg-red-50 px-2.5 py-1 rounded-md text-xs font-bold flex items-center w-max gap-1.5 border border-red-100 shadow-sm">
+                    <span className="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2.5 py-1 rounded-md text-xs font-bold flex items-center w-max gap-1.5 border border-red-100 dark:border-red-800/50 shadow-sm transition-colors duration-300">
                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Đình chỉ
                     </span>
                   )}
@@ -72,7 +72,7 @@ export function UserTable({ users, onUpdate }: { users: AdminUserRecord[], onUpd
                   <Button 
                     size="sm" 
                     variant="secondary"
-                    className={`font-semibold ${user.status === 'ACTIVE' ? 'hover:text-red-600 hover:border-red-300' : 'hover:text-green-600 hover:border-green-300'}`}
+                    className={`font-semibold transition-colors duration-300 ${user.status === 'ACTIVE' ? 'hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30' : 'hover:text-green-600 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/30'}`}
                     onClick={() => handleToggle(user)}
                   >
                     {user.status === 'ACTIVE' ? 'Đình chỉ' : 'Kích hoạt'}

@@ -82,4 +82,22 @@ export class StudyGroupService {
       throw new ForbiddenException('Study group membership required');
     }
   }
+    async leave(userId: string, groupId: string) {
+        const group = await this.prisma.studyGroup.findUniqueOrThrow({ where: { id: groupId } });
+        if (group.ownerId === userId) {
+            throw new ForbiddenException('Owner cannot leave the group');
+        }
+        return this.prisma.studyGroupMember.update({
+            where: { groupId_userId: { groupId, userId } },
+            data: { status: 'REMOVED' }
+        });
+    }
+
+    async removeMember(ownerId: string, groupId: string, userId: string) {
+        await this.ensureOwner(ownerId, groupId);
+        return this.prisma.studyGroupMember.update({
+            where: { groupId_userId: { groupId, userId } },
+            data: { status: 'REMOVED' }
+        });
+    }
 }

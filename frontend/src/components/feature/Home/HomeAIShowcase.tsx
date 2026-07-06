@@ -19,10 +19,10 @@ export function HomeAIShowcase() {
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              className="font-playfair text-4xl md:text-5xl font-bold mb-6 leading-tight"
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-4xl md:text-5xl font-bold mb-6 leading-tight tracking-tight"
             >
-              Học tập nhanh hơn với <span className="text-green-300">trợ lý AI học thuật</span>
+              Học tập nhanh hơn với <br className="hidden md:block" /><span className="text-emerald-300">trợ lý AI học thuật.</span>
             </motion.h2>
             <motion.p 
               initial={{ opacity: 0, x: -30 }}
@@ -79,9 +79,9 @@ export function HomeAIShowcase() {
 
                 {/* AI Message */}
                 <div className="flex justify-start">
-                  <div className="bg-white text-gray-800 px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] text-sm shadow-md">
+                  <div className="bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] text-sm shadow-md transition-colors duration-300">
                     <p className="mb-3 font-medium">Tài liệu tập trung vào vấn đề chuyển đổi số trong học tập, bao gồm:</p>
-                    <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                    <ul className="list-disc pl-5 space-y-2 text-gray-600 dark:text-gray-400 transition-colors duration-300">
                       <li>Thực trạng sử dụng công nghệ số.</li>
                       <li>Vai trò của nền tảng số.</li>
                       <li>Lợi ích của AI trong giáo dục.</li>
@@ -90,13 +90,13 @@ export function HomeAIShowcase() {
                     </ul>
 
                     {/* Sources Panel */}
-                    <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 transition-colors duration-300">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nguồn trích dẫn</p>
                       <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 border border-green-100 text-xs text-green-700 font-medium">
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-xs text-green-700 dark:text-green-400 font-medium transition-colors duration-300">
                           📄 Tài liệu học tập số, mục 2.1
                         </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 border border-green-100 text-xs text-green-700 font-medium">
+                        <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-xs text-green-700 dark:text-green-400 font-medium transition-colors duration-300">
                           📊 Báo cáo khảo sát sinh viên, phần Kết quả
                         </span>
                       </div>

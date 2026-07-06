@@ -57,4 +57,22 @@ export class ForumService {
       throw new ForbiddenException('Only the author can modify this post');
     }
   }
+    async updateComment(userId: string, commentId: string, content: string) {
+        const comment = await this.prisma.forumComment.findUnique({ where: { id: commentId } });
+        if (!comment) throw new NotFoundException('Comment not found');
+        if (comment.authorId !== userId) throw new ForbiddenException('Only author can edit');
+        return this.prisma.forumComment.update({ where: { id: commentId }, data: { content } });
+    }
+
+    async deleteComment(userId: string, commentId: string) {
+        const comment = await this.prisma.forumComment.findUnique({ where: { id: commentId } });
+        if (!comment) throw new NotFoundException('Comment not found');
+        if (comment.authorId !== userId) throw new ForbiddenException('Only author can delete');
+        return this.prisma.forumComment.update({ where: { id: commentId }, data: { deletedAt: new Date() } });
+    }
+
+    async acceptAnswer(userId: string, postId: string, commentId: string) {
+        await this.ensureAuthor(userId, postId);
+        return this.prisma.forumComment.update({ where: { id: commentId }, data: { isAccepted: true } });
+    }
 }
