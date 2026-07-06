@@ -3,6 +3,7 @@ dist/
 build/
 *.log
 .env*
+!.env.example
 .next/
 out/
 coverage/
@@ -13,8 +14,11 @@ coverage/
 .specify/
 specs/
 AGENTS.md
+/.vs
 
-# Python & AI
-.venv/
-__pycache__/
-chroma_db/
+# ai_service (Python)
+ai_service/venv/
+ai_service/__pycache__/
+ai_service/**/__pycache__/
+ai_service/chroma_db/
+*.pyc
