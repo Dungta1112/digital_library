@@ -64,4 +64,31 @@ export class LibraryDocumentController {
   async report(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string, @Body() dto: CreateDocumentReportDto) {
     return created(await this.service.report(user.id, documentId, dto));
   }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Post(':documentId/notes')
+    async addNote(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string, @Body() dto: { content: string }) {
+        return created(await this.service.addNote(user.id, documentId, dto.content));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Get(':documentId/notes')
+    async getNotes(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string) {
+        return ok(await this.service.getNotes(user.id, documentId));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Delete('notes/:noteId')
+    async deleteNote(@CurrentUser() user: RequestUser, @Param('noteId') noteId: string) {
+        return ok(await this.service.deleteNote(user.id, noteId));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Get('me/history')
+    async getHistory(@CurrentUser() user: RequestUser) {
+        return ok(await this.service.getHistory(user.id));
+    }
 }

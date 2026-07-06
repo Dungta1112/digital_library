@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -105,6 +106,11 @@ model User {
   moderationLogs       ContentModerationLog[]
   updatedConfigs       SystemConfig[]
   auditLogs            AuditLog[]
+  following            UserFollow[] @relation("UserFollowers")
+  followers            UserFollow[] @relation("UserFollowing")
+  notifications        Notification[]
+  documentNotes        DocumentNote[]
+  documentHistory      DocumentHistory[]
 
   @@map("users")
 }
@@ -198,6 +204,8 @@ model Document {
   ratings           DocumentRating[]
   reports           DocumentReport[]
   groupDocuments    StudyGroupDocument[]
+  notes             DocumentNote[]
+  history           DocumentHistory[]
 
   @@map("documents")
 }
@@ -309,6 +317,7 @@ model ForumComment {
   parent    ForumComment?   @relation("ForumCommentReplies", fields: [parentId], references: [id])
   replies   ForumComment[]  @relation("ForumCommentReplies")
   reports   ForumReport[]
+  isAccepted Boolean @default(false) @map("is_accepted")
 
   @@map("forum_comments")
 }
@@ -450,3 +459,53 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@map("user_follows")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  content   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+  
+model DocumentNote {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_notes")
+}
+
+model DocumentHistory {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  documentId String   @map("document_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_history")
+
+}
+

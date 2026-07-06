@@ -6,6 +6,7 @@ import { StudyGroup } from '@/types/group';
 import { GroupAction } from '@/components/feature/Group/GroupComponents';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ArrowLeft, Lock, Crown, User } from '@phosphor-icons/react';
 
 import { GroupChat } from '@/components/feature/Group/GroupChat';
 
@@ -23,61 +24,120 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   }, [id]);
 
   if (loading || !group) {
-    return <div className="min-h-screen bg-gray-50 py-10"><div className="container mx-auto px-4 max-w-5xl animate-pulse h-[400px] bg-gray-200 rounded-3xl"></div></div>;
+    return (
+      <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
+        <div className="w-72 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 animate-pulse" />
+        <div className="flex-1 animate-pulse bg-gray-50/50 dark:bg-slate-950" />
+      </div>
+    );
   }
 
+  // Generate a deterministic gradient for the group avatar based on name
+  const gradients = [
+    'from-emerald-400 to-cyan-500',
+    'from-emerald-500 to-teal-600',
+    'from-teal-400 to-emerald-600',
+    'from-cyan-400 to-emerald-500',
+  ];
+  const gradientIdx = group.name.length % gradients.length;
+  const groupGradient = gradients[gradientIdx];
+
   return (
-    <div className="min-h-screen bg-gray-50/80 py-10">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <Link href="/groups" className="text-sm font-bold text-gray-500 hover:text-purple-700 mb-8 inline-flex items-center bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm transition-all hover:shadow-md">
-          ← Back to Study Groups
-        </Link>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="bg-white p-8 md:p-10 rounded-3xl border border-gray-200 shadow-sm mb-8 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-400 to-indigo-500"></div>
-              <span className="text-sm font-bold px-4 py-1.5 bg-purple-50 text-purple-700 rounded-lg tracking-wide inline-block mb-6 border border-purple-100">{group.topic}</span>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">{group.name}</h1>
-              <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10">{group.description}</p>
-              
-              <div className="pt-8 border-t border-gray-100 mt-6">
-                {group.isJoined ? (
-                  <GroupChat groupId={group.id} />
-                ) : (
-                  <div className="text-center py-16 bg-gray-50/50 rounded-2xl border border-gray-200 border-dashed text-gray-500">
-                     Join the group to view activity and participate in discussions.
-                  </div>
-                )}
-              </div>
+    <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
+      {/* Left Sidebar */}
+      <div className="w-72 bg-gray-50 dark:bg-slate-900 flex flex-col flex-shrink-0 border-r border-gray-200 dark:border-slate-800">
+        {/* Header */}
+        <div className="h-12 px-4 flex items-center border-b border-gray-200 dark:border-slate-800 flex-shrink-0">
+          <Link href="/groups" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+            <ArrowLeft weight="bold" className="w-4 h-4" />
+            Study Groups
+          </Link>
+        </div>
+
+        {/* Group Info & Members List (Scrollable) */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+          {/* Group Avatar + Info */}
+          <div className="mb-6">
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${groupGradient} flex items-center justify-center text-white text-lg font-bold mb-3 shadow-sm`}>
+              {group.name.charAt(0).toUpperCase()}
             </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md mb-2 inline-block">
+              {group.topic}
+            </span>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 leading-tight">
+              {group.name}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              {group.description}
+            </p>
           </div>
-          
-          <div className="md:col-span-1">
-            <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm mb-6">
+
+          {!group.isJoined && (
+            <div className="mb-6">
               <GroupAction group={group} onJoinSuccess={() => setGroup({...group, isJoined: true, membersCount: group.membersCount + 1})} />
             </div>
-            
-            <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
-              <h3 className="font-extrabold text-gray-900 mb-6 flex items-center gap-3 text-lg">
-                👥 Members <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-bold">{group.membersCount}</span>
-              </h3>
-              <div className="space-y-5">
-                {group.members?.map(m => (
-                  <div key={m.id} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg shadow-inner border border-gray-200">👤</div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-sm flex flex-col items-start gap-1">
+          )}
+
+          {/* Members */}
+          <div className="mt-4">
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+              Members <span className="text-gray-300 dark:text-gray-600">{group.membersCount}</span>
+            </h3>
+            <div className="space-y-0.5">
+              {group.members?.map((m, idx) => {
+                const memberGradients = [
+                  'from-emerald-400 to-cyan-500',
+                  'from-teal-400 to-emerald-500',
+                  'from-cyan-400 to-teal-500',
+                  'from-emerald-500 to-green-600',
+                ];
+                const mGrad = memberGradients[idx % memberGradients.length];
+
+                return (
+                  <div key={m.id} className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-200/50 dark:hover:bg-slate-800/80 rounded-lg cursor-pointer group/member transition-colors">
+                    <div className="relative">
+                      <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${mGrad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                        {m.name.charAt(0).toUpperCase()}
+                      </div>
+                      {/* Online status indicator */}
+                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-50 dark:border-slate-900 rounded-full animate-pulse" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate group-hover/member:text-gray-900 dark:group-hover/member:text-white transition-colors">
                         {m.name}
-                        {m.role === 'ADMIN' && <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-widest font-black">Admin</span>}
-                      </p>
+                      </span>
+                      {m.role === 'ADMIN' && (
+                        <span className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                          <Crown weight="fill" className="w-3 h-3" />
+                          Admin
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-950">
+        {group.isJoined ? (
+          <GroupChat groupId={group.id} />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center p-8 max-w-sm">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Lock weight="duotone" className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Members only</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Join this group to view discussions and participate in conversations.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

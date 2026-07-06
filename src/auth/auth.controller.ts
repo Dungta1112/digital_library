@@ -46,4 +46,15 @@ export class AuthController {
       return ok({ error: e.message, secretLength: process.env.JWT_ACCESS_SECRET?.length }, 'Invalid');
     }
   }
+    @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
+    async forgotPassword(@Body() dto: { email: string }) {
+        return ok(await this.authService.forgotPassword(dto.email), 'Reset email sent');
+    }
+
+    @Post('reset-password')
+    @HttpCode(HttpStatus.OK)
+    async resetPassword(@Body() dto: { token: string; newPassword: string }) {
+        return ok(await this.authService.resetPassword(dto.token, dto.newPassword), 'Password reset');
+    }
 }
