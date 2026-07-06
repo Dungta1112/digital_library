@@ -22,3 +22,5 @@ ai_service/__pycache__/
 ai_service/**/__pycache__/
 ai_service/chroma_db/
 *.pyc
+ai_service/.venv/
+ai_service/venv/
