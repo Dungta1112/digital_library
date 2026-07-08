@@ -1,6 +1,6 @@
 export const config = {
   USE_MOCKS: process.env.NEXT_PUBLIC_USE_MOCKS === 'true',
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1',
   MOCK_DELAY_MS: 800,
 };
 
