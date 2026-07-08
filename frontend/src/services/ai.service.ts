@@ -1,15 +1,33 @@
-import { fetchWithMock } from './config';
-import type { AIChatMessage } from '../types/ai';
+import { apiClient } from './api.client';
+import { config, fetchWithMock } from './config';
+import type { AIChatMessage, AICitation } from '../types/ai';
+
+interface AISearchResultItem {
+  id: string;
+  title: string;
+  description: string;
+  distance: number;
+}
+
+interface AISearchResponse {
+  query: string;
+  answer: string;
+  results: AISearchResultItem[];
+}
 
 export const AIService = {
   async getInitialHistory(): Promise<AIChatMessage[]> {
+    if (!config.USE_MOCKS) {
+      // Backend chưa lưu lịch sử chat — bắt đầu với hội thoại trống.
+      return [];
+    }
     return fetchWithMock<AIChatMessage[]>(
       () => import('../mocks/ai.json').then(m => ({ default: m.default as AIChatMessage[] }))
     );
   },
-  
+
   async sendMessage(message: string, contextDocId?: string): Promise<AIChatMessage> {
-    if (process.env.NEXT_PUBLIC_USE_MOCKS === 'true') {
+    if (config.USE_MOCKS) {
       // simulate delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       return {
@@ -36,13 +54,26 @@ export const AIService = {
         ]
       };
     }
-    
-    const res = await fetch('/api/ai/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, contextDocId })
-    });
-    if (!res.ok) throw new Error('Failed to send message');
-    return res.json();
+
+    // Backend NestJS proxy sang ai_service: POST /api/v1/ai/search
+    const data = (await apiClient.post('/ai/search', {
+      query: message,
+    })) as unknown as AISearchResponse;
+
+    const citations: AICitation[] = (data.results ?? []).map((r) => ({
+      id: r.id,
+      documentId: r.id,
+      documentTitle: r.title,
+      pageNumber: 1,
+      textSnippet: r.description,
+    }));
+
+    return {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: data.answer,
+      timestamp: new Date().toISOString(),
+      citations,
+    };
   }
 };
