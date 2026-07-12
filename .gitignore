@@ -27,3 +27,4 @@ ai_service/.venv/
 ai_service/venv/
 ai_service/test_docsstorage/
 CLAUDE.md
+ai_service/test_docs/
