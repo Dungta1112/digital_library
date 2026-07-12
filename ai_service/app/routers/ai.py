@@ -1,6 +1,8 @@
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 
 from app.schemas import (
+    AskRequest,
+    AskResponse,
     BookIn,
     DeleteIndexResponse,
     IngestAccepted,
@@ -8,6 +10,7 @@ from app.schemas import (
     SearchBooksResponse,
     SearchRequest,
     SearchResultItem,
+    SourceChunk,
     SyncBooksResponse,
 )
 from app.services import chroma_service, ingest_registry, ollama_service, pdf_service
@@ -15,6 +18,8 @@ from app.services import chroma_service, ingest_registry, ollama_service, pdf_se
 router = APIRouter(prefix="/api/ai", tags=["AI"])
 
 EMBED_BATCH_SIZE = 16
+ASK_NUM_CTX = 8192
+SNIPPET_MAX_CHARS = 300
 
 
 @router.post("/sync-books", response_model=SyncBooksResponse)
@@ -131,6 +136,59 @@ def delete_document_index(document_id: str):
     if count > 0:
         chroma_service.delete_document_chunks(document_id)
     return DeleteIndexResponse(status="deleted", document_id=document_id, chunks_deleted=count)
+
+
+@router.post("/ask-document", response_model=AskResponse)
+def ask_document(request: AskRequest):
+    query_vector = ollama_service.embed(request.query)
+    results = chroma_service.query_chunks(
+        query_vector, top_k=request.top_k, document_id=request.document_id
+    )
+
+    sources: list[SourceChunk] = []
+    chunk_texts: list[str] = []
+    if results["ids"] and results["ids"][0]:
+        for i in range(len(results["ids"][0])):
+            meta = results["metadatas"][0][i]
+            text = results["documents"][0][i]
+            chunk_texts.append(text)
+            sources.append(
+                SourceChunk(
+                    document_id=meta["document_id"],
+                    title=meta["title"],
+                    page=meta["page"],
+                    chunk_index=meta["chunk_index"],
+                    snippet=text[:SNIPPET_MAX_CHARS],
+                    distance=results["distances"][0][i],
+                )
+            )
+
+    if not sources:
+        return AskResponse(
+            query=request.query,
+            answer=(
+                "Chưa có dữ liệu nội dung cho tài liệu này trong hệ thống. "
+                "Hãy ingest tài liệu trước khi hỏi."
+            ),
+            sources=[],
+        )
+
+    title = sources[0].title
+    excerpts = "\n\n".join(
+        f"[{i + 1}] (trang {s.page}) {text}"
+        for i, (s, text) in enumerate(zip(sources, chunk_texts))
+    )
+    prompt = (
+        f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
+        f"{excerpts}\n\n"
+        f"Câu hỏi: {request.query}\n\n"
+        "Chỉ dựa vào các trích đoạn trên để trả lời. Khi dùng thông tin từ trích đoạn nào, "
+        "ghi rõ nguồn dạng [trang N]. Nếu các trích đoạn không chứa thông tin để trả lời, "
+        "nói rõ là không tìm thấy trong tài liệu — tuyệt đối không bịa."
+    )
+    answer = ollama_service.chat(prompt, num_ctx=ASK_NUM_CTX)
+
+    return AskResponse(query=request.query, answer=answer, sources=sources)
 
 
 @router.post("/search-books", response_model=SearchBooksResponse)

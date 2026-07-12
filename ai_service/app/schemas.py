@@ -51,3 +51,24 @@ class DeleteIndexResponse(BaseModel):
     status: str
     document_id: str
     chunks_deleted: int
+
+
+class AskRequest(BaseModel):
+    query: str
+    document_id: Optional[str] = None
+    top_k: int = 5
+
+
+class SourceChunk(BaseModel):
+    document_id: str
+    title: str
+    page: int
+    chunk_index: int
+    snippet: str
+    distance: float
+
+
+class AskResponse(BaseModel):
+    query: str
+    answer: str
+    sources: list[SourceChunk]
