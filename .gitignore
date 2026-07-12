@@ -25,4 +25,4 @@ ai_service/chroma_db/
 *.pyc
 ai_service/.venv/
 ai_service/venv/
-ai_service/test_docs
+ai_service/test_docsstorage/
