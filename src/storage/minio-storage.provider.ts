@@ -30,6 +30,15 @@ export class MinioStorageProvider implements StorageService {
     return this.client.presignedGetObject(this.bucket, objectKey, 60 * 5);
   }
 
+  async getBuffer(objectKey: string): Promise<Buffer> {
+    const stream = await this.client.getObject(this.bucket, objectKey);
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk as Buffer);
+    }
+    return Buffer.concat(chunks);
+  }
+
   async delete(objectKey: string): Promise<void> {
     await this.client.removeObject(this.bucket, objectKey);
   }

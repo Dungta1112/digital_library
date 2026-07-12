@@ -8,6 +8,7 @@ build/
 out/
 coverage/
 .DS_Store
+.claude
 
 # Speckit
 .agents/
@@ -24,3 +25,5 @@ ai_service/chroma_db/
 *.pyc
 ai_service/.venv/
 ai_service/venv/
+ai_service/test_docsstorage/
+CLAUDE.md

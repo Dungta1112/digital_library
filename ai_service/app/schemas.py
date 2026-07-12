@@ -30,3 +30,45 @@ class SearchBooksResponse(BaseModel):
     query: str
     answer: str
     results: list[SearchResultItem]
+
+
+class IngestAccepted(BaseModel):
+    status: str
+    document_id: str
+
+
+class IngestStatusResponse(BaseModel):
+    document_id: str
+    state: str  # processing | done | failed | not_found
+    pages_total: int = 0
+    pages_with_text: int = 0
+    chunks_total: int = 0
+    chunks_indexed: int = 0
+    error: Optional[str] = None
+
+
+class DeleteIndexResponse(BaseModel):
+    status: str
+    document_id: str
+    chunks_deleted: int
+
+
+class AskRequest(BaseModel):
+    query: str
+    document_id: Optional[str] = None
+    top_k: int = 5
+
+
+class SourceChunk(BaseModel):
+    document_id: str
+    title: str
+    page: int
+    chunk_index: int
+    snippet: str
+    distance: float
+
+
+class AskResponse(BaseModel):
+    query: str
+    answer: str
+    sources: list[SourceChunk]
