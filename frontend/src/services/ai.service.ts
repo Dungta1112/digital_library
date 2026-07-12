@@ -15,6 +15,21 @@ interface AISearchResponse {
   results: AISearchResultItem[];
 }
 
+interface AIAskSource {
+  document_id: string;
+  title: string;
+  page: number;
+  chunk_index: number;
+  snippet: string;
+  distance: number;
+}
+
+interface AIAskResponse {
+  query: string;
+  answer: string;
+  sources: AIAskSource[];
+}
+
 export const AIService = {
   async getInitialHistory(): Promise<AIChatMessage[]> {
     if (!config.USE_MOCKS) {
@@ -55,7 +70,32 @@ export const AIService = {
       };
     }
 
-    // Backend NestJS proxy sang ai_service: POST /api/v1/ai/search
+    if (contextDocId) {
+      // Hỏi theo nội dung 1 tài liệu cụ thể: POST /api/v1/ai/ask (cần đăng nhập).
+      // Citations là trích đoạn thật từ file kèm số trang chính xác.
+      const data = (await apiClient.post('/ai/ask', {
+        query: message,
+        documentId: contextDocId,
+      })) as unknown as AIAskResponse;
+
+      const citations: AICitation[] = (data.sources ?? []).map((s) => ({
+        id: `${s.document_id}:${s.chunk_index}`,
+        documentId: s.document_id,
+        documentTitle: s.title,
+        pageNumber: s.page,
+        textSnippet: s.snippet,
+      }));
+
+      return {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: data.answer,
+        timestamp: new Date().toISOString(),
+        citations,
+      };
+    }
+
+    // Không có tài liệu ngữ cảnh: tìm sách toàn thư viện như cũ.
     const data = (await apiClient.post('/ai/search', {
       query: message,
     })) as unknown as AISearchResponse;
