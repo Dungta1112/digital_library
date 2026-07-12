@@ -58,3 +58,65 @@ Tìm kiếm ngữ nghĩa và dùng `qwen3:4b` tổng hợp câu trả lời ti�
 ```
 
 Trả về: `{ "query": "...", "answer": "...", "results": [{ "id", "title", "description", "distance" }] }`
+
+## Document RAG (hỏi–đáp theo nội dung PDF)
+
+Luồng riêng, độc lập với sync/search-books: nội dung PDF được tách theo trang,
+chia chunk (~1000 ký tự, overlap 150), embed từng chunk và lưu vào collection
+`document_chunks` kèm metadata `{document_id, title, page, chunk_index}`.
+
+### `POST /api/ai/ingest-document` (multipart)
+
+Fields: `file` (PDF), `document_id`, `title`. Trả về **202** ngay và xử lý nền:
+
+```json
+{ "status": "processing", "document_id": "..." }
+```
+
+Trả 400 nếu file không phải PDF đọc được, 409 nếu tài liệu đang được xử lý.
+PDF scan không có text layer sẽ kết thúc với trạng thái `failed` kèm lý do.
+
+### `GET /api/ai/ingest-status/{document_id}`
+
+```json
+{ "document_id": "...", "state": "processing|done|failed|not_found",
+  "pages_total": 6, "pages_with_text": 6, "chunks_total": 6,
+  "chunks_indexed": 6, "error": null }
+```
+
+Trạng thái giữ in-memory; sau khi restart service sẽ fallback đếm chunk trong
+ChromaDB (`done` nếu đã có chunk, `not_found` nếu chưa).
+
+### `POST /api/ai/ask-document`
+
+```json
+{ "query": "câu hỏi", "document_id": "tùy chọn — bỏ trống để hỏi trên mọi tài liệu", "top_k": 5 }
+```
+
+Truy xuất top_k chunk liên quan (lọc theo `document_id` nếu có), đưa vào prompt
+để `qwen3:4b` trả lời kèm trích dẫn `[trang N]`:
+
+```json
+{ "query": "...", "answer": "...", "sources": [
+  { "document_id", "title", "page", "chunk_index", "snippet", "distance" } ] }
+```
+
+### `DELETE /api/ai/document-index/{document_id}`
+
+Gỡ toàn bộ chunk của tài liệu khỏi ChromaDB.
+
+### Test nhanh cục bộ
+
+```bash
+./scripts/rag_smoke.sh ingest /duong/dan/file.pdf          # document_id mặc định: test-doc-1
+./scripts/rag_smoke.sh ask "Chương 2 nói về điều gì?"
+./scripts/rag_smoke.sh status
+./scripts/rag_smoke.sh clean
+```
+
+## Test
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
