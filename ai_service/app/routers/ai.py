@@ -1,15 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 
 from app.schemas import (
     BookIn,
+    DeleteIndexResponse,
+    IngestAccepted,
+    IngestStatusResponse,
     SearchBooksResponse,
     SearchRequest,
     SearchResultItem,
     SyncBooksResponse,
 )
-from app.services import chroma_service, ollama_service
+from app.services import chroma_service, ingest_registry, ollama_service, pdf_service
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
+
+EMBED_BATCH_SIZE = 16
 
 
 @router.post("/sync-books", response_model=SyncBooksResponse)
@@ -30,6 +35,102 @@ def sync_books(books: list[BookIn]):
         status="success",
         message=f"Đã số hóa {len(books)} cuốn sách.",
     )
+
+
+def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
+    try:
+        result = pdf_service.extract_chunks(pdf_bytes)
+        ingest_registry.update(
+            document_id,
+            pages_total=result.pages_total,
+            pages_with_text=result.pages_with_text,
+            chunks_total=len(result.chunks),
+        )
+        if not result.chunks:
+            ingest_registry.update(
+                document_id,
+                state="failed",
+                error="Không trích được text từ PDF (có thể là bản scan không có text layer).",
+            )
+            return
+
+        # Xóa index cũ của chính tài liệu này trước khi ghi lại từ đầu.
+        chroma_service.delete_document_chunks(document_id)
+
+        indexed = 0
+        for i in range(0, len(result.chunks), EMBED_BATCH_SIZE):
+            batch = result.chunks[i : i + EMBED_BATCH_SIZE]
+            embeddings = ollama_service.embed_batch([c.text for c in batch])
+            chroma_service.upsert_chunks(
+                ids=[f"{document_id}:{c.page}:{c.chunk_index}" for c in batch],
+                embeddings=embeddings,
+                documents=[c.text for c in batch],
+                metadatas=[
+                    {
+                        "document_id": document_id,
+                        "title": title,
+                        "page": c.page,
+                        "chunk_index": c.chunk_index,
+                    }
+                    for c in batch
+                ],
+            )
+            indexed += len(batch)
+            ingest_registry.update(document_id, chunks_indexed=indexed)
+
+        ingest_registry.update(document_id, state="done")
+    except Exception as exc:  # noqa: BLE001 - trạng thái failed phải ghi nhận mọi lỗi
+        ingest_registry.update(document_id, state="failed", error=str(exc))
+
+
+@router.post("/ingest-document", status_code=202, response_model=IngestAccepted)
+async def ingest_document(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    document_id: str = Form(...),
+    title: str = Form(...),
+):
+    if ingest_registry.is_processing(document_id):
+        raise HTTPException(status_code=409, detail="Tài liệu này đang được xử lý.")
+
+    pdf_bytes = await file.read()
+    if not pdf_service.is_readable_pdf(pdf_bytes):
+        raise HTTPException(status_code=400, detail="File không phải PDF hợp lệ.")
+
+    ingest_registry.start(document_id)
+    background_tasks.add_task(_run_ingest, document_id, title, pdf_bytes)
+    return IngestAccepted(status="processing", document_id=document_id)
+
+
+@router.get("/ingest-status/{document_id}", response_model=IngestStatusResponse)
+def ingest_status(document_id: str):
+    status = ingest_registry.get(document_id)
+    if status is not None:
+        return IngestStatusResponse(
+            document_id=document_id,
+            state=status.state,
+            pages_total=status.pages_total,
+            pages_with_text=status.pages_with_text,
+            chunks_total=status.chunks_total,
+            chunks_indexed=status.chunks_indexed,
+            error=status.error,
+        )
+
+    # Registry mất khi restart: fallback đếm chunk đã có trong Chroma.
+    count = chroma_service.count_document_chunks(document_id)
+    if count > 0:
+        return IngestStatusResponse(
+            document_id=document_id, state="done", chunks_total=count, chunks_indexed=count
+        )
+    return IngestStatusResponse(document_id=document_id, state="not_found")
+
+
+@router.delete("/document-index/{document_id}", response_model=DeleteIndexResponse)
+def delete_document_index(document_id: str):
+    count = chroma_service.count_document_chunks(document_id)
+    if count > 0:
+        chroma_service.delete_document_chunks(document_id)
+    return DeleteIndexResponse(status="deleted", document_id=document_id, chunks_deleted=count)
 
 
 @router.post("/search-books", response_model=SearchBooksResponse)

@@ -31,6 +31,14 @@ class ExtractResult:
     chunks: list[Chunk]
 
 
+def is_readable_pdf(pdf_bytes: bytes) -> bool:
+    try:
+        PdfReader(BytesIO(pdf_bytes))
+        return True
+    except Exception:
+        return False
+
+
 def extract_chunks(
     pdf_bytes: bytes,
     chunk_size: int = CHUNK_SIZE,
