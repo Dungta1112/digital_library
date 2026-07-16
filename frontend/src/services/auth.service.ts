@@ -31,6 +31,15 @@ function withoutPassword(account: MockAccount): User {
   return user as User;
 }
 
+function getMockProfileOverrides(): Record<string, Partial<User>> {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(localStorage.getItem('mock_profile_overrides') || '{}');
+  } catch {
+    return {};
+  }
+}
+
 function normalizeApiUser(user: ApiUser): User {
   return {
     ...user,
@@ -52,7 +61,10 @@ export const AuthService = {
         return {
           accessToken: `mock-token-${account.id}`,
           refreshToken: `mock-refresh-${account.id}`,
-          user: withoutPassword(account),
+          user: {
+            ...withoutPassword(account),
+            ...(getMockProfileOverrides()[account.id] || {}),
+          },
         };
       },
       async () => {
@@ -80,7 +92,10 @@ export const AuthService = {
           role: 'STUDENT',
         };
         accounts.push(account);
-        return withoutPassword(account);
+        return {
+          ...withoutPassword(account),
+          ...(getMockProfileOverrides()[account.id] || {}),
+        };
       },
       async () => {
         const response = await apiClient.post<unknown, ApiUser>('/auth/register', {

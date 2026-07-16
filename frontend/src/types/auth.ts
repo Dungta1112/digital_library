@@ -4,6 +4,11 @@ export interface User {
   fullName: string;
   role: 'STUDENT' | 'LECTURER' | 'CONTENT_MANAGER' | 'ADMIN';
   avatarUrl?: string;
+  coverUrl?: string;
+  bio?: string;
+  username?: string;
+  interests?: string[];
+  joinedAt?: string;
 }
 
 export interface AuthResponse {

@@ -106,7 +106,10 @@ export default function PostDetailPage({
             </h1>
 
             <div className="mt-6 flex flex-col gap-4 border-t border-slate-100 pt-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
+              <Link
+                href={post.authorId ? `/profile/${post.authorId}` : '#'}
+                className="flex items-center gap-3 rounded-xl transition-colors hover:text-emerald-700 dark:hover:text-emerald-300"
+              >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
                   <User weight="duotone" className="h-6 w-6" />
                 </div>
@@ -118,7 +121,7 @@ export default function PostDetailPage({
                     {roleLabel(post.authorRole)}
                   </p>
                 </div>
-              </div>
+              </Link>
 
               <div className="flex items-center gap-4 text-sm font-bold text-slate-500 dark:text-slate-400">
                 <span className="inline-flex items-center gap-1.5">

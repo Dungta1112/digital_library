@@ -68,6 +68,7 @@ export const ForumService = {
           id: createMockId('post'),
           title: input.title,
           content: input.content,
+          authorId: 'demo-student-01',
           authorName: 'Tài khoản Demo',
           authorRole: 'STUDENT',
           category: input.category,
