@@ -1,25 +1,113 @@
 import { apiClient } from './api.client';
+import { runWithMock } from './config';
 import type { User, AuthResponse } from '../types/auth';
+
+interface MockAccount extends User {
+  password: string;
+}
+
+interface ApiUser extends Omit<User, 'role'> {
+  role?: User['role'];
+  roles?: User['role'][];
+}
+
+interface ApiAuthResponse extends Omit<AuthResponse, 'user'> {
+  user: ApiUser;
+}
+
+let mockAccounts: MockAccount[] | null = null;
+
+async function getMockAccounts() {
+  if (!mockAccounts) {
+    const mockModule = await import('../mocks/auth.json');
+    mockAccounts = structuredClone(mockModule.default) as MockAccount[];
+  }
+  return mockAccounts;
+}
+
+function withoutPassword(account: MockAccount): User {
+  const user = { ...account } as Partial<MockAccount>;
+  delete user.password;
+  return user as User;
+}
+
+function normalizeApiUser(user: ApiUser): User {
+  return {
+    ...user,
+    role: user.role || user.roles?.[0] || 'STUDENT',
+  };
+}
 
 export const AuthService = {
   async login(email: string, password: string): Promise<AuthResponse> {
-    const res = await apiClient.post<any, any>('/auth/login', { email, password });
-    if (res && res.user && res.user.roles) {
-      res.user.role = res.user.roles[0] || 'STUDENT';
-    }
-    return res as AuthResponse;
+    return runWithMock(
+      async () => {
+        const account = (await getMockAccounts()).find(
+          (item) => item.email.toLowerCase() === email.trim().toLowerCase()
+        );
+        if (!account || account.password !== password) {
+          throw new Error('Email hoặc mật khẩu demo không đúng');
+        }
+
+        return {
+          accessToken: `mock-token-${account.id}`,
+          refreshToken: `mock-refresh-${account.id}`,
+          user: withoutPassword(account),
+        };
+      },
+      async () => {
+        const response = await apiClient.post<unknown, ApiAuthResponse>('/auth/login', {
+          email,
+          password,
+        });
+        return { ...response, user: normalizeApiUser(response.user) };
+      }
+    );
   },
-  
-  async register(email: string, password: string, fullName: string): Promise<any> {
-    const res = await apiClient.post('/auth/register', { email, password, fullName, role: 'STUDENT' });
-    return res;
+
+  async register(email: string, password: string, fullName: string): Promise<User> {
+    return runWithMock(
+      async () => {
+        const accounts = await getMockAccounts();
+        if (accounts.some((account) => account.email.toLowerCase() === email.toLowerCase())) {
+          throw new Error('Email này đã tồn tại trong dữ liệu demo');
+        }
+        const account: MockAccount = {
+          id: `demo-user-${Date.now()}`,
+          email,
+          password,
+          fullName,
+          role: 'STUDENT',
+        };
+        accounts.push(account);
+        return withoutPassword(account);
+      },
+      async () => {
+        const response = await apiClient.post<unknown, ApiUser>('/auth/register', {
+          email,
+          password,
+          fullName,
+          role: 'STUDENT',
+        });
+        return normalizeApiUser(response);
+      }
+    );
   },
 
   async getCurrentUser(): Promise<User> {
-    const res = await apiClient.get<any, any>('/users/me');
-    if (res && res.roles) {
-      res.role = res.roles[0] || 'STUDENT';
-    }
-    return res as User;
-  }
+    return runWithMock(
+      async () => {
+        // Token mock chứa id tài khoản để đăng nhập vẫn được khôi phục sau khi reload.
+        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+        const accountId = token?.replace('mock-token-', '');
+        const account = (await getMockAccounts()).find((item) => item.id === accountId);
+        if (!account) throw new Error('Phiên đăng nhập demo không hợp lệ');
+        return withoutPassword(account);
+      },
+      async () => {
+        const response = await apiClient.get<unknown, ApiUser>('/users/me');
+        return normalizeApiUser(response);
+      }
+    );
+  },
 };

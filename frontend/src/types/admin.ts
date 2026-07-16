@@ -36,7 +36,7 @@ export interface AdminForumPost {
 export interface AdminReport {
   id: string;
   reporterName: string;
-  targetType: 'POST' | 'COMMENT' | 'USER';
+  targetType: 'DOCUMENT' | 'POST' | 'COMMENT' | 'USER';
   targetId: string;
   reason: string;
   createdAt: string;

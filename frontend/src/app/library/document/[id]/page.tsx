@@ -1,7 +1,7 @@
 import React from 'react';
 import { LibraryService } from '@/services/library.service';
 import { DocumentInfo } from '@/components/feature/Library/DocumentInfo';
-import { PdfViewer } from '@/components/feature/Library/PdfViewer';
+import { PdfViewerClient } from '@/components/feature/Library/PdfViewerClient';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
@@ -28,7 +28,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           
           {/* Right Column: PDF Viewer */}
           <div className="lg:col-span-8 h-full">
-             <PdfViewer url={document.pdfUrl} />
+             <PdfViewerClient url={document.pdfUrl} />
           </div>
         </div>
       </div>

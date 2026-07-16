@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8FAF7;
-  --foreground: #111827;
+  --background: #F6FBF8;
+  --background-muted: #EEF8F2;
+  --background-soft: #EAF7EF;
+  --surface: #FFFEFA;
+  --surface-glass: rgba(255, 254, 250, 0.82);
+  --foreground: #0F172A;
+  --foreground-muted: #64748B;
+  --brand: #059669;
+  --brand-strong: #064E3B;
+  --brand-soft: #D1FAE5;
+  --brand-border: rgba(5, 150, 105, 0.16);
+  --accent: #EF4444;
+  --accent-soft: #FEE2E2;
+  --soft-shadow: 0 20px 55px -30px rgba(6, 78, 59, 0.3);
 }
 
 @theme inline {
@@ -20,7 +32,19 @@
 
 .dark {
   --background: #020617;
+  --background-muted: #07120f;
+  --background-soft: #0b1b16;
+  --surface: #0f172a;
+  --surface-glass: rgba(15, 23, 42, 0.84);
   --foreground: #f8fafc;
+  --foreground-muted: #94a3b8;
+  --brand: #34d399;
+  --brand-strong: #6ee7b7;
+  --brand-soft: rgba(6, 78, 59, 0.45);
+  --brand-border: rgba(52, 211, 153, 0.2);
+  --accent: #f87171;
+  --accent-soft: rgba(127, 29, 29, 0.35);
+  --soft-shadow: 0 22px 60px -32px rgba(0, 0, 0, 0.75);
 }
 
 @keyframes float-slow {
@@ -45,4 +69,56 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+
+.home-shell {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(16, 185, 129, 0.08), transparent 26rem),
+    var(--background);
+  color: var(--foreground);
+}
+
+.home-section {
+  background: var(--background);
+}
+
+.home-section-muted {
+  background: var(--background-muted);
+}
+
+.home-surface {
+  background: var(--surface-glass);
+  border: 1px solid var(--brand-border);
+  box-shadow: var(--soft-shadow);
+}
+
+.home-card {
+  background: var(--surface);
+  border-color: var(--brand-border);
+  box-shadow: 0 12px 35px -28px rgba(6, 78, 59, 0.45);
+}
+
+.home-card:hover {
+  border-color: rgba(5, 150, 105, 0.34);
+  box-shadow: var(--soft-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .home-shell *,
+  .home-shell *::before,
+  .home-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

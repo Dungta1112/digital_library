@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Document } from '@/types/library';
 import { Button } from '@/components/ui/Button';
@@ -5,7 +7,7 @@ import Link from 'next/link';
 import { usePermissions } from '@/hooks/usePermissions';
 
 export function DocumentInfo({ document }: { document: Document }) {
-  const { can, isGuest } = usePermissions();
+  const { can } = usePermissions();
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-200 shadow-sm h-full flex flex-col">

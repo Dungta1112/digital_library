@@ -34,9 +34,8 @@ export function HomeTrust() {
   ];
 
   return (
-    <section className="relative py-24 bg-[#065F46] text-white overflow-hidden z-10">
-      {/* Decorative background */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(22,163,74,0.2)_0%,transparent_100%)] opacity-60" />
+    <section className="home-section-muted relative z-10 overflow-hidden py-24 text-slate-900 dark:bg-slate-900 dark:text-white">
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12)_0%,transparent_68%)]" />
       
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-16">
@@ -54,7 +53,7 @@ export function HomeTrust() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-green-50/80 leading-relaxed"
+            className="text-lg leading-relaxed text-slate-600 dark:text-green-50/75"
           >
             Hệ thống hướng đến việc tập trung tài liệu, tăng khả năng tiếp cận tri thức và tạo môi trường trao đổi học thuật có tổ chức.
           </motion.p>
@@ -68,10 +67,10 @@ export function HomeTrust() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="text-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+              className="home-card rounded-3xl border p-6 text-center backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
             >
-              <h3 className="text-3xl md:text-4xl font-bold text-green-300 mb-2">{item.value}</h3>
-              <p className="text-sm text-green-100/70 uppercase tracking-wider font-medium">{item.label}</p>
+              <h3 className="mb-2 text-3xl font-bold text-emerald-700 md:text-4xl dark:text-green-300">{item.value}</h3>
+              <p className="text-sm font-medium uppercase tracking-wider text-slate-500 dark:text-green-100/70">{item.label}</p>
             </motion.div>
           ))}
         </div>
