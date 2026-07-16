@@ -1,11 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BookOpenText, Funnel, BookmarkSimple, Robot, TextAa, Quotes, UsersThree, Users } from '@phosphor-icons/react';
+import { BookOpenText, Funnel, BookmarkSimple, Robot, TextAa, Quotes, Users } from '@phosphor-icons/react';
 
 export function HomeFeatures() {
   return (
-    <section className="relative py-24 lg:py-32 bg-white dark:bg-slate-950 overflow-hidden z-10 transition-colors duration-300">
+    <section className="home-section relative z-10 overflow-hidden py-24 transition-colors duration-300 lg:py-32 dark:bg-slate-950">
       <div className="container mx-auto px-6 relative z-10">
         
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-24 gap-8">
@@ -40,7 +40,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-8 group relative p-8 md:p-10 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-900/5"
+            className="home-card group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-8 transition-all duration-500 md:col-span-8 md:p-10 dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="relative z-10 w-3/4">
               <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mb-6 shadow-sm">
@@ -78,7 +78,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-4 group relative p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between transition-all duration-500 hover:border-emerald-500/30"
+            className="home-card group relative flex flex-col justify-between rounded-3xl border p-8 transition-all duration-500 md:col-span-4 dark:border-slate-800 dark:bg-slate-900"
           >
             <div>
               <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center mb-5 shadow-sm">
@@ -97,7 +97,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-4 group relative p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between transition-all duration-500 hover:border-emerald-500/30"
+            className="home-card group relative flex flex-col justify-between rounded-3xl border p-8 transition-all duration-500 md:col-span-4 dark:border-slate-800 dark:bg-slate-900"
           >
             <div>
               <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center mb-5 shadow-sm">
@@ -116,7 +116,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-4 group relative p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between transition-all duration-500 hover:border-emerald-500/30"
+            className="home-card group relative flex flex-col justify-between rounded-3xl border p-8 transition-all duration-500 md:col-span-4 dark:border-slate-800 dark:bg-slate-900"
           >
             <div>
               <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center mb-5 shadow-sm">
@@ -135,7 +135,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-6 group relative p-8 md:p-10 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col sm:flex-row gap-6 items-start transition-all duration-500 hover:border-emerald-500/30"
+            className="home-card group relative flex flex-col items-start gap-6 rounded-3xl border p-8 transition-all duration-500 sm:flex-row md:col-span-6 md:p-10 dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0 shadow-sm">
               <Users weight="duotone" className="w-6 h-6" />
@@ -154,7 +154,7 @@ export function HomeFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-6 group relative p-8 md:p-10 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 flex flex-col sm:flex-row gap-6 items-start transition-all duration-500 hover:border-emerald-500/30"
+            className="home-card group relative flex flex-col items-start gap-6 rounded-3xl border p-8 transition-all duration-500 sm:flex-row md:col-span-6 md:p-10 dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center flex-shrink-0 shadow-sm">
               <Quotes weight="duotone" className="w-6 h-6" />

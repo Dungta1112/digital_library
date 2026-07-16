@@ -25,7 +25,7 @@ export function HomeForum() {
   }, []);
 
   return (
-    <section className="relative py-24 bg-[#F8FAF7] dark:bg-slate-900 transition-colors duration-300 overflow-hidden z-10 border-t border-[rgba(22,163,74,0.08)] dark:border-slate-800">
+    <section className="home-section-muted relative z-10 overflow-hidden border-t border-emerald-900/5 py-24 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.h2 
@@ -62,7 +62,7 @@ export function HomeForum() {
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.15 }}
                 whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col"
+                className="home-card flex flex-col rounded-3xl border p-8 transition-all duration-300 dark:border-slate-800 dark:bg-slate-950"
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 text-xs font-bold tracking-wide uppercase transition-colors duration-300">

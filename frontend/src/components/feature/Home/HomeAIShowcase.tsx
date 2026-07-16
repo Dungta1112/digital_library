@@ -6,10 +6,9 @@ import Link from 'next/link';
 
 export function HomeAIShowcase() {
   return (
-    <section className="relative py-24 bg-[#065F46] text-white overflow-hidden z-10">
-      {/* Decorative glows */}
-      <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-green-500/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[50vw] h-[50vw] rounded-full bg-blue-500/20 blur-[120px] pointer-events-none" />
+    <section className="relative z-10 overflow-hidden border-y border-emerald-900/5 bg-gradient-to-br from-emerald-100/80 via-[var(--background)] to-[#fffef9] py-24 text-slate-900 dark:border-emerald-900/30 dark:from-emerald-950 dark:via-slate-950 dark:to-slate-900 dark:text-white">
+      <div className="pointer-events-none absolute right-0 top-0 h-[50vw] w-[50vw] rounded-full bg-green-300/20 blur-[120px] dark:bg-green-500/10" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-[50vw] w-[50vw] rounded-full bg-red-100/35 blur-[120px] dark:bg-red-500/5" />
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -29,7 +28,7 @@ export function HomeAIShowcase() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg text-green-50/80 leading-relaxed mb-10"
+              className="mb-10 text-lg leading-relaxed text-slate-600 dark:text-green-50/75"
             >
               Trợ lý AI giúp người dùng đặt câu hỏi theo tài liệu, tóm tắt nội dung dài, giải thích khái niệm khó và gợi ý tài liệu liên quan. Khi có nguồn phù hợp, hệ thống hiển thị trích dẫn để người dùng kiểm chứng.
             </motion.p>
@@ -41,10 +40,10 @@ export function HomeAIShowcase() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-4"
             >
-              <Link href="/ai" className="px-8 py-3.5 rounded-full bg-white text-green-800 font-bold text-center hover:bg-gray-100 transition-colors shadow-lg">
+              <Link href="/ai" className="rounded-2xl bg-emerald-600 px-8 py-3.5 text-center font-bold text-white shadow-lg shadow-emerald-700/15 transition-colors hover:bg-emerald-700 dark:bg-white dark:text-green-800 dark:hover:bg-gray-100">
                 Hỏi AI ngay
               </Link>
-              <Link href="/library" className="px-8 py-3.5 rounded-full bg-transparent border border-green-400 text-white font-bold text-center hover:bg-green-800/50 transition-colors">
+              <Link href="/library" className="rounded-2xl border border-emerald-300 bg-white/55 px-8 py-3.5 text-center font-bold text-emerald-900 backdrop-blur transition-colors hover:bg-emerald-50 dark:border-green-700 dark:bg-transparent dark:text-white dark:hover:bg-green-900/40">
                 Khám phá tài liệu
               </Link>
             </motion.div>
@@ -59,27 +58,27 @@ export function HomeAIShowcase() {
             style={{ perspective: 1000 }}
             className="relative"
           >
-            <div className="rounded-2xl overflow-hidden bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col">
+            <div className="home-surface flex flex-col overflow-hidden rounded-3xl backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
               {/* Chat Header */}
-              <div className="px-6 py-4 border-b border-white/10 flex items-center gap-3 bg-white/5">
+              <div className="flex items-center gap-3 border-b border-emerald-900/10 bg-white/45 px-6 py-4 dark:border-white/10 dark:bg-white/5">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
-                <span className="ml-2 text-sm text-green-100 font-medium tracking-wide">AI Assistant</span>
+                <span className="ml-2 text-sm font-bold tracking-wide text-emerald-900 dark:text-green-100">AI Assistant</span>
               </div>
               
               {/* Chat Body */}
               <div className="p-6 space-y-6">
                 {/* User Message */}
                 <div className="flex justify-end">
-                  <div className="bg-white/20 text-white px-5 py-3 rounded-2xl rounded-tr-sm max-w-[80%] text-sm">
-                    "Tóm tắt tài liệu này trong 5 ý chính."
+                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-emerald-600 px-5 py-3 text-sm text-white shadow-sm dark:bg-white/15">
+                    &ldquo;Tóm tắt tài liệu này trong 5 ý chính.&rdquo;
                   </div>
                 </div>
 
                 {/* AI Message */}
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] text-sm shadow-md transition-colors duration-300">
+                  <div className="max-w-[90%] rounded-2xl rounded-tl-sm border border-emerald-900/10 bg-[#fffef9] px-5 py-4 text-sm text-gray-800 shadow-md transition-colors duration-300 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-200">
                     <p className="mb-3 font-medium">Tài liệu tập trung vào vấn đề chuyển đổi số trong học tập, bao gồm:</p>
                     <ul className="list-disc pl-5 space-y-2 text-gray-600 dark:text-gray-400 transition-colors duration-300">
                       <li>Thực trạng sử dụng công nghệ số.</li>
@@ -106,15 +105,15 @@ export function HomeAIShowcase() {
               </div>
 
               {/* Chat Input */}
-              <div className="p-4 bg-black/20 border-t border-white/10">
-                <div className="w-full bg-white/10 rounded-full h-10 px-4 flex items-center text-white/50 text-sm">
+              <div className="border-t border-emerald-900/10 bg-emerald-950/[0.03] p-4 dark:border-white/10 dark:bg-black/20">
+                <div className="flex h-11 w-full items-center rounded-xl border border-emerald-900/10 bg-white/65 px-4 text-sm text-slate-400 dark:border-0 dark:bg-white/10 dark:text-white/50">
                   Nhập câu hỏi của bạn...
                 </div>
               </div>
             </div>
             
             {/* Disclaimer */}
-            <p className="text-center text-xs text-green-300/50 mt-4 italic">
+            <p className="mt-4 text-center text-xs italic text-slate-500 dark:text-green-300/50">
               * Hình ảnh minh họa giao diện trợ lý AI
             </p>
           </motion.div>

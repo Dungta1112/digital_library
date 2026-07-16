@@ -17,6 +17,5 @@ export interface StoreFileInput {
 export abstract class StorageService {
   abstract store(input: StoreFileInput): Promise<StoredObject>;
   abstract getReadUrl(objectKey: string): Promise<string>;
-  abstract getBuffer(objectKey: string): Promise<Buffer>;
   abstract delete(objectKey: string): Promise<void>;
 }
