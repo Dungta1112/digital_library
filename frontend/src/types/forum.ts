@@ -1,3 +1,12 @@
+export interface ForumAttachment {
+  id: string;
+  type: 'image';
+  url: string;
+  name: string;
+  size: number;
+  alt?: string;
+}
+
 export interface ForumComment {
   id: string;
   postId: string;
@@ -6,6 +15,7 @@ export interface ForumComment {
   content: string;
   createdAt: string;
   likes: number;
+  attachments?: ForumAttachment[];
 }
 
 export interface ForumPost {
@@ -19,5 +29,20 @@ export interface ForumPost {
   createdAt: string;
   likes: number;
   commentsCount: number;
+  views?: number;
+  attachments?: ForumAttachment[];
   comments?: ForumComment[];
+}
+
+export interface CreatePostInput {
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  attachments?: ForumAttachment[];
+}
+
+export interface CreateCommentInput {
+  content: string;
+  attachments?: ForumAttachment[];
 }

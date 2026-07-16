@@ -1,13 +1,18 @@
 import { apiClient } from './api.client';
 import { runWithMock } from './config';
-import type { ForumPost, ForumComment } from '../types/forum';
+import type {
+  CreateCommentInput,
+  CreatePostInput,
+  ForumComment,
+  ForumPost,
+} from '../types/forum';
 
 let mockPosts: ForumPost[] | null = null;
 
 async function getMockPosts() {
   if (!mockPosts) {
     const mockModule = await import('../mocks/forum.json');
-    // Clone để các thao tác thêm bài/bình luận không sửa trực tiếp module JSON đã import.
+    // Clone so creating mock posts/comments does not mutate the imported JSON module.
     mockPosts = structuredClone(mockModule.default) as ForumPost[];
   }
   return mockPosts;
@@ -22,12 +27,12 @@ export const ForumService = {
     return runWithMock(
       async () => {
         const posts = await getMockPosts();
-        if (!category || category === 'All') return [...posts];
+        if (!category || category === 'Tất cả') return [...posts];
         return posts.filter((post) => post.category === category);
       },
       async () => {
         const params = new URLSearchParams();
-        if (category && category !== 'All') params.append('category', category);
+        if (category && category !== 'Tất cả') params.append('category', category);
 
         const response = await apiClient.get<
           unknown,
@@ -55,31 +60,36 @@ export const ForumService = {
     );
   },
 
-  async createPost(title: string, content: string): Promise<ForumPost> {
+  async createPost(input: CreatePostInput): Promise<ForumPost> {
     return runWithMock(
       async () => {
         const posts = await getMockPosts();
         const post: ForumPost = {
           id: createMockId('post'),
-          title,
-          content,
+          title: input.title,
+          content: input.content,
           authorName: 'Tài khoản Demo',
           authorRole: 'STUDENT',
-          category: 'General',
-          tags: ['Demo'],
+          category: input.category,
+          tags: input.tags,
           createdAt: new Date().toISOString(),
           likes: 0,
+          views: 0,
           commentsCount: 0,
+          attachments: input.attachments || [],
           comments: [],
         };
         posts.unshift(post);
         return post;
       },
-      () => apiClient.post<unknown, ForumPost>('/forum/posts', { title, content })
+      () => apiClient.post<unknown, ForumPost>('/forum/posts', input)
     );
   },
 
-  async createComment(postId: string, content: string): Promise<ForumComment> {
+  async createComment(
+    postId: string,
+    input: CreateCommentInput
+  ): Promise<ForumComment> {
     return runWithMock(
       async () => {
         const posts = await getMockPosts();
@@ -88,9 +98,10 @@ export const ForumService = {
           postId,
           authorName: 'Tài khoản Demo',
           authorRole: 'STUDENT',
-          content,
+          content: input.content,
           createdAt: new Date().toISOString(),
           likes: 0,
+          attachments: input.attachments || [],
         };
         const post = posts.find((item) => item.id === postId);
         if (post) {
@@ -100,9 +111,10 @@ export const ForumService = {
         return comment;
       },
       () =>
-        apiClient.post<unknown, ForumComment>(`/forum/posts/${postId}/comments`, {
-          content,
-        })
+        apiClient.post<unknown, ForumComment>(
+          `/forum/posts/${postId}/comments`,
+          input
+        )
     );
   },
 };

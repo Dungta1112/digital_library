@@ -1,47 +1,121 @@
 [
   {
     "id": "1",
-    "title": "Best practices for training large language models on limited hardware",
-    "content": "I am working on my thesis and only have access to a single RTX 3090. What are some effective strategies to fine-tune a 7B model? Should I look into LoRA or QLoRA?",
-    "authorName": "Jane Doe",
+    "title": "Cần góp ý bố cục trang thư viện số",
+    "content": "Mình đang làm phần giao diện thư viện. Theo mọi người, phần danh sách tài liệu nên ưu tiên hiển thị ảnh bìa, tên tác giả hay loại file trước? Mình đính kèm ảnh mẫu để mọi người dễ góp ý.",
+    "authorName": "Nguyễn Minh Anh",
     "authorRole": "STUDENT",
-    "category": "Computer Science",
-    "tags": ["LLM", "Machine Learning", "Hardware"],
+    "category": "Đồ án",
+    "tags": ["UI", "UX", "Thư viện số"],
     "createdAt": "2026-06-01T10:30:00Z",
     "likes": 42,
+    "views": 318,
     "commentsCount": 2,
+    "attachments": [
+      {
+        "id": "att-post-1",
+        "type": "image",
+        "url": "/trung-vuong-university-logo.svg",
+        "name": "library-ui-preview.svg",
+        "size": 2048,
+        "alt": "Ảnh minh họa giao diện thư viện"
+      }
+    ],
     "comments": [
       {
         "id": "c1",
         "postId": "1",
-        "authorName": "Dr. Alan Turing",
+        "authorName": "ThS. Trần Hoàng",
         "authorRole": "FACULTY",
-        "content": "QLoRA is highly recommended for your setup. It allows 4-bit quantization, which fits perfectly within 24GB VRAM.",
+        "content": "Nên giữ tên tài liệu và loại file ở vùng dễ quét nhất. Ảnh bìa chỉ nên hỗ trợ nhận diện, tránh làm người dùng khó đọc tiêu đề.",
         "createdAt": "2026-06-01T11:00:00Z",
-        "likes": 15
+        "likes": 15,
+        "attachments": []
       },
       {
         "id": "c2",
         "postId": "1",
-        "authorName": "John Smith",
+        "authorName": "Lê Quốc Bảo",
         "authorRole": "STUDENT",
-        "content": "I successfully used Unsloth for this! It speeds up fine-tuning massively and reduces memory footprint.",
+        "content": "Mình nghĩ nên thêm badge PDF/DOCX ở góc card. Nhìn một lần là biết tài liệu có đọc trực tiếp được không.",
         "createdAt": "2026-06-01T14:20:00Z",
-        "likes": 8
+        "likes": 8,
+        "attachments": [
+          {
+            "id": "att-comment-1",
+            "type": "image",
+            "url": "/trung-vuong-university-logo.svg",
+            "name": "badge-suggestion.svg",
+            "size": 2048,
+            "alt": "Gợi ý vị trí badge loại file"
+          }
+        ]
       }
     ]
   },
   {
     "id": "2",
-    "title": "Quantum entanglement in macroscopic systems",
-    "content": "Is there any recent empirical evidence showing entanglement maintained at a macroscopic level? The literature from 2024 suggested some breakthroughs in supercooled states.",
-    "authorName": "Marie Curie",
+    "title": "Có tài liệu nào về QLoRA cho máy cấu hình thấp không?",
+    "content": "Mình đang thử fine-tune mô hình 7B bằng một GPU 24GB. Bạn nào có tài liệu hoặc kinh nghiệm tối ưu bộ nhớ thì chia sẻ giúp mình với.",
+    "authorName": "Phạm Gia Huy",
     "authorRole": "STUDENT",
-    "category": "Physics",
-    "tags": ["Quantum Mechanics", "Experimental Physics"],
+    "category": "Hỏi đáp học tập",
+    "tags": ["AI", "QLoRA", "Machine Learning"],
     "createdAt": "2026-06-05T09:15:00Z",
     "likes": 128,
+    "views": 904,
+    "commentsCount": 1,
+    "attachments": [],
+    "comments": [
+      {
+        "id": "c3",
+        "postId": "2",
+        "authorName": "Đỗ Ngọc Linh",
+        "authorRole": "STUDENT",
+        "content": "Bạn thử tìm các bài về LoRA, QLoRA và Unsloth trong thư viện. Nếu chạy mock thì có thể thêm tài liệu demo trước để test flow đọc PDF.",
+        "createdAt": "2026-06-05T10:02:00Z",
+        "likes": 11,
+        "attachments": []
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "title": "Tổng hợp tài liệu ôn tập môn Cơ sở dữ liệu",
+    "content": "Mình gom lại một số ghi chú về chuẩn hóa dữ liệu, transaction và index. Bạn nào cần thì bình luận, mình sẽ cập nhật thêm link tài liệu trong thư viện.",
+    "authorName": "Vũ Thanh Tùng",
+    "authorRole": "STUDENT",
+    "category": "Tài liệu",
+    "tags": ["Database", "SQL", "Ôn tập"],
+    "createdAt": "2026-06-08T08:40:00Z",
+    "likes": 76,
+    "views": 612,
     "commentsCount": 0,
+    "attachments": [
+      {
+        "id": "att-post-3",
+        "type": "image",
+        "url": "/trung-vuong-university-logo.svg",
+        "name": "database-notes-preview.svg",
+        "size": 2048,
+        "alt": "Ảnh minh họa ghi chú cơ sở dữ liệu"
+      }
+    ],
+    "comments": []
+  },
+  {
+    "id": "4",
+    "title": "Lịch bảo trì hệ thống thư viện số cuối tuần",
+    "content": "Hệ thống có thể gián đoạn trong thời gian ngắn để cập nhật phần đọc tài liệu trực tuyến. Các bạn nên tải trước tài liệu cần dùng gấp.",
+    "authorName": "Ban quản trị thư viện",
+    "authorRole": "ADMIN",
+    "category": "Thông báo",
+    "tags": ["Bảo trì", "Thư viện"],
+    "createdAt": "2026-06-10T15:00:00Z",
+    "likes": 31,
+    "views": 477,
+    "commentsCount": 0,
+    "attachments": [],
     "comments": []
   }
 ]
