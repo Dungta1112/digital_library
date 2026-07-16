@@ -7,6 +7,8 @@ export interface Document {
   category: string;
   keywords: string[];
   pdfUrl: string;
+  fileName?: string;
+  fileType?: 'pdf' | 'docx';
   coverImageUrl?: string;
   viewCount: number;
   saveCount: number;

@@ -4,6 +4,27 @@ export const config = {
   MOCK_DELAY_MS: 800,
 };
 
+export function getApiOrigin() {
+  try {
+    return new URL(config.API_BASE_URL).origin;
+  } catch {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return '';
+  }
+}
+
+export function toBackendUrl(url: string) {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const origin = getApiOrigin();
+  if (!origin || !url.startsWith('/')) return url;
+
+  return `${origin}${url}`;
+}
+
 /**
  * Tạo độ trễ nhỏ để giao diện mock vẫn thể hiện loading giống khi gọi mạng thật.
  * Có thể giảm MOCK_DELAY_MS nếu muốn thao tác nhanh hơn khi phát triển.

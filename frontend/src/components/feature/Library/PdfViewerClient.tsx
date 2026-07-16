@@ -1,21 +1,64 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+import type { Document } from '@/types/library';
+import { LibraryService } from '@/services/library.service';
 
-// react-pdf cần DOMMatrix của trình duyệt nên tuyệt đối không render module này ở server.
-// Wrapper client-only này tránh lỗi 500 khi mở trang chi tiết tài liệu trong Next.js App Router.
+// react-pdf needs browser APIs, so this viewer must not render on the server.
 const PdfViewer = dynamic(
   () => import('./PdfViewer').then((pdfModule) => pdfModule.PdfViewer),
   {
     ssr: false,
     loading: () => (
       <div className="flex h-full min-h-[600px] items-center justify-center rounded-xl bg-slate-200 text-sm font-medium text-slate-500 animate-pulse">
-        Đang khởi tạo trình đọc PDF...
+        Loading document viewer...
       </div>
     ),
   }
 );
 
-export function PdfViewerClient({ url }: { url: string }) {
+export function PdfViewerClient({ document }: { document: Document }) {
+  const [url, setUrl] = useState(document.pdfUrl);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    LibraryService.getDocumentReadUrl(document)
+      .then((readUrl) => {
+        if (!cancelled) {
+          setUrl(readUrl);
+          setError(null);
+        }
+      })
+      .catch((readError) => {
+        if (!cancelled) {
+          setError(readError instanceof Error ? readError.message : 'Cannot load document file.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [document]);
+
+  if (error) {
+    return (
+      <div className="flex h-full min-h-[600px] flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <h2 className="mb-2 text-lg font-bold text-red-700">Cannot load document</h2>
+        <p className="max-w-md text-sm text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!url) {
+    return (
+      <div className="flex h-full min-h-[600px] items-center justify-center rounded-xl bg-slate-200 text-sm font-medium text-slate-500 animate-pulse">
+        Resolving document file...
+      </div>
+    );
+  }
+
   return <PdfViewer url={url} />;
 }
