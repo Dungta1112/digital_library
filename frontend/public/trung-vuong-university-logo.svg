@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="44" fill="#A6192E"/>
+  <circle cx="256" cy="256" r="222" fill="#FFFFFF"/>
+  <path d="M145 120H214L256 204L298 120H367L287 267H225L145 120Z" fill="#00805A"/>
+  <path d="M202 185H310V238H275V316H237V238H202V185Z" fill="#D71920"/>
+  <text x="256" y="360" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="39" font-weight="800" fill="#C8102E">TRUNG VUONG</text>
+  <text x="256" y="405" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="600" letter-spacing="2" fill="#007A53">UNIVERSITY</text>
+</svg>
