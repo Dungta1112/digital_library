@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const steps = [
@@ -28,7 +28,7 @@ export function HomeHowItWorks() {
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <section ref={containerRef} className="relative py-24 bg-[#F8FAF7] dark:bg-slate-900 transition-colors duration-300 overflow-hidden z-10 border-t border-[rgba(22,163,74,0.08)] dark:border-slate-800">
+    <section ref={containerRef} className="home-section-muted relative z-10 overflow-hidden border-t border-emerald-900/5 py-24 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <motion.h2 
@@ -78,7 +78,7 @@ export function HomeHowItWorks() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className={`w-full md:w-1/2 pl-16 md:pl-0 ${index % 2 === 0 ? 'md:pl-12' : 'md:pr-12 text-left md:text-right'}`}
                 >
-                  <div className="p-8 rounded-3xl bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300">
+                  <div className="home-card rounded-3xl border p-8 transition-all duration-300 dark:border-slate-800 dark:bg-slate-950">
                     <div className="text-sm font-bold text-green-600 dark:text-green-400 mb-2 uppercase tracking-widest transition-colors duration-300">
                       Bước {index + 1}
                     </div>

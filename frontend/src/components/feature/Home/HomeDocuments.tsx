@@ -25,7 +25,7 @@ export function HomeDocuments() {
   }, []);
 
   return (
-    <section className="relative py-24 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden z-10">
+    <section className="home-section relative z-10 overflow-hidden py-24 transition-colors duration-300 dark:bg-slate-950">
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
@@ -75,7 +75,7 @@ export function HomeDocuments() {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ y: -8 }}
-                  className="group h-full flex flex-col p-6 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-[rgba(22,163,74,0.3)] dark:hover:border-green-800 hover:shadow-[0_10px_40px_rgba(22,163,74,0.08)] transition-all duration-300"
+                  className="home-card group flex h-full flex-col rounded-3xl border p-6 transition-all duration-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-green-800"
                 >
                   <div className="flex flex-wrap items-center gap-2 mb-4">
                     <span className="px-2.5 py-1 text-[11px] uppercase tracking-wider font-bold rounded-md bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 transition-colors duration-300">

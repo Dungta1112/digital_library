@@ -28,7 +28,7 @@ const solutions = [
 
 export function HomeSolution() {
   return (
-    <section className="relative py-24 lg:py-32 bg-white dark:bg-slate-950 overflow-hidden z-10 transition-colors duration-300">
+    <section className="home-section relative z-10 overflow-hidden py-24 transition-colors duration-300 lg:py-32 dark:bg-slate-950">
       <div className="container mx-auto px-6 relative z-10">
         
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-center">
@@ -74,7 +74,7 @@ export function HomeSolution() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 transition-all duration-500 hover:shadow-xl hover:shadow-emerald-900/5 hover:-translate-y-1 hover:border-emerald-500/30"
+                className="home-card group relative rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-1 dark:border-slate-800 dark:bg-slate-900"
               >
                 <div className="flex flex-col items-start relative z-10">
                   <div className="mb-6 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">

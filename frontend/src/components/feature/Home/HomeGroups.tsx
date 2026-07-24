@@ -25,7 +25,7 @@ export function HomeGroups() {
   }, []);
 
   return (
-    <section className="relative py-24 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden z-10">
+    <section className="home-section relative z-10 overflow-hidden py-24 transition-colors duration-300 dark:bg-slate-950">
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
@@ -63,7 +63,7 @@ export function HomeGroups() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group h-full p-6 rounded-3xl bg-[rgba(255,255,255,0.72)] dark:bg-slate-900/80 backdrop-blur-[20px] border border-gray-200 dark:border-slate-800 hover:border-green-200 dark:hover:border-green-800 hover:bg-green-50/30 dark:hover:bg-slate-800 transition-all duration-300 flex flex-col"
+                  className="home-card group flex h-full flex-col rounded-3xl border p-6 backdrop-blur-[20px] transition-all duration-300 hover:bg-green-50/40 dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-green-800 dark:hover:bg-slate-800"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-slate-800 flex items-center justify-center text-green-700 dark:text-green-400 font-bold uppercase transition-colors duration-300">

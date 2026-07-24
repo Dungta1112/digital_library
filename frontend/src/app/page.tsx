@@ -15,7 +15,7 @@ import { HomeCTA } from '@/components/feature/Home/HomeCTA';
 export default function HomePage() {
   return (
     <SmoothScroll>
-      <div className="relative w-full overflow-hidden bg-white">
+      <div className="home-shell relative w-full overflow-hidden">
         <HeroSection />
         <HomeProblems />
         <HomeSolution />

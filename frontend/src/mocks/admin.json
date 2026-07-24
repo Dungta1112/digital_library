@@ -10,6 +10,87 @@
     { "id": "2", "email": "prof.jones@uni.edu", "fullName": "Dr. Bob Jones", "role": "LECTURER", "status": "ACTIVE", "joinedAt": "2024-05-12T08:30:00Z" },
     { "id": "3", "email": "spammy@email.com", "fullName": "Spam Account", "role": "STUDENT", "status": "SUSPENDED", "joinedAt": "2026-06-01T14:20:00Z" },
     { "id": "4", "email": "admin@sys.edu", "fullName": "System Admin", "role": "ADMIN", "status": "ACTIVE", "joinedAt": "2023-01-01T00:00:00Z" },
-    { "id": "5", "email": "mod.helper@uni.edu", "fullName": "Forum Mod", "role": "MODERATOR", "status": "ACTIVE", "joinedAt": "2025-08-01T00:00:00Z" }
+    { "id": "5", "email": "mod.helper@uni.edu", "fullName": "Forum Mod", "role": "CONTENT_MANAGER", "status": "ACTIVE", "joinedAt": "2025-08-01T00:00:00Z" }
+  ],
+  "pendingDocuments": [
+    {
+      "id": "pending-doc-1",
+      "title": "Ứng dụng AI trong hỗ trợ học tập đại học",
+      "author": "Nguyễn Minh Anh",
+      "uploadedBy": "lecturer@ailibrary.local",
+      "uploadedAt": "2026-06-24T09:00:00Z",
+      "status": "PENDING"
+    },
+    {
+      "id": "pending-doc-2",
+      "title": "Giáo trình nhập môn khoa học dữ liệu",
+      "author": "Trần Hoàng Nam",
+      "uploadedBy": "nam.tran@uni.edu",
+      "uploadedAt": "2026-06-26T14:20:00Z",
+      "status": "PENDING"
+    }
+  ],
+  "forumPosts": [
+    {
+      "id": "forum-admin-1",
+      "title": "Trao đổi về phương pháp học máy hiệu quả",
+      "authorName": "Student Demo",
+      "contentSnippet": "Mình muốn tham khảo kinh nghiệm lựa chọn mô hình phù hợp với tập dữ liệu nhỏ...",
+      "createdAt": "2026-06-25T10:00:00Z",
+      "status": "ACTIVE",
+      "reportsCount": 2
+    },
+    {
+      "id": "forum-admin-2",
+      "title": "Nguồn tài liệu không rõ tác giả",
+      "authorName": "Anonymous User",
+      "contentSnippet": "Bài đăng đang được cộng đồng báo cáo do thiếu nguồn trích dẫn...",
+      "createdAt": "2026-06-26T08:15:00Z",
+      "status": "ACTIVE",
+      "reportsCount": 7
+    }
+  ],
+  "reports": [
+    {
+      "id": "report-1",
+      "reporterName": "Lê Thu Hà",
+      "targetType": "POST",
+      "targetId": "forum-admin-2",
+      "reason": "Nội dung thiếu nguồn và có thông tin chưa được kiểm chứng",
+      "createdAt": "2026-06-26T09:00:00Z",
+      "status": "PENDING"
+    },
+    {
+      "id": "report-2",
+      "reporterName": "Phạm Quang Huy",
+      "targetType": "DOCUMENT",
+      "targetId": "pending-doc-1",
+      "reason": "Tệp PDF có một số trang bị lỗi định dạng",
+      "createdAt": "2026-06-26T11:30:00Z",
+      "status": "PENDING"
+    }
+  ],
+  "systemConfigs": [
+    {
+      "key": "general.siteName",
+      "group": "GENERAL",
+      "label": "Tên hiển thị của hệ thống",
+      "value": "Smart Digital Library",
+      "type": "text"
+    },
+    {
+      "key": "library.maxUploadMb",
+      "group": "LIBRARY",
+      "label": "Dung lượng tải lên tối đa (MB)",
+      "value": 50,
+      "type": "number"
+    },
+    {
+      "key": "security.requireEmailVerification",
+      "group": "SECURITY",
+      "label": "Yêu cầu xác minh email",
+      "value": true,
+      "type": "boolean"
+    }
   ]
 }

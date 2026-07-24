@@ -6,7 +6,7 @@ import { ArrowRight } from '@phosphor-icons/react';
 
 export function HomeCTA() {
   return (
-    <section className="relative py-24 md:py-32 bg-slate-950 transition-colors duration-300 overflow-hidden z-10 border-t border-slate-900">
+    <section className="relative z-10 overflow-hidden border-t border-emerald-950 bg-[#064e3b] py-24 transition-colors duration-300 md:py-32 dark:bg-slate-950">
       <div className="container mx-auto px-6 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
@@ -15,9 +15,9 @@ export function HomeCTA() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-4xl mx-auto text-center"
         >
-          <div className="inline-flex items-center gap-3 mb-8">
+          <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-red-300/20 bg-red-400/10 px-4 py-2">
             <div className="h-[1px] w-8 bg-emerald-500/50" />
-            <span className="text-xs font-bold tracking-[0.2em] text-emerald-400 uppercase">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-red-200">
               Bắt đầu ngay hôm nay
             </span>
             <div className="h-[1px] w-8 bg-emerald-500/50" />

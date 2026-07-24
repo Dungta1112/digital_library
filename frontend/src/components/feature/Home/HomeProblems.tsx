@@ -28,7 +28,7 @@ const problems = [
 
 export function HomeProblems() {
   return (
-    <section className="relative py-24 lg:py-32 bg-gray-50 dark:bg-slate-900 transition-colors duration-300 overflow-hidden z-10 border-t border-gray-200/50 dark:border-slate-800/50">
+    <section className="home-section-muted relative z-10 overflow-hidden border-t border-emerald-900/5 py-24 transition-colors duration-300 lg:py-32 dark:border-slate-800/50 dark:bg-slate-900">
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24">
           
@@ -82,7 +82,7 @@ export function HomeProblems() {
                 className="group relative py-8 border-b border-gray-200 dark:border-slate-800 last:border-0"
               >
                 <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center flex-shrink-0 text-emerald-700 dark:text-emerald-400 shadow-sm border border-gray-100 dark:border-slate-700 transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
+                  <div className="home-card flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border text-emerald-700 transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105 dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-400">
                     {problem.icon}
                   </div>
                   <div>

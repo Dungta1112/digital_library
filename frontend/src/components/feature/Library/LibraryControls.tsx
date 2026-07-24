@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { LibraryService } from '@/services/library.service';
-import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, MagnifyingGlass, X } from '@phosphor-icons/react';
 
 interface LibraryControlsProps {
   query: string;
@@ -12,84 +12,123 @@ interface LibraryControlsProps {
   onSearch: () => void;
 }
 
-export function LibraryControls({ query, setQuery, category, setCategory, onSearch }: LibraryControlsProps) {
-  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+export function LibraryControls({
+  query,
+  setQuery,
+  category,
+  setCategory,
+  onSearch,
+}: LibraryControlsProps) {
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const hasFilters = Boolean(query.trim() || category);
 
   useEffect(() => {
-    LibraryService.getCategories().then(data => {
-      setCategories([{ id: '', name: 'Tất cả' }, ...data]);
+    LibraryService.getCategories().then((data) => {
+      setCategories([{ id: '', name: 'All documents' }, ...data]);
     });
   }, []);
 
+  const clearFilters = () => {
+    setQuery('');
+    setCategory('');
+  };
+
   return (
-    <div className="flex flex-col gap-8 p-6 md:p-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-sm transition-colors duration-300">
+    <aside className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div>
-        <h3 className="font-bold text-slate-900 dark:text-white mb-4 text-lg flex items-center gap-2 tracking-tight">
-          <MagnifyingGlass weight="bold" className="w-5 h-5 text-emerald-600 dark:text-emerald-500" /> 
-          Tìm kiếm
-        </h3>
-        <div className="relative">
-          <Input 
-            placeholder="Tên tài liệu, tác giả..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSearch()}
-            className="h-12 text-sm shadow-sm w-full bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl"
-          />
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
+            <MagnifyingGlass weight="bold" className="h-4 w-4 text-emerald-600" />
+            Search
+          </h2>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white"
+            >
+              <X weight="bold" className="h-3 w-3" />
+              Clear
+            </button>
+          )}
         </div>
-        <Button onClick={onSearch} className="w-full h-11 font-semibold shadow-sm mt-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl active:scale-[0.98] transition-all">Tìm</Button>
+
+        <Input
+          placeholder="Title, author, keyword..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && onSearch()}
+          className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-950/50"
+        />
+        <Button
+          onClick={onSearch}
+          className="mt-3 h-11 w-full rounded-xl bg-emerald-700 font-bold text-white shadow-sm transition-all hover:bg-emerald-800 active:scale-[0.98]"
+        >
+          Search library
+        </Button>
       </div>
-      
-      <div className="w-full h-px bg-slate-100 dark:bg-slate-800/80 transition-colors duration-300"></div>
+
+      <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
       <div>
-        <h3 className="font-bold text-slate-900 dark:text-white mb-4 text-lg tracking-tight">Chuyên mục</h3>
+        <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
+          Category
+        </h2>
         <div className="flex flex-col gap-1.5">
-          {categories.map(c => {
-            const isActive = category === c.id;
+          {categories.map((item) => {
+            const isActive = category === item.id;
             return (
               <button
-                key={c.id || 'all'}
-                onClick={() => setCategory(c.id)}
-                className={`text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent'
+                key={item.id || 'all'}
+                type="button"
+                onClick={() => setCategory(item.id)}
+                className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-900/20 dark:text-emerald-300'
+                    : 'border-transparent text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/60'
                 }`}
               >
-                {c.name}
+                {item.name}
               </button>
             );
           })}
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
 
-export function Pagination({ page, totalPages, setPage }: { page: number, totalPages: number, setPage: (p: number) => void }) {
+export function Pagination({
+  page,
+  totalPages,
+  setPage,
+}: {
+  page: number;
+  totalPages: number;
+  setPage: (p: number) => void;
+}) {
   if (totalPages <= 1) return null;
-  
+
   return (
-    <div className="flex justify-center items-center gap-4 mt-16 mb-8">
-      <Button 
-        variant="secondary" 
+    <div className="mb-8 mt-14 flex items-center justify-center gap-4">
+      <Button
+        variant="secondary"
         onClick={() => setPage(Math.max(1, page - 1))}
         disabled={page === 1}
-        className="w-12 h-12 p-0 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:text-emerald-600 shadow-sm"
+        className="flex h-11 w-11 items-center justify-center rounded-xl border-slate-200 bg-white p-0 shadow-sm hover:border-emerald-500 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900"
       >
-        <CaretLeft weight="bold" className="w-5 h-5" />
+        <CaretLeft weight="bold" className="h-5 w-5" />
       </Button>
-      <span className="text-sm font-bold text-slate-700 dark:text-slate-300 px-5 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors duration-300 tracking-wide">
-        Trang {page} / {totalPages}
+      <span className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+        Page {page} / {totalPages}
       </span>
-      <Button 
-        variant="secondary" 
+      <Button
+        variant="secondary"
         onClick={() => setPage(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="w-12 h-12 p-0 flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:text-emerald-600 shadow-sm"
+        className="flex h-11 w-11 items-center justify-center rounded-xl border-slate-200 bg-white p-0 shadow-sm hover:border-emerald-500 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900"
       >
-        <CaretRight weight="bold" className="w-5 h-5" />
+        <CaretRight weight="bold" className="h-5 w-5" />
       </Button>
     </div>
   );
