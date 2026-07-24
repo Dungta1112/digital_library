@@ -1,3 +1,37 @@
+<<<<<<< HEAD
+node_modules/
+dist/
+build/
+*.log
+.env*
+!.env.example
+.next/
+out/
+coverage/
+.DS_Store
+.claude
+
+# Speckit
+.agents/
+.specify/
+specs/
+AGENTS.md
+/.vs
+
+# ai_service (Python)
+ai_service/venv/
+ai_service/__pycache__/
+ai_service/**/__pycache__/
+ai_service/chroma_db/
+*.pyc
+ai_service/.venv/
+ai_service/venv/
+ai_service/test_docsstorage/
+CLAUDE.md
+ai_service/test_docs/
+readme2.md
+/storage/
+=======
 node_modules/
 dist/
 build/
@@ -18,3 +52,4 @@ AGENTS.md
 .venv/
 __pycache__/
 chroma_db/
+>>>>>>> origin/main
