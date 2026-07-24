@@ -1,73 +1,122 @@
-AI Library Service (FastAPI + Ollama + ChromaDB)
-This is a lightweight, high-performance Microservice built with FastAPI to power the Semantic Search (Smart Book Search) feature of the Digital Library system. It operates fully local and offline using Ollama for vector embeddings and ChromaDB as the vector database.
+# AI Service (FastAPI + Ollama + ChromaDB)
 
-🏗️ Architecture & Technology Stack
-Framework: FastAPI (Python 3.10+)
+Microservice cục bộ phục vụ tính năng tìm kiếm ngữ nghĩa (semantic search) cho Digital Library. Dùng Ollama để sinh embedding/tổng hợp câu trả lời, ChromaDB để lưu vector.
 
-LLM Engine (Local AI): Ollama (Running nomic-embed-text)
+## Cài đặt
 
-Vector Database: ChromaDB (Persistent local storage)
+```bash
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-Containerization: Docker & Docker Compose
+Yêu cầu Ollama đang chạy với 2 model:
 
-📂 Project Structure
-Plaintext
-ai_service/
-├── app/
-│   └── main.py          # FastAPI application & core AI logic
-├── chroma_db/           # Persistent Vector Database directory (auto-generated)
-├── Dockerfile           # Docker configuration for Python environment
-└── requirements.txt     # Python dependencies (Ollama, ChromaDB, FastAPI)
-🚀 Getting Started (Local Setup)
-1. Prerequisites
-Make sure you have Ollama installed on your host machine. Download it from ollama.com.
-
-Open your host terminal and pull the required embedding model:
-
-Bash
+```bash
 ollama pull nomic-embed-text
-2. Deployment via Docker Compose
-From the root directory of the digital_library project, run the following command to spin up the entire system:
+ollama pull qwen3:4b
+```
 
-Bash
-docker-compose up --build
-The AI Service container will automatically bridge to the host machine via host.docker.internal:11434 to access Ollama.
+## Chạy
 
-🔌 API Endpoints
-Once the container is up and running, you can access the interactive Swagger API documentation at: http://localhost:8000/docs
+```bash
+uvicorn app.main:app --reload --port 8000
+```
 
-1. Synchronize / Vectorize Books
-Endpoint: POST /api/ai/sync-books
+Health check: `GET /health`
 
-Description: Triggered by the Node.js backend whenever new books are added or during system initialization. It converts textual data into vector embeddings and stores them in ChromaDB.
+## Cấu hình (`.env`)
 
-Payload Example:
+| Biến | Mặc định |
+|---|---|
+| `OLLAMA_BASE_URL` | `http://localhost:11434` |
+| `OLLAMA_MODEL` | `qwen3:4b` |
+| `OLLAMA_EMBED_MODEL` | `nomic-embed-text` |
+| `CHROMA_PATH` | `./chroma_db` |
 
-JSON
-[
-  {
-    "id": "1",
-    "title": "Data Structures and Algorithms",
-    "description": "An advanced guide focusing on binary trees, graphs, and optimization."
-  }
-]
-2. Semantic Book Search
-Endpoint: POST /api/ai/search-books
+## API
 
-Description: Accepts a natural language query from the user, vectorizes it, and queries ChromaDB to find the most contextually relevant books.
+Được gọi bởi backend NestJS (`src/ai/ai.service.ts`).
 
-Payload Example:
+### `POST /api/ai/sync-books`
 
-JSON
-{
-  "query": "books about advanced trees and sorting algorithms",
-  "top_k": 3
-}
-🛠️ Docker Network Configuration Notes
-To allow the isolated Docker container to communicate with Ollama running on your Windows/macOS host machine, the service includes the following configuration in the root docker-compose.yml:
+Nhận mảng sách, tạo embedding và lưu vào ChromaDB (collection `local_books`).
 
-YAML
-extra_hosts:
-  - "host.docker.internal:host-gateway"
-environment:
-  - OLLAMA_HOST=http://host.docker.internal:11434
+```json
+[{ "id": "1", "title": "Tên sách", "description": "Mô tả sách" }]
+```
+
+Trả về: `{ "status": "success", "message": "Đã số hóa N cuốn sách." }`
+
+### `POST /api/ai/search-books`
+
+Tìm kiếm ngữ nghĩa và dùng `qwen3:4b` tổng hợp câu trả lời tiếng Việt.
+
+```json
+{ "query": "sách về cây nhị phân", "top_k": 3 }
+```
+
+Trả về: `{ "query": "...", "answer": "...", "results": [{ "id", "title", "description", "distance" }] }`
+
+## Document RAG (hỏi–đáp theo nội dung PDF)
+
+Luồng riêng, độc lập với sync/search-books: nội dung PDF được tách theo trang,
+chia chunk (~1000 ký tự, overlap 150), embed từng chunk và lưu vào collection
+`document_chunks` kèm metadata `{document_id, title, page, chunk_index}`.
+
+### `POST /api/ai/ingest-document` (multipart)
+
+Fields: `file` (PDF), `document_id`, `title`. Trả về **202** ngay và xử lý nền:
+
+```json
+{ "status": "processing", "document_id": "..." }
+```
+
+Trả 400 nếu file không phải PDF đọc được, 409 nếu tài liệu đang được xử lý.
+PDF scan không có text layer sẽ kết thúc với trạng thái `failed` kèm lý do.
+
+### `GET /api/ai/ingest-status/{document_id}`
+
+```json
+{ "document_id": "...", "state": "processing|done|failed|not_found",
+  "pages_total": 6, "pages_with_text": 6, "chunks_total": 6,
+  "chunks_indexed": 6, "error": null }
+```
+
+Trạng thái giữ in-memory; sau khi restart service sẽ fallback đếm chunk trong
+ChromaDB (`done` nếu đã có chunk, `not_found` nếu chưa).
+
+### `POST /api/ai/ask-document`
+
+```json
+{ "query": "câu hỏi", "document_id": "tùy chọn — bỏ trống để hỏi trên mọi tài liệu", "top_k": 5 }
+```
+
+Truy xuất top_k chunk liên quan (lọc theo `document_id` nếu có), đưa vào prompt
+để `qwen3:4b` trả lời kèm trích dẫn `[trang N]`:
+
+```json
+{ "query": "...", "answer": "...", "sources": [
+  { "document_id", "title", "page", "chunk_index", "snippet", "distance" } ] }
+```
+
+### `DELETE /api/ai/document-index/{document_id}`
+
+Gỡ toàn bộ chunk của tài liệu khỏi ChromaDB.
+
+### Test nhanh cục bộ
+
+```bash
+./scripts/rag_smoke.sh ingest /duong/dan/file.pdf          # document_id mặc định: test-doc-1
+./scripts/rag_smoke.sh ask "Chương 2 nói về điều gì?"
+./scripts/rag_smoke.sh status
+./scripts/rag_smoke.sh clean
+```
+
+## Test
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
