@@ -33,5 +33,5 @@ def embed(text: str) -> list[float]:
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
-    response = _client.embed(model=settings.ollama_embed_model, input=texts)
+    response = _client.embed(model=settings.ollama_embed_model, input=texts, keep_alive="30s")
     return [list(e) for e in response["embeddings"]]

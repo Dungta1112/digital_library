@@ -18,7 +18,7 @@ from app.services import chroma_service, ingest_registry, ollama_service, pdf_se
 router = APIRouter(prefix="/api/ai", tags=["AI"])
 
 EMBED_BATCH_SIZE = 16
-ASK_NUM_CTX = 8192
+ASK_NUM_CTX = 4096
 SNIPPET_MAX_CHARS = 300
 
 
