@@ -27,6 +27,5 @@ ai_service/.venv/
 ai_service/venv/
 CLAUDE.md
 ai_service/test_docs/
-readme2.md
 /storage/
 /chroma_db/
