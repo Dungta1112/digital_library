@@ -1,4 +1,4 @@
-AI Library Service (FastAPI + Ollama + ChromaDB)
+I Library Service (FastAPI + Ollama + ChromaDB)
 This is a lightweight, high-performance Microservice built with FastAPI to power the Semantic Search (Smart Book Search) feature of the Digital Library system. It operates fully local and offline using Ollama for vector embeddings and ChromaDB as the vector database.
 
 🏗️ Architecture & Technology Stack

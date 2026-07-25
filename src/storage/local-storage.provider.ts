@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { mkdir, writeFile, rm } from 'fs/promises';
+import { mkdir, readFile, writeFile, rm } from 'fs/promises';
 import { join } from 'path';
 import { StorageService, StoreFileInput, StoredObject } from './storage.service';
 
@@ -22,6 +22,10 @@ export class LocalStorageProvider implements StorageService {
 
   async getReadUrl(objectKey: string): Promise<string> {
     return `/storage/${objectKey}`;
+  }
+
+  async getBuffer(objectKey: string): Promise<Buffer> {
+    return readFile(join(this.root, objectKey));
   }
 
   async delete(objectKey: string): Promise<void> {
