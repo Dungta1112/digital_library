@@ -4,6 +4,7 @@ Mất khi restart — khi đó endpoint status fallback sang đếm chunk trong 
 """
 
 import threading
+import time
 from dataclasses import dataclass
 
 
@@ -15,6 +16,10 @@ class IngestStatus:
     chunks_total: int = 0
     chunks_indexed: int = 0
     error: str | None = None
+    pages_processed: int = 0
+    stage: str = "extracting"
+    pages_ocred: int = 0
+    updated_at: float = 0.0
 
 
 _lock = threading.Lock()
@@ -23,7 +28,19 @@ _statuses: dict[str, IngestStatus] = {}
 
 def start(document_id: str) -> None:
     with _lock:
-        _statuses[document_id] = IngestStatus(state="processing")
+        _statuses[document_id] = IngestStatus(
+            state="processing", updated_at=time.time()
+        )
+
+
+def update_progress(document_id: str, **fields) -> None:
+    with _lock:
+        status = _statuses.get(document_id)
+        if status is None:
+            return
+        for key, value in fields.items():
+            setattr(status, key, value)
+        status.updated_at = time.time()
 
 
 def update(document_id: str, **fields) -> None:

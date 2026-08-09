@@ -44,12 +44,21 @@ def sync_books(books: list[BookIn]):
 
 def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
     try:
-        result = pdf_service.extract_chunks(pdf_bytes)
+        def on_page_done(page_num: int):
+            ingest_registry.update_progress(
+                document_id,
+                pages_processed=page_num,
+                stage="extracting",
+            )
+
+        result = pdf_service.extract_chunks(pdf_bytes, on_page_progress=on_page_done)
+        ingest_registry.update_progress(document_id, stage="chunking")
         ingest_registry.update(
             document_id,
             pages_total=result.pages_total,
             pages_with_text=result.pages_with_text,
             chunks_total=len(result.chunks),
+            pages_ocred=result.pages_ocred,
         )
         if not result.chunks:
             ingest_registry.update(
@@ -62,6 +71,7 @@ def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
         # Xóa index cũ của chính tài liệu này trước khi ghi lại từ đầu.
         chroma_service.delete_document_chunks(document_id)
 
+        ingest_registry.update_progress(document_id, stage="embedding")
         indexed = 0
         for i in range(0, len(result.chunks), EMBED_BATCH_SIZE):
             batch = result.chunks[i : i + EMBED_BATCH_SIZE]
@@ -119,6 +129,10 @@ def ingest_status(document_id: str):
             chunks_total=status.chunks_total,
             chunks_indexed=status.chunks_indexed,
             error=status.error,
+            pages_processed=status.pages_processed,
+            stage=status.stage,
+            pages_ocred=status.pages_ocred,
+            updated_at=status.updated_at,
         )
 
     # Registry mất khi restart: fallback đếm chunk đã có trong Chroma.

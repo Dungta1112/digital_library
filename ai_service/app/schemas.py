@@ -45,6 +45,10 @@ class IngestStatusResponse(BaseModel):
     chunks_total: int = 0
     chunks_indexed: int = 0
     error: Optional[str] = None
+    pages_processed: int = 0
+    stage: str = "extracting"
+    pages_ocred: int = 0
+    updated_at: Optional[float] = None
 
 
 class DeleteIndexResponse(BaseModel):
