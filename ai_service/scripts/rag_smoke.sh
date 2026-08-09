@@ -10,6 +10,8 @@
 #       Xem trạng thái ingest hiện tại.
 #   ./scripts/rag_smoke.sh clean [document_id]
 #       Gỡ index của tài liệu khỏi ChromaDB.
+#   ./scripts/rag_smoke.sh ocr-test file_scan.pdf [document_id] [tieu_de]
+#       Ingest file scan, poll liên tục trạng thái để theo dõi pages_ocred tăng dần.
 #
 # document_id mặc định: test-doc-1. Cần jq. Đổi địa chỉ service qua AI_SERVICE_URL.
 set -euo pipefail
@@ -66,6 +68,27 @@ case "$cmd" in
   status)
     doc_id="${2:-$DEFAULT_DOC_ID}"
     curl -sf "$BASE_URL/api/ai/ingest-status/$doc_id" | jq .
+    ;;
+
+  ocr-test)
+    # Test OCR: ingest file scan, poll status, xem pages_ocred
+    pdf_path="${2:?Thiếu đường dẫn PDF scan. Dùng: $0 ocr-test file.pdf [document_id] [tieu_de]}"
+    doc_id="${3:-$DEFAULT_DOC_ID}"
+    title="${4:-$(basename "$pdf_path" .pdf)}"
+
+    echo "=== OCR Test: Ingest file scan ==="
+    curl -s -X POST "$BASE_URL/api/ai/ingest-document" \
+      -F "file=@$pdf_path" \
+      -F "document_id=$doc_id" \
+      -F "title=$title" | python3 -m json.tool
+    echo ""
+    echo "Polling status (Ctrl+C to stop)..."
+    while true; do
+      clear
+      echo "=== OCR Ingest Status ==="
+      curl -s "$BASE_URL/api/ai/ingest-status/$doc_id" | python3 -m json.tool
+      sleep 3
+    done
     ;;
 
   clean)

@@ -9,3 +9,6 @@ ollama==0.6.2
 posthog<4
 pypdf==6.14.2
 python-multipart==0.0.32
+pytesseract==0.3.13
+pypdfium2==5.11.0
+Pillow==12.3.0

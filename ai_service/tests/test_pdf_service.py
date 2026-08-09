@@ -1,5 +1,8 @@
 from io import BytesIO
 
+import pytest
+
+from app.services import pdf_service
 from app.services.pdf_service import MIN_CHUNK_CHARS, extract_chunks, split_text
 
 
@@ -95,6 +98,38 @@ def test_blank_page_is_skipped():
     assert result.pages_total == 2
     assert result.pages_with_text == 1
     assert all(c.page == 2 for c in result.chunks)
+
+
+def test_on_page_progress_called_for_each_page():
+    pdf = build_pdf(["Page one content.", "Page two content."])
+    progress: list[int] = []
+    extract_chunks(pdf, on_page_progress=lambda n: progress.append(n))
+
+    assert progress == [1, 2]
+
+
+def test_ocr_fallback_recovers_blank_page(monkeypatch):
+    # Trang 1 có text layer; trang 2 trắng → phải kích hoạt OCR và lấy lại text.
+    monkeypatch.setattr(
+        pdf_service.pytesseract,
+        "image_to_string",
+        lambda img, lang, config: "OCR extracted text from scanned page two.",
+    )
+    pdf = build_pdf(["Page one has real text long enough to pass the threshold.", ""])
+    result = extract_chunks(pdf)
+
+    assert result.pages_with_text == 2
+    assert result.pages_ocred == 1
+    assert result.chunks[1].page == 2
+    assert "OCR extracted text" in result.chunks[1].text
+
+
+def test_ocr_page_threshold_exceeded(monkeypatch):
+    monkeypatch.setattr(pdf_service, "MAX_OCR_PAGES", 1)
+    pdf = build_pdf(["", ""])
+
+    with pytest.raises(ValueError, match="vượt ngưỡng tối đa 1 trang OCR"):
+        extract_chunks(pdf)
 
 
 def test_split_text_short_text_single_chunk():
