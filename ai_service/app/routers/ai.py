@@ -53,7 +53,7 @@ def sync_books(books: list[BookIn]):
     )
 
 
-def _run_ingest(document_id: str, title: str, pdf_bytes: bytes, ocr_lang: str = 'vie') -> None:
+def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
     try:
         def on_page_done(page_num: int):
             ingest_registry.update_progress(
@@ -62,9 +62,7 @@ def _run_ingest(document_id: str, title: str, pdf_bytes: bytes, ocr_lang: str = 
                 stage="extracting",
             )
 
-        result = pdf_service.extract_chunks(
-            pdf_bytes, on_page_progress=on_page_done, ocr_lang=ocr_lang
-        )
+        result = pdf_service.extract_chunks(pdf_bytes, on_page_progress=on_page_done)
         ingest_registry.update_progress(document_id, stage="chunking")
         ingest_registry.update(
             document_id,
@@ -117,7 +115,6 @@ async def ingest_document(
     file: UploadFile = File(...),
     document_id: str = Form(...),
     title: str = Form(...),
-    ocr_lang: str = Form('vie'),
 ):
     if ingest_registry.is_processing(document_id):
         raise HTTPException(status_code=409, detail="Tài liệu này đang được xử lý.")
@@ -127,7 +124,7 @@ async def ingest_document(
         raise HTTPException(status_code=400, detail="File không phải PDF hợp lệ.")
 
     ingest_registry.start(document_id)
-    background_tasks.add_task(_run_ingest, document_id, title, pdf_bytes, ocr_lang)
+    background_tasks.add_task(_run_ingest, document_id, title, pdf_bytes)
     return IngestAccepted(status="processing", document_id=document_id)
 
 
