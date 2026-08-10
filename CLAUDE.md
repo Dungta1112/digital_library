@@ -472,9 +472,12 @@ Kết quả: hỏi "Cơ sở dữ liệu là gì?" → trả lời đúng [trang
 
 Cấu hình hiện tại: top_k=8, ASK_NUM_CTX=5120, SNIPPET_MAX_CHARS=400.
 
-## 14. OCR tiếng Anh — auto-detect (HOÀN THÀNH — 2026-08-10)
+## 14. OCR English (Mốc HOÀN THÀNH — 2026-08-10)
 
-> Trạng thái: **ĐÃ TRIỂN KHAI.** `extract_chunks()` tự động dò ngôn ngữ OCR:
+> Mốc OCR English HOÀN THÀNH 2026-08-10: ocr_lang param → auto-detect ngôn ngữ.
+> File Việt → vie, File Anh → eng, không cần chọn thủ công.
+>
+> Chi tiết triển khai: `extract_chunks()` tự động dò ngôn ngữ OCR:
 > `_detect_ocr_lang()` render + OCR mẫu 3 trang đầu với `vie+eng`, đếm tỷ lệ
 > ký tự tiếng Việt (`VIETNAMESE_CHARS`), >3% → `vie`, ngược lại → `eng`.
 > Param `ocr_lang` thủ công đã bị xóa khỏi `extract_chunks()` và Form field
@@ -487,3 +490,21 @@ Cấu hình hiện tại: top_k=8, ASK_NUM_CTX=5120, SNIPPET_MAX_CHARS=400.
 > 5 trang scan) → log `eng` (13/1977 viet chars), 2335 chunk, trả lời đúng
 > "What is a heap data structure?" kèm `[trang 406]`. Backend NestJS
 > `AiService.ingestDocument()` không cần gửi `ocr_lang` nữa — không đổi gì.
+
+## 15. Kế hoạch hỗ trợ đa định dạng (pending — 2026-08-10)
+
+Hiện chỉ hỗ trợ PDF. Cần thêm:
+- DOCX: python-docx (MIT), trích paragraph text
+- EPUB: ebooklib + BeautifulSoup, trích text theo chapter
+- TXT: đọc raw text
+
+Mỗi format có parser riêng, trả về ExtractResult giống pdf_service.
+Router ingest sẽ detect format từ file extension/mime type.
+
+Cần xử lý: DOCX/EPUB/TXT không có số trang → thay bằng paragraph/chapter index.
+
+## Ghi chú commit hôm nay (2026-08-10)
+
+- retrieval fix: query expansion + top_k=8, ASK_NUM_CTX=5120
+- ocr_english: ocr_lang param cho extract_chunks() + ingest endpoint
+- auto_detect: _detect_ocr_lang() thay ocr_lang thủ công
