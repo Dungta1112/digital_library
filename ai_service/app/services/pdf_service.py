@@ -56,6 +56,7 @@ def extract_chunks(
     chunk_size: int = CHUNK_SIZE,
     overlap: int = CHUNK_OVERLAP,
     on_page_progress: Callable[[int], None] | None = None,
+    ocr_lang: str = 'vie',
 ) -> ExtractResult:
     reader = PdfReader(BytesIO(pdf_bytes))
     pdf_doc = pdfium.PdfDocument(pdf_bytes)
@@ -86,7 +87,7 @@ def extract_chunks(
                 bitmap = pdf_page.render(scale=OCR_DPI / 72)
                 pil_image = bitmap.to_pil()
                 text = pytesseract.image_to_string(
-                    pil_image, lang='vie', config='--psm 6'
+                    pil_image, lang=ocr_lang, config='--psm 6'
                 )
                 text = _normalize(text)
                 pages_ocred += 1

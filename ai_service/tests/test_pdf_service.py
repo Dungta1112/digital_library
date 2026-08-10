@@ -113,7 +113,7 @@ def test_ocr_fallback_recovers_blank_page(monkeypatch):
     monkeypatch.setattr(
         pdf_service.pytesseract,
         "image_to_string",
-        lambda img, lang, config: "OCR extracted text from scanned page two.",
+        lambda img, lang='vie', config='--psm 6': "OCR extracted text from scanned page two.",
     )
     pdf = build_pdf(["Page one has real text long enough to pass the threshold.", ""])
     result = extract_chunks(pdf)
@@ -122,6 +122,23 @@ def test_ocr_fallback_recovers_blank_page(monkeypatch):
     assert result.pages_ocred == 1
     assert result.chunks[1].page == 2
     assert "OCR extracted text" in result.chunks[1].text
+
+
+def test_ocr_lang_passed_to_tesseract(monkeypatch):
+    captured = {}
+
+    def fake_image_to_string(img, lang='vie', config='--psm 6'):
+        captured["lang"] = lang
+        return "OCR extracted English text from scanned page."
+
+    monkeypatch.setattr(pdf_service.pytesseract, "image_to_string", fake_image_to_string)
+    pdf = build_pdf(["", ""])
+
+    result = extract_chunks(pdf, ocr_lang="eng")
+
+    assert captured["lang"] == "eng"
+    assert result.pages_ocred == 2
+    assert "English text" in result.chunks[0].text
 
 
 def test_ocr_page_threshold_exceeded(monkeypatch):
