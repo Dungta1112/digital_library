@@ -18,8 +18,19 @@ from app.services import chroma_service, ingest_registry, ollama_service, pdf_se
 router = APIRouter(prefix="/api/ai", tags=["AI"])
 
 EMBED_BATCH_SIZE = 16
-ASK_NUM_CTX = 4096
-SNIPPET_MAX_CHARS = 300
+ASK_NUM_CTX = 5120
+SNIPPET_MAX_CHARS = 400
+
+
+def _expand_query(query: str) -> str:
+    """Dùng qwen3 mở rộng query thành cụm tìm kiếm cụ thể hơn."""
+    prompt = (
+        f"Viết lại câu hỏi sau thành một cụm từ tìm kiếm ngắn gọn (tối đa 30 từ) "
+        f"để tìm trong tài liệu tiếng Việt. Chỉ trả về cụm từ, không giải thích.\n\n"
+        f"Câu hỏi: {query}"
+    )
+    expanded = ollama_service.chat(prompt, num_ctx=512)
+    return expanded.strip()
 
 
 @router.post("/sync-books", response_model=SyncBooksResponse)
@@ -154,7 +165,9 @@ def delete_document_index(document_id: str):
 
 @router.post("/ask-document", response_model=AskResponse)
 def ask_document(request: AskRequest):
-    query_vector = ollama_service.embed(request.query)
+    expanded_query = _expand_query(request.query)
+    query_vector = ollama_service.embed(expanded_query)
+
     results = chroma_service.query_chunks(
         query_vector, top_k=request.top_k, document_id=request.document_id
     )
