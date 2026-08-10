@@ -60,7 +60,7 @@ class DeleteIndexResponse(BaseModel):
 class AskRequest(BaseModel):
     query: str
     document_id: Optional[str] = None
-    top_k: int = 5
+    top_k: int = 8
 
 
 class SourceChunk(BaseModel):

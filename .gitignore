@@ -25,6 +25,7 @@ ai_service/chroma_db/
 *.pyc
 ai_service/.venv/
 ai_service/venv/
+QUICKREF.md
 CLAUDE.md
 ai_service/test_docs/
 /storage/
