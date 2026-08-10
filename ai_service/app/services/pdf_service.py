@@ -24,6 +24,39 @@ MIN_CHUNK_CHARS = 30
 OCR_DPI = 200
 MAX_OCR_PAGES = 300
 
+VIETNAMESE_CHARS = set(
+    "ắằẳẵặâấầẩẫậăđêếềểễệôốồổỗộơớờởỡợưứừửữự"
+    "ẮẰẲẴẶÂẤẦẨẪẬĂĐÊẾỀỂỄỆÔỐỒỔỖỘƠỚỜỞỠỢƯỨỪỬỮỰ"
+)
+
+
+def _detect_ocr_lang(pdf_bytes: bytes, max_sample_pages: int = 3) -> str:
+    pdf_doc = pdfium.PdfDocument(pdf_bytes)
+    total_chars = 0
+    viet_chars = 0
+    sample_pages = min(max_sample_pages, len(pdf_doc))
+
+    for i in range(sample_pages):
+        try:
+            page = pdf_doc[i]
+            bitmap = page.render(scale=OCR_DPI / 72)
+            pil_image = bitmap.to_pil()
+            text = pytesseract.image_to_string(pil_image, lang='vie+eng', config='--psm 6')
+            total_chars += len(text)
+            viet_chars += sum(1 for c in text if c in VIETNAMESE_CHARS)
+            bitmap.close()
+            page.close()
+        except Exception:
+            pass
+
+    pdf_doc.close()
+
+    if total_chars > 0 and viet_chars / total_chars > 0.03:
+        logger.info(f"Auto-detected OCR language: vie ({viet_chars}/{total_chars} viet chars)")
+        return 'vie'
+    logger.info(f"Auto-detected OCR language: eng ({viet_chars}/{total_chars} viet chars)")
+    return 'eng'
+
 # Ưu tiên cắt ở ranh giới đoạn, rồi câu, rồi dòng, cuối cùng là khoảng trắng.
 _BREAKS = ("\n\n", ". ", "! ", "? ", "\n", " ")
 
@@ -56,8 +89,8 @@ def extract_chunks(
     chunk_size: int = CHUNK_SIZE,
     overlap: int = CHUNK_OVERLAP,
     on_page_progress: Callable[[int], None] | None = None,
-    ocr_lang: str = 'vie',
 ) -> ExtractResult:
+    detected_lang = _detect_ocr_lang(pdf_bytes)
     reader = PdfReader(BytesIO(pdf_bytes))
     pdf_doc = pdfium.PdfDocument(pdf_bytes)
     chunks: list[Chunk] = []
@@ -87,7 +120,7 @@ def extract_chunks(
                 bitmap = pdf_page.render(scale=OCR_DPI / 72)
                 pil_image = bitmap.to_pil()
                 text = pytesseract.image_to_string(
-                    pil_image, lang=ocr_lang, config='--psm 6'
+                    pil_image, lang=detected_lang, config='--psm 6'
                 )
                 text = _normalize(text)
                 pages_ocred += 1

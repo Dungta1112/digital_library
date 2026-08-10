@@ -472,15 +472,18 @@ Kết quả: hỏi "Cơ sở dữ liệu là gì?" → trả lời đúng [trang
 
 Cấu hình hiện tại: top_k=8, ASK_NUM_CTX=5120, SNIPPET_MAX_CHARS=400.
 
-## 14. OCR tiếng Anh (HOÀN THÀNH — 2026-08-10)
+## 14. OCR tiếng Anh — auto-detect (HOÀN THÀNH — 2026-08-10)
 
-> Trạng thái: **ĐÃ TRIỂN KHAI.** `extract_chunks()` và `_run_ingest()` có param
-> `ocr_lang: str = 'vie'`; endpoint `ingest-document` nhận Form field
-> `ocr_lang` (mặc định `vie`). Hỗ trợ `vie`, `eng`, `vie+eng`. Backward
-> compatible (không truyền → `vie`). Unit test 10/10 pass (thêm
-> `test_ocr_lang_passed_to_tesseract`). E2E đã kiểm chứng trên file thật
-> `ai_service/test_docs/Data Structures and Algorithms in Python ... (z-lib.org).pdf`
-> (770 trang, 5 trang scan OCR `eng`, 2335 chunk): hỏi "What is a heap data
-> structure?" → trả lời đúng kèm `[trang 406]` và snippet tiếng Anh thật.
-> Lưu ý: backend NestJS `AiService.ingestDocument()` chưa gửi `ocr_lang` field
-> — mặc định `vie`, bổ sung khi cần.
+> Trạng thái: **ĐÃ TRIỂN KHAI.** `extract_chunks()` tự động dò ngôn ngữ OCR:
+> `_detect_ocr_lang()` render + OCR mẫu 3 trang đầu với `vie+eng`, đếm tỷ lệ
+> ký tự tiếng Việt (`VIETNAMESE_CHARS`), >3% → `vie`, ngược lại → `eng`.
+> Param `ocr_lang` thủ công đã bị xóa khỏi `extract_chunks()` và Form field
+> của endpoint `ingest-document`. Log auto-detect hiển thị qua
+> `logger.info("Auto-detected OCR language: ...")` (main.py đã thêm
+> `logging.basicConfig(level=INFO)`). Unit test 11/11 pass (thêm
+> `test_detect_ocr_lang_detects_vie/eng`). E2E đã kiểm chứng trên 2 file thật:
+> file Việt scan 160 trang → log `vie` (268/2651 viet chars), 437 chunk; file
+> Anh `Data Structures and Algorithms in Python ... (z-lib.org).pdf` (770 trang,
+> 5 trang scan) → log `eng` (13/1977 viet chars), 2335 chunk, trả lời đúng
+> "What is a heap data structure?" kèm `[trang 406]`. Backend NestJS
+> `AiService.ingestDocument()` không cần gửi `ocr_lang` nữa — không đổi gì.
