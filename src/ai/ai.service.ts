@@ -42,13 +42,14 @@ export class AiService {
     if (!file) {
       throw new NotFoundException('Document file not found');
     }
-    if (file.mimeType !== 'application/pdf') {
-      throw new BadRequestException('Chỉ hỗ trợ ingest file PDF');
+    const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.mimeType)) {
+      throw new BadRequestException('Chỉ hỗ trợ ingest file PDF và DOCX');
     }
 
     const buffer = await this.storage.getBuffer(file.objectKey);
     const form = new FormData();
-    form.append('file', new Blob([new Uint8Array(buffer)], { type: 'application/pdf' }), file.originalName);
+    form.append('file', new Blob([new Uint8Array(buffer)], { type: file.mimeType }), file.originalName);
     form.append('document_id', document.id);
     form.append('title', document.title);
 

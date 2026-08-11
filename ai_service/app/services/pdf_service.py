@@ -66,6 +66,9 @@ class Chunk:
     page: int  # 1-based
     chunk_index: int  # 0-based, duy nhất trong toàn tài liệu
     text: str
+    section: str = ""
+    para_start: int = 0
+    para_end: int = 0
 
 
 @dataclass

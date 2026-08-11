@@ -70,6 +70,9 @@ class SourceChunk(BaseModel):
     chunk_index: int
     snippet: str
     distance: float
+    section: str = ""
+    para_start: int = 0
+    para_end: int = 0
 
 
 class AskResponse(BaseModel):
