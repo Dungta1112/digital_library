@@ -13,7 +13,7 @@ from app.schemas import (
     SourceChunk,
     SyncBooksResponse,
 )
-from app.services import chroma_service, ingest_registry, ollama_service, pdf_service
+from app.services import chroma_service, docx_service, ingest_registry, ollama_service, pdf_service
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
 
@@ -53,7 +53,7 @@ def sync_books(books: list[BookIn]):
     )
 
 
-def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
+def _run_ingest(document_id: str, title: str, pdf_bytes: bytes, filename: str = "") -> None:
     try:
         def on_page_done(page_num: int):
             ingest_registry.update_progress(
@@ -62,7 +62,10 @@ def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
                 stage="extracting",
             )
 
-        result = pdf_service.extract_chunks(pdf_bytes, on_page_progress=on_page_done)
+        if filename.lower().endswith('.docx'):
+            result = docx_service.extract_chunks(pdf_bytes)
+        else:
+            result = pdf_service.extract_chunks(pdf_bytes, on_page_progress=on_page_done)
         ingest_registry.update_progress(document_id, stage="chunking")
         ingest_registry.update(
             document_id,
@@ -97,6 +100,9 @@ def _run_ingest(document_id: str, title: str, pdf_bytes: bytes) -> None:
                         "title": title,
                         "page": c.page,
                         "chunk_index": c.chunk_index,
+                        "section": c.section,
+                        "para_start": c.para_start,
+                        "para_end": c.para_end,
                     }
                     for c in batch
                 ],
@@ -120,11 +126,15 @@ async def ingest_document(
         raise HTTPException(status_code=409, detail="Tài liệu này đang được xử lý.")
 
     pdf_bytes = await file.read()
-    if not pdf_service.is_readable_pdf(pdf_bytes):
-        raise HTTPException(status_code=400, detail="File không phải PDF hợp lệ.")
+    filename = file.filename or ''
+    if filename.lower().endswith('.docx'):
+        if not docx_service.is_readable_docx(pdf_bytes):
+            raise HTTPException(status_code=400, detail="File DOCX không hợp lệ")
+    elif not pdf_service.is_readable_pdf(pdf_bytes):
+        raise HTTPException(status_code=400, detail="File không phải PDF hoặc DOCX hợp lệ")
 
     ingest_registry.start(document_id)
-    background_tasks.add_task(_run_ingest, document_id, title, pdf_bytes)
+    background_tasks.add_task(_run_ingest, document_id, title, pdf_bytes, filename)
     return IngestAccepted(status="processing", document_id=document_id)
 
 
@@ -187,6 +197,9 @@ def ask_document(request: AskRequest):
                     chunk_index=meta["chunk_index"],
                     snippet=text[:SNIPPET_MAX_CHARS],
                     distance=results["distances"][0][i],
+                    section=meta.get("section", ""),
+                    para_start=meta.get("para_start", 0),
+                    para_end=meta.get("para_end", 0),
                 )
             )
 
@@ -202,6 +215,8 @@ def ask_document(request: AskRequest):
 
     title = sources[0].title
     excerpts = "\n\n".join(
+        f"[{i + 1}] ({s.section}, đoạn {s.para_start}-{s.para_end}) {text}"
+        if s.section else
         f"[{i + 1}] (trang {s.page}) {text}"
         for i, (s, text) in enumerate(zip(sources, chunk_texts))
     )
