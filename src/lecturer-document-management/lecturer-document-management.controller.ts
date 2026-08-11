@@ -15,36 +15,40 @@ import { LecturerDocumentManagementService } from './lecturer-document-managemen
 @UseGuards(JwtAuthGuard, RbacGuard)
 @Controller('lecturer/documents')
 export class LecturerDocumentManagementController {
-  constructor(private readonly service: LecturerDocumentManagementService) {}
+    constructor(private readonly service: LecturerDocumentManagementService) { }
 
-  @Get()
-  @Roles('LECTURER', 'ADMIN')
-  async list(@CurrentUser() user: RequestUser) {
-    return ok(await this.service.list(user.id));
-  }
+    @Get()
+    @Roles('LECTURER', 'ADMIN')
+    async list(@CurrentUser() user: RequestUser) {
+        return ok(await this.service.list(user.id));
+    }
 
-  @Post()
-  @Roles('LECTURER', 'ADMIN')
-  @UseInterceptors(FileInterceptor('file'))
-  async upload(@CurrentUser() user: RequestUser, @Body() dto: CreateLecturerDocumentDto, @UploadedFile() file?: Express.Multer.File) {
-    return created(await this.service.upload(user.id, dto, file ? { buffer: file.buffer, originalName: file.originalname, mimeType: file.mimetype, sizeBytes: file.size } : undefined));
-  }
+    @Post()
+    @Roles('LECTURER', 'ADMIN')
+    @UseInterceptors(FileInterceptor('file'))
+    async upload(@CurrentUser() user: RequestUser, @Body() dto: CreateLecturerDocumentDto, @UploadedFile() file?: Express.Multer.File) {
+        if (!file) {
+            return created(await this.service.upload(user.id, dto, undefined));
+        }
+        const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        return created(await this.service.upload(user.id, dto, { buffer: file.buffer, originalName, mimeType: file.mimetype, sizeBytes: file.size }));
+    }
 
-  @Patch(':documentId')
-  @Roles('LECTURER', 'ADMIN')
-  async update(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string, @Body() dto: UpdateLecturerDocumentDto) {
-    return ok(await this.service.update(user.id, documentId, dto));
-  }
+    @Patch(':documentId')
+    @Roles('LECTURER', 'ADMIN')
+    async update(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string, @Body() dto: UpdateLecturerDocumentDto) {
+        return ok(await this.service.update(user.id, documentId, dto));
+    }
 
-  @Post(':documentId/hide')
-  @Roles('LECTURER', 'ADMIN')
-  async hide(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string) {
-    return ok(await this.service.hide(user.id, documentId));
-  }
+    @Post(':documentId/hide')
+    @Roles('LECTURER', 'ADMIN')
+    async hide(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string) {
+        return ok(await this.service.hide(user.id, documentId));
+    }
 
-  @Delete(':documentId')
-  @Roles('LECTURER', 'ADMIN')
-  async delete(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string) {
-    return ok(await this.service.delete(user.id, documentId));
-  }
+    @Delete(':documentId')
+    @Roles('LECTURER', 'ADMIN')
+    async delete(@CurrentUser() user: RequestUser, @Param('documentId') documentId: string) {
+        return ok(await this.service.delete(user.id, documentId));
+    }
 }
