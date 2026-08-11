@@ -11,11 +11,38 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Robot, FilePdf, X } from '@phosphor-icons/react';
 
+const SESSION_STORAGE_PREFIX = 'ai_chat_history';
+
+function sessionStorageKey(docId: string | null): string {
+  return docId ? `${SESSION_STORAGE_PREFIX}:${docId}` : `${SESSION_STORAGE_PREFIX}:global`;
+}
+
+function readMessagesFromSession(docId: string | null): AIChatMessage[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(sessionStorageKey(docId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed?.messages) ? parsed.messages : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function AIChatPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<AIChatSkeleton />}>
       <AIChat />
     </Suspense>
+  );
+}
+
+function AIChatSkeleton() {
+  return (
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50/50 dark:bg-slate-950 items-center justify-center gap-4">
+      <div className="w-12 h-12 border-4 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
+      <p className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">Đang tải hội thoại…</p>
+    </div>
   );
 }
 
@@ -24,20 +51,61 @@ function AIChat() {
   const [loading, setLoading] = useState(false);
   const [contextDocTitle, setContextDocTitle] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const prevDocIdRef = useRef<string | null>(null);
   const { can, isLoading } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const docId = searchParams.get('doc');
+
+  // ===== DEBUG: theo dõi remount =====
+  const mountRef = useRef(0);
+  useEffect(() => {
+    mountRef.current += 1;
+    console.log(`[AIChat] mounted #${mountRef.current}`, new Date().toISOString());
+    return () => {
+      console.log(`[AIChat] UNMOUNTED #${mountRef.current}`, new Date().toISOString());
+    };
+  }, []);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      console.log(`[AIChat] visibility: ${document.visibilityState}, messages: ${messages.length}`);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [messages.length]);
+
+  // ===== Khôi phục / lưu lịch sử chat (sessionStorage, tách riêng theo docId) =====
+  useEffect(() => {
+    const docChanged = prevDocIdRef.current !== docId;
+    prevDocIdRef.current = docId;
+
+    const restored = readMessagesFromSession(docId);
+    if (docChanged || restored.length > 0) {
+      setMessages(restored);
+      return;
+    }
+    AIService.getInitialHistory().then((h) => {
+      if (h.length > 0) {
+        setMessages((prev) => (prev.length > 0 ? prev : h));
+      }
+    });
+  }, [docId]);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    try {
+      sessionStorage.setItem(sessionStorageKey(docId), JSON.stringify({ docId, messages }));
+    } catch {
+      // storage đầy/bị chặn — chỉ mất khả năng khôi phục sau khi remount
+    }
+  }, [messages, docId]);
 
   useEffect(() => {
     if (!isLoading && !can('ASK_AI')) {
       router.push('/login');
     }
   }, [isLoading, can, router]);
-
-  useEffect(() => {
-    AIService.getInitialHistory().then(setMessages);
-  }, []);
 
   useEffect(() => {
     if (!docId) {
