@@ -21,6 +21,17 @@ EMBED_BATCH_SIZE = 16
 ASK_NUM_CTX = 5120
 SNIPPET_MAX_CHARS = 400
 
+# Câu chào hỏi đơn giản → trả lời ngay, không gọi LLM
+_SIMPLE_GREETINGS = {
+    "xin chào", "chào", "hello", "hi", "hey", "chào bạn",
+    "cảm ơn", "thanks", "thank you", "tạm biệt", "bye",
+    "bạn là ai", "who are you", "bạn tên gì", "bạn có khỏe không",
+}
+
+
+def _is_greeting(query: str) -> bool:
+    return query.lower().strip().rstrip('?!. ') in _SIMPLE_GREETINGS
+
 
 def _expand_query(query: str) -> str:
     """Dùng qwen3 mở rộng query thành cụm tìm kiếm cụ thể hơn."""
@@ -175,7 +186,22 @@ def delete_document_index(document_id: str):
 
 @router.post("/ask-document", response_model=AskResponse)
 def ask_document(request: AskRequest):
-    expanded_query = _expand_query(request.query)
+    if _is_greeting(request.query):
+        return AskResponse(
+            query=request.query,
+            answer=(
+                "Xin chào! Tôi là trợ lý AI của thư viện số. "
+                "Bạn có thể hỏi tôi bất kỳ câu hỏi nào về tài liệu đang mở. "
+                "Tôi sẽ tìm kiếm trong nội dung tài liệu để trả lời chính xác nhất."
+            ),
+            sources=[],
+        )
+
+    # Skip query expansion nếu query đã đủ dài/cụ thể → embed thẳng
+    if len(request.query.split()) > 5 or len(request.query) > 50:
+        expanded_query = request.query
+    else:
+        expanded_query = _expand_query(request.query)
     query_vector = ollama_service.embed(expanded_query)
 
     results = chroma_service.query_chunks(

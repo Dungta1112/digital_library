@@ -9,6 +9,7 @@ out/
 coverage/
 .DS_Store
 .claude
+.vscode
 
 # Speckit
 .agents/
