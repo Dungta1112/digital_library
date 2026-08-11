@@ -197,7 +197,11 @@ def ask_document(request: AskRequest):
             sources=[],
         )
 
-    expanded_query = _expand_query(request.query)
+    # Skip query expansion nếu query đã đủ dài/cụ thể → embed thẳng
+    if len(request.query.split()) > 5 or len(request.query) > 50:
+        expanded_query = request.query
+    else:
+        expanded_query = _expand_query(request.query)
     query_vector = ollama_service.embed(expanded_query)
 
     results = chroma_service.query_chunks(
