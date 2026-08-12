@@ -26,6 +26,12 @@ _SIMPLE_GREETINGS = {
     "xin chào", "chào", "hello", "hi", "hey", "chào bạn",
     "cảm ơn", "thanks", "thank you", "tạm biệt", "bye",
     "bạn là ai", "who are you", "bạn tên gì", "bạn có khỏe không",
+    "ok", "okay", "oke", "oki", "ok a", "ok bạn", "ừ", "ờ", "ukm",
+    "ừm", "um", "à", "ò", "oh", "ơi", "này", "ê", "alo",
+    "tôi muốn hỏi", "cho tôi hỏi", "cho hỏi",
+    "có ai không", "ai đó", "có đó không",
+    "à thế à", "vậy à", "thế à", "ra vậy",
+    "được", "tốt", "tuyệt", "hay quá", "hay đấy",
 }
 
 
@@ -187,13 +193,20 @@ def delete_document_index(document_id: str):
 @router.post("/ask-document", response_model=AskResponse)
 def ask_document(request: AskRequest):
     if _is_greeting(request.query):
+        if request.document_id:
+            answer = (
+                "Xin chào! Tôi là trợ lý AI của thư viện số. "
+                "Bạn đang xem tài liệu này. "
+                "Hãy hỏi tôi bất kỳ câu hỏi nào về nội dung bên trong tài liệu nhé."
+            )
+        else:
+            answer = (
+                "Xin chào! Tôi là trợ lý AI của thư viện số. "
+                "Hãy mở một tài liệu và hỏi tôi bất kỳ điều gì về nội dung của nó."
+            )
         return AskResponse(
             query=request.query,
-            answer=(
-                "Xin chào! Tôi là trợ lý AI của thư viện số. "
-                "Bạn có thể hỏi tôi bất kỳ câu hỏi nào về tài liệu đang mở. "
-                "Tôi sẽ tìm kiếm trong nội dung tài liệu để trả lời chính xác nhất."
-            ),
+            answer=answer,
             sources=[],
         )
 
