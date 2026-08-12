@@ -17,15 +17,18 @@ function sessionStorageKey(docId: string | null): string {
   return docId ? `${SESSION_STORAGE_PREFIX}:${docId}` : `${SESSION_STORAGE_PREFIX}:global`;
 }
 
-function readMessagesFromSession(docId: string | null): AIChatMessage[] {
-  if (typeof window === 'undefined') return [];
+function readMessagesFromSession(docId: string | null): { messages: AIChatMessage[]; loading: boolean } {
+  if (typeof window === 'undefined') return { messages: [], loading: false };
   try {
     const raw = sessionStorage.getItem(sessionStorageKey(docId));
-    if (!raw) return [];
+    if (!raw) return { messages: [], loading: false };
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed?.messages) ? parsed.messages : [];
+    return {
+      messages: Array.isArray(parsed?.messages) ? parsed.messages : [],
+      loading: Boolean(parsed?.loading),
+    };
   } catch {
-    return [];
+    return { messages: [], loading: false };
   }
 }
 
@@ -82,8 +85,12 @@ function AIChat() {
     prevDocIdRef.current = docId;
 
     const restored = readMessagesFromSession(docId);
-    if (docChanged || restored.length > 0) {
-      setMessages(restored);
+    if (docChanged || restored.messages.length > 0) {
+      setMessages(restored.messages);
+      setLoading(restored.loading || false);
+      if (restored.loading) {
+        setElapsed(0);
+      }
       return;
     }
     AIService.getInitialHistory().then((h) => {
@@ -96,11 +103,11 @@ function AIChat() {
   useEffect(() => {
     if (messages.length === 0) return;
     try {
-      sessionStorage.setItem(sessionStorageKey(docId), JSON.stringify({ docId, messages }));
+      sessionStorage.setItem(sessionStorageKey(docId), JSON.stringify({ docId, messages, loading }));
     } catch {
       // storage đầy/bị chặn — chỉ mất khả năng khôi phục sau khi remount
     }
-  }, [messages, docId]);
+  }, [messages, loading, docId]);
 
   useEffect(() => {
     if (!isLoading && !can('ASK_AI')) {
@@ -199,6 +206,21 @@ function AIChat() {
               loading
               elapsedMs={elapsed * 1000}
             />
+          )}
+          {loading && elapsed > 120 && (
+            <button
+              onClick={() => {
+                const lastUser = [...messages].reverse().find(m => m.role === 'user');
+                if (lastUser) {
+                  setMessages(prev => prev.filter(m => m.id !== lastUser.id));
+                  const txt = lastUser.content;
+                  handleSend(txt);
+                }
+              }}
+              className="text-sm text-amber-600 underline mt-2"
+            >
+              Đang chờ quá lâu? Thử lại
+            </button>
           )}
           <div ref={bottomRef} className="h-4" />
         </div>
