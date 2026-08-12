@@ -289,6 +289,16 @@ def ask_document(request: AskRequest):
 
 @router.post("/search-books", response_model=SearchBooksResponse)
 def search_books(request: SearchRequest):
+    # Nếu câu hỏi kiểu greeting/xã giao → trả lời ngay, không search
+    if _is_greeting(request.query):
+        return SearchBooksResponse(
+            query=request.query,
+            answer="Xin chào! Tôi là trợ lý AI của thư viện số. "
+                   "Bạn có thể tìm tài liệu hoặc mở một tài liệu cụ thể "
+                   "rồi hỏi tôi bất kỳ điều gì về nội dung bên trong.",
+            results=[],
+        )
+
     query_vector = ollama_service.embed(request.query)
     results = chroma_service.query(query_vector, top_k=request.top_k)
 
@@ -305,7 +315,17 @@ def search_books(request: SearchRequest):
             )
 
     if suggested_books:
-        context = "\n".join(f"- {b.title}: {b.description}" for b in suggested_books)
+        relevance_threshold = 0.4
+        relevant_books = [b for b in suggested_books if b.distance <= relevance_threshold]
+        if not relevant_books:
+            return SearchBooksResponse(
+                query=request.query,
+                answer=f"Không tìm thấy tài liệu '{request.query}' trong thư viện. "
+                       "Bạn có thể thử tìm với từ khóa khác, hoặc mở một tài liệu "
+                       "cụ thể rồi hỏi tôi về nội dung bên trong.",
+                results=suggested_books,
+            )
+        context = "\n".join(f"- {b.title}: {b.description}" for b in relevant_books)
         prompt = (
             f"Câu hỏi của người dùng: {request.query}\n\n"
             f"Các tài liệu tìm được trong thư viện:\n{context}\n\n"
@@ -314,7 +334,11 @@ def search_books(request: SearchRequest):
         )
         answer = ollama_service.chat(prompt)
     else:
-        answer = "Không tìm thấy tài liệu phù hợp trong thư viện."
+        answer = (
+            "Không tìm thấy tài liệu '{query}' trong thư viện. "
+            "Bạn có thể thử tìm với từ khóa khác, hoặc mở một tài liệu "
+            "cụ thể rồi hỏi tôi về nội dung bên trong."
+        ).format(query=request.query)
 
     return SearchBooksResponse(
         query=request.query,
