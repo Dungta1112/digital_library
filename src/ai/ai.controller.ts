@@ -45,8 +45,8 @@ export class AiController {
   @Permissions('documents.read')
   async askDocument(
     @CurrentUser() user: RequestUser,
-    @Body() body: { query: string; documentId?: string; topK?: number }
+    @Body() body: { query: string; documentId?: string; topK?: number; history?: { role: string; content: string }[] }
   ) {
-    return this.aiService.askDocument(user, body.query, body.documentId, body.topK);
+    return this.aiService.askDocument(user, body.query, body.documentId, body.topK, body.history);
   }
 }

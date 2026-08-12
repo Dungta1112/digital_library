@@ -61,6 +61,7 @@ class AskRequest(BaseModel):
     query: str
     document_id: Optional[str] = None
     top_k: int = 8
+    history: list[dict] = []  # [{role: "user"|"assistant", content: "..."}]
 
 
 class SourceChunk(BaseModel):

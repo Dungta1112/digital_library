@@ -246,14 +246,29 @@ def ask_document(request: AskRequest):
         f"[{i + 1}] (trang {s.page}) {text}"
         for i, (s, text) in enumerate(zip(sources, chunk_texts))
     )
-    prompt = (
-        f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
-        f"{excerpts}\n\n"
-        f"Câu hỏi: {request.query}\n\n"
+    history_text = "\n".join(
+        f"{msg['role']}: {msg['content']}" for msg in request.history[-6:]
+    )
+    instructions = (
         "Chỉ dựa vào các trích đoạn trên để trả lời. Khi dùng thông tin từ trích đoạn nào, "
         "ghi rõ nguồn dạng [trang N]. Nếu các trích đoạn không chứa thông tin để trả lời, "
         "nói rõ là không tìm thấy trong tài liệu — tuyệt đối không bịa."
     )
+    if history_text:
+        prompt = (
+            f"Lịch sử hội thoại:\n{history_text}\n\n"
+            f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
+            f"{excerpts}\n\n"
+            f"Câu hỏi: {request.query}\n\n"
+            f"{instructions}"
+        )
+    else:
+        prompt = (
+            f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
+            f"{excerpts}\n\n"
+            f"Câu hỏi: {request.query}\n\n"
+            f"{instructions}"
+        )
     answer = ollama_service.chat(prompt, num_ctx=ASK_NUM_CTX)
 
     return AskResponse(query=request.query, answer=answer, sources=sources)

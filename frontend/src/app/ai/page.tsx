@@ -138,7 +138,7 @@ function AIChat() {
     setLoading(true);
 
     try {
-      const response = await AIService.sendMessage(text, docId ?? undefined);
+      const response = await AIService.sendMessage(text, docId ?? undefined, messages);
       setMessages(prev => [...prev, response]);
     } catch (error) {
       console.error(error);

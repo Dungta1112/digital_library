@@ -60,7 +60,7 @@ export class AiService {
     return this.proxy(this.httpService.get(`${this.aiServiceUrl}/api/ai/ingest-status/${documentId}`));
   }
 
-  async askDocument(user: RequestUser, query: string, documentId?: string, topK = 5) {
+  async askDocument(user: RequestUser, query: string, documentId?: string, topK = 5, history: { role: string; content: string }[] = []) {
     if (documentId) {
       await this.assertCanAccessDocument(user, documentId);
     }
@@ -68,7 +68,8 @@ export class AiService {
       this.httpService.post(`${this.aiServiceUrl}/api/ai/ask-document`, {
         query,
         document_id: documentId ?? null,
-        top_k: topK
+        top_k: topK,
+        history: history.slice(-6)
       })
     );
   }

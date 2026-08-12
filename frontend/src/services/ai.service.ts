@@ -41,7 +41,7 @@ export const AIService = {
     );
   },
 
-  async sendMessage(message: string, contextDocId?: string): Promise<AIChatMessage> {
+  async sendMessage(message: string, contextDocId?: string, history?: AIChatMessage[]): Promise<AIChatMessage> {
     if (config.USE_MOCKS) {
       // simulate delay
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -76,6 +76,7 @@ export const AIService = {
       const data = (await apiClient.post('/ai/ask', {
         query: message,
         documentId: contextDocId,
+        history: history?.slice(-6).map((m) => ({ role: m.role, content: m.content })),
       })) as unknown as AIAskResponse;
 
       const citations: AICitation[] = (data.sources ?? []).map((s) => ({
