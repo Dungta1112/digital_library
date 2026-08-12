@@ -41,7 +41,7 @@ export const AIService = {
     );
   },
 
-  async sendMessage(message: string, contextDocId?: string, history?: AIChatMessage[]): Promise<AIChatMessage> {
+  async sendMessage(message: string, contextDocId?: string, history?: AIChatMessage[], signal?: AbortSignal): Promise<AIChatMessage> {
     if (config.USE_MOCKS) {
       // simulate delay
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -77,7 +77,7 @@ export const AIService = {
         query: message,
         documentId: contextDocId,
         history: history?.slice(-6).map((m) => ({ role: m.role, content: m.content })),
-      })) as unknown as AIAskResponse;
+      }, { signal })) as unknown as AIAskResponse;
 
       const citations: AICitation[] = (data.sources ?? []).map((s) => ({
         id: `${s.document_id}:${s.chunk_index}`,
@@ -99,7 +99,7 @@ export const AIService = {
     // Không có tài liệu ngữ cảnh: tìm sách toàn thư viện như cũ.
     const data = (await apiClient.post('/ai/search', {
       query: message,
-    })) as unknown as AISearchResponse;
+    }, { signal })) as unknown as AISearchResponse;
 
     const citations: AICitation[] = (data.results ?? []).map((r) => ({
       id: r.id,
