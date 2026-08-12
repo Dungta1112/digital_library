@@ -7,6 +7,7 @@ import { apiClient } from '@/services/api.client';
 import { LibraryService } from '@/services/library.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { IngestStatusBadge } from '@/components/feature/Library/IngestStatusBadge';
 import { UploadSimple, Files, Trash, Folder, Eye, Download, X } from '@phosphor-icons/react';
 
 interface MyDocument {
@@ -256,6 +257,7 @@ export default function MyDocumentsPage() {
                         <span className={`text-[11px] font-bold px-3 py-1 rounded-full border uppercase tracking-wider ${st.cls} transition-colors duration-300`}>
                           {st.text}
                         </span>
+                        {doc.status === 'APPROVED' && <IngestStatusBadge documentId={doc.id} />}
                       </div>
                       {doc.description && (
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{doc.description}</p>

@@ -26,6 +26,12 @@ _SIMPLE_GREETINGS = {
     "xin chào", "chào", "hello", "hi", "hey", "chào bạn",
     "cảm ơn", "thanks", "thank you", "tạm biệt", "bye",
     "bạn là ai", "who are you", "bạn tên gì", "bạn có khỏe không",
+    "ok", "okay", "oke", "oki", "ok a", "ok bạn", "ừ", "ờ", "ukm",
+    "ừm", "um", "à", "ò", "oh", "ơi", "này", "ê", "alo",
+    "tôi muốn hỏi", "cho tôi hỏi", "cho hỏi",
+    "có ai không", "ai đó", "có đó không",
+    "à thế à", "vậy à", "thế à", "ra vậy",
+    "được", "tốt", "tuyệt", "hay quá", "hay đấy",
 }
 
 
@@ -187,13 +193,20 @@ def delete_document_index(document_id: str):
 @router.post("/ask-document", response_model=AskResponse)
 def ask_document(request: AskRequest):
     if _is_greeting(request.query):
+        if request.document_id:
+            answer = (
+                "Xin chào! Tôi là trợ lý AI của thư viện số. "
+                "Bạn đang xem tài liệu này. "
+                "Hãy hỏi tôi bất kỳ câu hỏi nào về nội dung bên trong tài liệu nhé."
+            )
+        else:
+            answer = (
+                "Xin chào! Tôi là trợ lý AI của thư viện số. "
+                "Hãy mở một tài liệu và hỏi tôi bất kỳ điều gì về nội dung của nó."
+            )
         return AskResponse(
             query=request.query,
-            answer=(
-                "Xin chào! Tôi là trợ lý AI của thư viện số. "
-                "Bạn có thể hỏi tôi bất kỳ câu hỏi nào về tài liệu đang mở. "
-                "Tôi sẽ tìm kiếm trong nội dung tài liệu để trả lời chính xác nhất."
-            ),
+            answer=answer,
             sources=[],
         )
 
@@ -246,14 +259,29 @@ def ask_document(request: AskRequest):
         f"[{i + 1}] (trang {s.page}) {text}"
         for i, (s, text) in enumerate(zip(sources, chunk_texts))
     )
-    prompt = (
-        f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
-        f"{excerpts}\n\n"
-        f"Câu hỏi: {request.query}\n\n"
+    history_text = "\n".join(
+        f"{msg['role']}: {msg['content']}" for msg in request.history[-6:]
+    )
+    instructions = (
         "Chỉ dựa vào các trích đoạn trên để trả lời. Khi dùng thông tin từ trích đoạn nào, "
         "ghi rõ nguồn dạng [trang N]. Nếu các trích đoạn không chứa thông tin để trả lời, "
         "nói rõ là không tìm thấy trong tài liệu — tuyệt đối không bịa."
     )
+    if history_text:
+        prompt = (
+            f"Lịch sử hội thoại:\n{history_text}\n\n"
+            f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
+            f"{excerpts}\n\n"
+            f"Câu hỏi: {request.query}\n\n"
+            f"{instructions}"
+        )
+    else:
+        prompt = (
+            f'Dưới đây là các trích đoạn từ tài liệu "{title}":\n\n'
+            f"{excerpts}\n\n"
+            f"Câu hỏi: {request.query}\n\n"
+            f"{instructions}"
+        )
     answer = ollama_service.chat(prompt, num_ctx=ASK_NUM_CTX)
 
     return AskResponse(query=request.query, answer=answer, sources=sources)
