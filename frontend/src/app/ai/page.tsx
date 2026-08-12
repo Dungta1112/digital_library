@@ -49,6 +49,7 @@ function AIChatSkeleton() {
 function AIChat() {
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [contextDocTitle, setContextDocTitle] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevDocIdRef = useRef<string | null>(null);
@@ -127,6 +128,16 @@ function AIChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (!loading) {
+      setElapsed(0);
+      return;
+    }
+    setElapsed(0);
+    const interval = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    return () => clearInterval(interval);
+  }, [loading]);
+
   const handleSend = async (text: string) => {
     const userMsg: AIChatMessage = {
       id: Date.now().toString(),
@@ -183,15 +194,11 @@ function AIChat() {
           ))}
 
           {loading && (
-            <div className="flex w-full justify-start mb-6">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl rounded-bl-sm p-5 shadow-sm flex gap-3 items-center w-[100px] h-[60px] transition-colors duration-300">
-                <div className="flex gap-1.5 mx-auto">
-                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
-                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                   <div className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
-                </div>
-              </div>
-            </div>
+            <ChatMessage
+              message={{ id: 'loading', role: 'assistant', content: '', timestamp: new Date().toISOString() }}
+              loading
+              elapsedMs={elapsed * 1000}
+            />
           )}
           <div ref={bottomRef} className="h-4" />
         </div>

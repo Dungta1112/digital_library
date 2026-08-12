@@ -3,8 +3,9 @@ import { AIChatMessage } from '@/types/ai';
 import Link from 'next/link';
 import { User, Robot, LinkSimple, CaretRight } from '@phosphor-icons/react';
 
-export function ChatMessage({ message }: { message: AIChatMessage }) {
+export function ChatMessage({ message, loading, elapsedMs }: { message: AIChatMessage; loading?: boolean; elapsedMs?: number }) {
   const isUser = message.role === 'user';
+  const elapsedSec = elapsedMs !== undefined ? Math.max(1, Math.round(elapsedMs / 1000)) : 0;
   
   return (
     <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-8`}>
@@ -27,9 +28,16 @@ export function ChatMessage({ message }: { message: AIChatMessage }) {
              {isUser ? 'Bạn' : 'Trợ lý AI'}
            </span>
         </div>
-        <div className={`whitespace-pre-wrap leading-relaxed text-[15px] ${isUser ? 'text-emerald-50' : 'text-slate-700 dark:text-slate-300'}`}>
-          {message.content}
-        </div>
+        {loading ? (
+          <div className="flex items-center gap-2 text-[15px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            Đang xử lý ({elapsedSec} giây)...
+          </div>
+        ) : (
+          <div className={`whitespace-pre-wrap leading-relaxed text-[15px] ${isUser ? 'text-emerald-50' : 'text-slate-700 dark:text-slate-300'}`}>
+            {message.content}
+          </div>
+        )}
         
         {message.citations && message.citations.length > 0 && (
           <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3 transition-colors duration-300">
