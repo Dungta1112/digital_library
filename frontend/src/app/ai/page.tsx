@@ -155,12 +155,27 @@ function AIChat() {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
 
+    const TIMEOUT_MS = 300000; // 5 phút
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
     try {
-      const response = await AIService.sendMessage(text, docId ?? undefined, messages);
+      const response = await AIService.sendMessage(text, docId ?? undefined, messages, controller.signal);
+      clearTimeout(timeoutId);
       setMessages(prev => [...prev, response]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: error?.name === 'AbortError'
+          ? 'Yêu cầu quá thời gian chờ. Vui lòng thử lại.'
+          : `Lỗi: ${error?.message || 'Không thể kết nối đến AI'}`,
+        timestamp: new Date().toISOString(),
+      }]);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
