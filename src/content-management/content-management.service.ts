@@ -1,22 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { AiService } from '../ai/ai.service';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import { CacheInvalidationService } from '../cache/cache-invalidation.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { HandleReportDto, RejectDocumentDto } from './dto/content-management.dto';
 
+const ALLOWED_INGEST_MIME_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];
+
 @Injectable()
 export class ContentManagementService {
-  constructor(private readonly prisma: PrismaService, private readonly audit: AuditLogService, private readonly cache: CacheInvalidationService) {}
+  private readonly logger = new Logger(ContentManagementService.name);
+  constructor(private readonly prisma: PrismaService, private readonly audit: AuditLogService, private readonly cache: CacheInvalidationService, private readonly aiService: AiService) {}
 
   pendingDocuments() {
     return this.prisma.document.findMany({ where: { status: 'PENDING_REVIEW' }, include: { files: true, owner: true } });
   }
 
   async approveDocument(actorId: string, documentId: string) {
-    const document = await this.prisma.document.update({ where: { id: documentId }, data: { status: 'APPROVED', approvedById: actorId, approvedAt: new Date() } });
+    const document = await this.prisma.document.update({ where: { id: documentId }, data: { status: 'APPROVED', approvedById: actorId, approvedAt: new Date() }, include: { files: true } });
     await this.prisma.documentReview.create({ data: { documentId, reviewerId: actorId, status: 'APPROVED' } });
     await this.audit.record({ actorId, action: 'DOCUMENT_APPROVE', targetType: 'document', targetId: documentId });
     await this.cache.invalidateDocumentViews();
+
+    const file = document.files?.[0];
+    if (file && ALLOWED_INGEST_MIME_TYPES.includes(file.mimeType)) {
+      this.aiService.ingestDocument({ id: actorId, permissions: ['documents.approve'] }, documentId).catch((err: Error) => {
+        this.logger.error(`Auto-ingest failed for document ${documentId}: ${err.message}`);
+      });
+    }
+
     return document;
   }
 
