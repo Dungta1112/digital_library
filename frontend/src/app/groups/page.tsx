@@ -77,20 +77,20 @@ export default function GroupsPage() {
                                     <UsersThree weight="duotone" className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                                    {groups.length} groups
+                                    {groups.length} nhóm
                                 </span>
                             </div>
                             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight transition-colors duration-300">
-                                Study Groups
+                                Nhóm học tập
                             </h1>
                             <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed max-w-[55ch] transition-colors duration-300">
-                                Join communities of learners to collaborate, discuss, and share knowledge across fields.
+                                Tham gia cộng đồng học tập để cùng trao đổi, thảo luận và chia sẻ kiến thức.
                             </p>
                         </div>
                         {can('CREATE_GROUP') && (
                             <Button onClick={() => setShowCreateModal(true)} className="h-11 px-6 shadow-md font-semibold shrink-0 active:scale-[0.98]">
                                 <Plus weight="bold" className="w-4 h-4 mr-2" />
-                                Create group
+                                Tạo nhóm
                             </Button>
                         )}
                     </div>
@@ -100,7 +100,7 @@ export default function GroupsPage() {
                         <MagnifyingGlass weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                         <input
                             type="text"
-                            placeholder="Search groups..."
+                            placeholder="Tìm kiếm nhóm..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/40 transition-all duration-200"
@@ -120,8 +120,8 @@ export default function GroupsPage() {
                         <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
                             <MagnifyingGlass weight="duotone" className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">No groups found</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Try a different search term or create a new group.</p>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Không tìm thấy nhóm nào</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Thử từ khoá khác hoặc tạo nhóm mới.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

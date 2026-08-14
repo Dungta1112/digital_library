@@ -69,7 +69,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="h-12 px-4 flex items-center justify-between border-b border-gray-200 dark:border-slate-800 flex-shrink-0">
                     <Link href="/groups" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                         <ArrowLeft weight="bold" className="w-4 h-4" />
-                        Study Groups
+                        Nhóm học tập
                     </Link>
                     {can('CREATE_GROUP') && (
                         <button
@@ -110,7 +110,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                     {/* Members */}
                     <div className="mt-4">
                         <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center justify-between">
-                            Members <span className="text-gray-300 dark:text-gray-600">{group.membersCount}</span>
+                            Thành viên <span className="text-gray-300 dark:text-gray-600">{group.membersCount}</span>
                         </h3>
                         <div className="space-y-0.5">
                             {group.members?.map((m, idx) => {
@@ -138,7 +138,7 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                                             {m.role === 'ADMIN' && (
                                                 <span className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                                                     <Crown weight="fill" className="w-3 h-3" />
-                                                    Admin
+                                                    Trưởng nhóm
                                                 </span>
                                             )}
                                         </div>
@@ -160,9 +160,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                             <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                 <Lock weight="duotone" className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                             </div>
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Members only</h2>
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chỉ dành cho thành viên</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Join this group to view discussions and participate in conversations.
+                                Tham gia nhóm để xem thảo luận và trò chuyện cùng mọi người.
                             </p>
                         </div>
                     </div>
