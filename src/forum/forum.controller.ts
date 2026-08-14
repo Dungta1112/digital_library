@@ -10,52 +10,52 @@ import { ForumService } from './forum.service';
 @ApiTags('Forum')
 @Controller('forum')
 export class ForumController {
-  constructor(private readonly service: ForumService) {}
+    constructor(private readonly service: ForumService) { }
 
-  @Get('posts')
-  async list() {
-    return ok(await this.service.list());
-  }
+    @Get('posts')
+    async list() {
+        return ok(await this.service.list());
+    }
 
-  @ApiProtected()
-  @UseGuards(JwtAuthGuard)
-  @Post('posts')
-  async create(@CurrentUser() user: RequestUser, @Body() dto: CreateForumPostDto) {
-    return created(await this.service.createPost(user.id, dto));
-  }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Post('posts')
+    async create(@CurrentUser() user: RequestUser, @Body() dto: CreateForumPostDto) {
+        return created(await this.service.createPost(user.id, dto));
+    }
 
-  @Get('posts/:postId')
-  async detail(@Param('postId') postId: string) {
-    return ok(await this.service.detail(postId));
-  }
+    @Get('posts/:postId')
+    async detail(@Param('postId') postId: string) {
+        return ok(await this.service.detail(postId));
+    }
 
-  @ApiProtected()
-  @UseGuards(JwtAuthGuard)
-  @Patch('posts/:postId')
-  async update(@CurrentUser() user: RequestUser, @Param('postId') postId: string, @Body() dto: UpdateForumPostDto) {
-    return ok(await this.service.updatePost(user.id, postId, dto));
-  }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Patch('posts/:postId')
+    async update(@CurrentUser() user: RequestUser, @Param('postId') postId: string, @Body() dto: UpdateForumPostDto) {
+        return ok(await this.service.updatePost(user.id, postId, dto));
+    }
 
-  @ApiProtected()
-  @UseGuards(JwtAuthGuard)
-  @Delete('posts/:postId')
-  async delete(@CurrentUser() user: RequestUser, @Param('postId') postId: string) {
-    return ok(await this.service.deletePost(user.id, postId));
-  }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Delete('posts/:postId')
+    async delete(@CurrentUser() user: RequestUser, @Param('postId') postId: string) {
+        return ok(await this.service.deletePost(user.id, postId));
+    }
 
-  @ApiProtected()
-  @UseGuards(JwtAuthGuard)
-  @Post('posts/:postId/comments')
-  async comment(@CurrentUser() user: RequestUser, @Param('postId') postId: string, @Body() dto: CreateCommentDto) {
-    return created(await this.service.comment(user.id, postId, dto));
-  }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Post('posts/:postId/comments')
+    async comment(@CurrentUser() user: RequestUser, @Param('postId') postId: string, @Body() dto: CreateCommentDto) {
+        return created(await this.service.comment(user.id, postId, dto));
+    }
 
-  @ApiProtected()
-  @UseGuards(JwtAuthGuard)
-  @Post('reports')
-  async report(@CurrentUser() user: RequestUser, @Body() dto: CreateForumReportDto) {
-    return created(await this.service.report(user.id, dto));
-  }
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
+    @Post('reports')
+    async report(@CurrentUser() user: RequestUser, @Body() dto: CreateForumReportDto) {
+        return created(await this.service.report(user.id, dto));
+    }
     @ApiProtected()
     @UseGuards(JwtAuthGuard)
     @Patch('posts/:postId/comments/:commentId')
@@ -67,7 +67,7 @@ export class ForumController {
     @UseGuards(JwtAuthGuard)
     @Delete('posts/:postId/comments/:commentId')
     async deleteComment(@CurrentUser() user: RequestUser, @Param('commentId') commentId: string) {
-        return ok(await this.service.deleteComment(user.id, commentId));
+        return ok(await this.service.deleteComment(user.id, commentId, user.permissions));
     }
 
     @ApiProtected()

@@ -105,4 +105,18 @@ export const ForumService = {
         })
     );
   },
+
+  async deleteComment(postId: string, commentId: string): Promise<void> {
+    return runWithMock(
+      async () => {
+        const posts = await getMockPosts();
+        const post = posts.find((item) => item.id === postId);
+        if (post) {
+          post.comments = (post.comments || []).filter((c) => c.id !== commentId);
+          post.commentsCount = post.comments.length;
+        }
+      },
+      () => apiClient.delete<unknown, void>(`/forum/posts/${postId}/comments/${commentId}`)
+    );
+  },
 };
