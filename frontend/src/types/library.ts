@@ -6,7 +6,7 @@ export interface Document {
   publicationYear: number;
   category: string;
   keywords: string[];
-  pdfUrl: string;
+  pdfUrl?: string;
   fileName?: string;
   fileType?: 'pdf' | 'docx';
   coverImageUrl?: string;

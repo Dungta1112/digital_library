@@ -1,94 +1,193 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ForumService } from '@/services/forum.service';
 import type { ForumPost } from '@/types/forum';
+import {
+  Chats,
+  ThumbsUp,
+  ChatCircleText,
+  GraduationCap,
+  ArrowRight,
+  Sparkle,
+} from '@phosphor-icons/react';
+
+function formatRelativeTime(dateStr?: string) {
+  if (!dateStr) return 'Gần đây';
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} ngày trước`;
+  } catch {
+    return 'Gần đây';
+  }
+}
 
 export function HomeForum() {
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPosts() {
+    async function fetchForumPosts() {
       try {
-        const res = await ForumService.getPosts();
-        setPosts(res.slice(0, 3)); // top 3 posts
-      } catch (error) {
-        console.error('Failed to load forum posts', error);
+        const data = await ForumService.getPosts();
+        if (data && data.length > 0) {
+          setPosts(data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải bài đăng diễn đàn:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchPosts();
+    fetchForumPosts();
   }, []);
 
   return (
-    <section className="home-section-muted relative z-10 overflow-hidden border-t border-emerald-900/5 py-24 transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 tracking-tight"
+    <section className="relative bg-slate-900 py-20 lg:py-28 text-white border-t border-slate-800 overflow-hidden">
+      {/* Subtle Background Glow */}
+      <div className="pointer-events-none absolute left-10 top-1/2 -translate-y-1/2 h-80 w-80 rounded-full bg-blue-600/10 blur-[140px]" />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-950/40 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-400 mb-4">
+              <Sparkle weight="fill" className="h-3.5 w-3.5" />
+              CỘNG ĐỒNG HỌC THUẬT SÔI NỔI
+            </div>
+            <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+              Thảo Luận Học Thuật Tiêu Biểu
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl">
+              Nơi sinh viên Trường Đại học Trưng Vương trao đổi bài tập, phản biện học thuật và nhận giải đáp từ Giảng viên.
+            </p>
+          </div>
+
+          <Link
+            href="/forum"
+            className="inline-flex items-center gap-2 rounded-2xl bg-blue-700 hover:bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/30 transition-all hover:-translate-y-0.5 active:scale-98"
           >
-            Diễn đàn học thuật
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed"
-          >
-            Một không gian để người học đặt câu hỏi, chia sẻ tài liệu, thảo luận môn học và phản biện ý tưởng nghiên cứu.
-          </motion.p>
+            <Chats weight="bold" className="h-4 w-4" />
+            Vào Diễn đàn trao đổi
+            <ArrowRight weight="bold" className="h-4 w-4" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-64 rounded-3xl bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 shadow-sm animate-pulse transition-colors duration-300" />
-            ))
-          ) : (
-            posts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                whileHover={{ y: -5 }}
-                className="home-card flex flex-col rounded-3xl border p-8 transition-all duration-300 dark:border-slate-800 dark:bg-slate-950"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 text-xs font-bold tracking-wide uppercase transition-colors duration-300">
-                    {post.category}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-sm font-medium transition-colors duration-300">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    {post.commentsCount}
+        {/* Real Posts List */}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-36 rounded-3xl bg-slate-950/60 border border-slate-800 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="rounded-3xl border border-slate-800 bg-slate-950/50 p-12 text-center">
+            <p className="text-slate-400 text-sm mb-4">Chưa có bài thảo luận nào được tạo.</p>
+            <Link
+              href="/forum"
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white"
+            >
+              Tạo chủ đề thảo luận đầu tiên
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {posts.map((topic, idx) => {
+              const hasLecturerReply = topic.comments?.some(
+                (c) => c.authorRole === 'LECTURER' || c.authorRole === 'ADMIN'
+              );
+              const lecturerComment = topic.comments?.find(
+                (c) => c.authorRole === 'LECTURER' || c.authorRole === 'ADMIN'
+              );
+
+              return (
+                <motion.div
+                  key={topic.id}
+                  initial={{ opacity: 0, y: 25 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="group rounded-3xl border border-slate-800 bg-slate-950/80 p-6 sm:p-7 shadow-xl transition-all duration-300 hover:border-blue-500/40 hover:bg-slate-950 hover:shadow-2xl"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    {/* Left: Content */}
+                    <div className="flex-1">
+                      {/* Category & Tags */}
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <span className="rounded-full bg-blue-950/80 px-3 py-1 text-[11px] font-bold text-blue-400 border border-blue-800/50">
+                          {topic.category || 'Học thuật'}
+                        </span>
+                        {topic.tags && topic.tags.length > 0 && (
+                          <span className="rounded-full bg-slate-800 px-3 py-1 text-[11px] font-semibold text-slate-300">
+                            #{topic.tags[0]}
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-400">
+                          {formatRelativeTime(topic.createdAt)}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <Link href={`/forum/post/${topic.id}`} className="block">
+                        <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition-colors leading-snug mb-3">
+                          {topic.title}
+                        </h3>
+                      </Link>
+
+                      {/* Lecturer verification banner or author info */}
+                      {hasLecturerReply && lecturerComment ? (
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-950/40 border border-emerald-800/50 px-3.5 py-2 text-xs text-emerald-300">
+                          <GraduationCap weight="fill" className="h-4 w-4 text-emerald-400 shrink-0" />
+                          <span className="font-semibold">
+                            {lecturerComment.authorName}: &ldquo;{lecturerComment.content.slice(0, 100)}...&rdquo;
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400">
+                          Đăng bởi: <span className="font-semibold text-slate-300">{topic.authorName}</span> ({topic.authorRole})
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Right: Voting & Comments Count */}
+                    <div className="flex items-center gap-4 lg:self-center shrink-0 border-t lg:border-t-0 border-slate-800/80 pt-4 lg:pt-0">
+                      <div className="flex items-center gap-1.5 rounded-2xl bg-slate-900 border border-slate-800 px-4 py-2 text-xs font-bold text-slate-300">
+                        <ThumbsUp weight="fill" className="h-4 w-4 text-blue-400" />
+                        <span>{topic.likes || 0} bình chọn</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 rounded-2xl bg-slate-900 border border-slate-800 px-4 py-2 text-xs font-bold text-slate-300">
+                        <ChatCircleText weight="fill" className="h-4 w-4 text-emerald-400" />
+                        <span>{topic.commentsCount || topic.comments?.length || 0} phản hồi</span>
+                      </div>
+
+                      <Link
+                        href={`/forum/post/${topic.id}`}
+                        className="inline-flex items-center justify-center h-10 w-10 rounded-2xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
+                        title="Xem chi tiết thảo luận"
+                      >
+                        <ArrowRight weight="bold" className="h-4 w-4" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-                
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 leading-snug transition-colors duration-300">
-                  {post.title}
-                </h3>
-                
-                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 flex-grow line-clamp-3 transition-colors duration-300">
-                  {post.content}
-                </p>
-                
-                <Link href={`/forum/post/${post.id}`} className="w-full text-center py-3 rounded-xl bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-300 font-medium hover:bg-green-50 dark:hover:bg-slate-800 hover:text-green-700 dark:hover:text-green-400 transition-colors mt-auto text-sm block">
-                  Tham gia thảo luận
-                </Link>
-              </motion.div>
-            ))
-          )}
-        </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
