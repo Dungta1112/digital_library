@@ -1,16 +1,10 @@
 'use client';
 
-import React from 'react';
+import Link from 'next/link';
+import { House, Bell, Clock, ShieldCheck, SignOut, User } from '@phosphor-icons/react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
-import {
-  Bell,
-  Clock,
-  ShieldCheck,
-  SignOut,
-  User,
-} from '@phosphor-icons/react';
 
 export function AdminHeader() {
   const pathname = usePathname() || '/admin/dashboard';
@@ -30,11 +24,25 @@ export function AdminHeader() {
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-950/90 px-6 sm:px-8 backdrop-blur-md">
       {/* Left: Breadcrumbs & Current Page Title */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+      <div className="flex items-center gap-6">
+        {/* Return to Public Site button */}
+        <Link href="/" title="Quay lại trang người dùng (Alt+H)" className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <House weight="duotone" className="h-5 w-5 text-emerald-400" />
+          <span className="hidden lg:inline">Về Trang người dùng</span>
+        </Link>
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 border-l border-slate-800 pl-6">
           <span>Quản trị</span>
           <span>/</span>
           <span className="text-white font-bold">{currentTitle}</span>
+        </div>
+        {/* Notification Center (placeholder) */}
+        <div className="relative">
+          <button className="relative text-slate-400 hover:text-white transition-colors" title="Thông báo (Ctrl+K)">
+            <Bell weight="duotone" className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          </button>
+          {/* Popover placeholder - sẽ được triển khai sau */}
         </div>
       </div>
 
