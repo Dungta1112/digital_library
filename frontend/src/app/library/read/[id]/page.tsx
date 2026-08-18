@@ -6,7 +6,7 @@ import { DocumentInfo } from '@/components/feature/Library/DocumentInfo';
 import { PdfViewerClient } from '@/components/feature/Library/PdfViewerClient';
 import { ArrowLeft } from '@phosphor-icons/react/dist/ssr';
 
-export default async function DocumentDetailPage({
+export default async function DocumentReadPage({
   params,
 }: {
   params: Promise<{ id: string }>;

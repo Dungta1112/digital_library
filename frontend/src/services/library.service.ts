@@ -1,10 +1,10 @@
-import { apiClient } from './api.client';
-import { runWithMock, toBackendUrl } from './config';
+import { apiClient } from './api-client';
+import { toBackendUrl } from './config';
 import type { Document, LibraryFilter, PaginatedResult } from '../types/library';
 
-type Category = { id: string; name: string };
+export type Category = { id: string; name: string };
 
-interface ApiDocumentFile {
+export interface ApiDocumentFile {
   id?: string;
   objectKey?: string;
   originalName?: string;
@@ -14,7 +14,7 @@ interface ApiDocumentFile {
   downloadUrl?: string;
 }
 
-interface ApiDocument {
+export interface ApiDocument {
   id: string;
   title: string;
   authors?: string[];
@@ -44,17 +44,17 @@ interface ApiDocument {
   downloadCount?: number;
 }
 
-type ApiDocumentList =
+export type ApiDocumentList =
   | PaginatedResult<ApiDocument>
   | ApiDocument[]
   | {
       items: ApiDocument[];
       meta?: Partial<Omit<PaginatedResult<ApiDocument>, 'data'>>;
+      total?: number;
+      page?: number;
+      limit?: number;
+      totalPages?: number;
     };
-
-function toMockFileUrl(fileName: string) {
-  return `/api/mock-files/book/${encodeURIComponent(fileName)}`;
-}
 
 function getFileType(fileNameOrUrl?: string): 'pdf' | 'docx' | undefined {
   const cleanValue = fileNameOrUrl?.split('?')[0].split('#')[0].toLowerCase() || '';
@@ -63,20 +63,7 @@ function getFileType(fileNameOrUrl?: string): 'pdf' | 'docx' | undefined {
   return undefined;
 }
 
-function normalizeMockDocuments(documents: Document[]): Document[] {
-  return documents.map((document) => {
-    const currentUrl = document.pdfUrl || '';
-    const fileUrl = document.fileName ? toMockFileUrl(document.fileName) : currentUrl;
-
-    return {
-      ...document,
-      pdfUrl: fileUrl,
-      fileType: document.fileType || getFileType(document.fileName || fileUrl),
-    };
-  });
-}
-
-function getPrimaryFileUrl(document: ApiDocument) {
+function getPrimaryFileUrl(document: ApiDocument): string {
   const file = document.files?.[0];
   return (
     document.pdfUrl ||
@@ -89,173 +76,135 @@ function getPrimaryFileUrl(document: ApiDocument) {
   );
 }
 
-function normalizeApiDocument(document: ApiDocument): Document {
+export function normalizeApiDocument(document: ApiDocument): Document {
   const category =
     typeof document.category === 'string'
       ? document.category
-      : document.category?.name || 'Uncategorized';
+      : document.category?.name || 'Tài liệu chung';
+
   const authors =
     document.authors ||
     document.metadata?.authors ||
     (document.author ? [document.author] : undefined) ||
     (document.owner?.fullName ? [document.owner.fullName] : undefined) ||
-    [];
+    ['Tác giả cập nhật'];
+
   const year =
     document.publicationYear ||
     document.metadata?.publicationYear ||
     (document.createdAt ? new Date(document.createdAt).getFullYear() : new Date().getFullYear());
+
   const file = document.files?.[0];
   const fileName = document.fileName || file?.originalName;
-  const fileUrl = toBackendUrl(getPrimaryFileUrl(document));
+  const rawFileUrl = getPrimaryFileUrl(document);
+  const fileUrl = rawFileUrl ? toBackendUrl(rawFileUrl) : '';
 
   return {
     id: document.id,
     title: document.title,
     authors,
-    abstract: document.abstract || document.description || document.metadata?.abstract || '',
+    abstract: document.abstract || document.description || document.metadata?.abstract || 'Chưa có phần tóm tắt cho tài liệu này.',
     publicationYear: year,
     category,
     keywords: document.keywords || document.metadata?.keywords || [],
     pdfUrl: fileUrl,
     fileName,
     fileType: document.fileType || getFileType(fileName || fileUrl),
-    coverImageUrl: document.coverImageUrl,
+    coverImageUrl: document.coverImageUrl ? toBackendUrl(document.coverImageUrl) : undefined,
     viewCount: document.viewCount || 0,
     saveCount: document.saveCount || document.downloadCount || 0,
   };
 }
 
-function normalizeApiDocuments(documents: ApiDocument[]) {
+export function normalizeApiDocuments(documents: ApiDocument[]): Document[] {
   return documents.map(normalizeApiDocument);
-}
-
-async function loadMockDocuments(): Promise<Document[]> {
-  const mockModule = await import('../mocks/library.json');
-  return normalizeMockDocuments(mockModule.default as Document[]);
-}
-
-function filterMockDocuments(documents: Document[], filter: LibraryFilter) {
-  const query = filter.query?.trim().toLocaleLowerCase('vi') || '';
-
-  return documents.filter((document) => {
-    const matchesQuery =
-      !query ||
-      document.title.toLocaleLowerCase('vi').includes(query) ||
-      document.authors.some((author) => author.toLocaleLowerCase('vi').includes(query)) ||
-      document.keywords.some((keyword) => keyword.toLocaleLowerCase('vi').includes(query));
-    const matchesCategory = !filter.category || document.category === filter.category;
-    const matchesYear = !filter.year || document.publicationYear === filter.year;
-    const matchesAuthor =
-      !filter.author ||
-      document.authors.some((author) =>
-        author.toLocaleLowerCase('vi').includes(filter.author!.toLocaleLowerCase('vi'))
-      );
-
-    return matchesQuery && matchesCategory && matchesYear && matchesAuthor;
-  });
 }
 
 export const LibraryService = {
   async getCategories(): Promise<Category[]> {
-    return runWithMock(
-      async () => {
-        const documents = await loadMockDocuments();
-        return Array.from(new Set(documents.map((document) => document.category))).map((name) => ({
-          id: name,
-          name,
-        }));
-      },
-      async () => {
-        const response = await apiClient.get<unknown, Category[] | { data: Category[] }>(
-          '/categories'
-        );
-        return Array.isArray(response) ? response : response.data || [];
-      }
-    );
+    try {
+      const response = await apiClient.get<Category[] | { data: Category[] } | { items: Category[] }>('/categories');
+      if (Array.isArray(response)) return response;
+      if (response && 'data' in response && Array.isArray(response.data)) return response.data;
+      if (response && 'items' in response && Array.isArray(response.items)) return response.items;
+      return [];
+    } catch (e) {
+      console.error('Lỗi khi tải danh mục:', e);
+      return [];
+    }
   },
 
   async getDocuments(
-    filter: LibraryFilter,
+    filter: LibraryFilter = {},
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResult<Document>> {
-    return runWithMock(
-      async () => {
-        const documents = filterMockDocuments(await loadMockDocuments(), filter);
-        const start = (page - 1) * limit;
+    const params: Record<string, string | number> = {
+      page,
+      limit,
+    };
+    if (filter.query) params.q = filter.query;
+    if (filter.category) params.categoryId = filter.category;
 
-        return {
-          data: documents.slice(start, start + limit),
-          total: documents.length,
-          page,
-          limit,
-          totalPages: Math.max(1, Math.ceil(documents.length / limit)),
-        };
-      },
-      async () => {
-        const params = new URLSearchParams();
-        if (filter.query) params.append('q', filter.query);
-        if (filter.category) params.append('categoryId', filter.category);
-        params.append('page', page.toString());
-        params.append('limit', limit.toString());
+    const response = await apiClient.get<ApiDocumentList>('/documents', { params });
 
-        const response = await apiClient.get<unknown, ApiDocumentList>(
-          `/documents?${params.toString()}`
-        );
+    if (!Array.isArray(response) && 'data' in response && Array.isArray(response.data)) {
+      const items = normalizeApiDocuments(response.data);
+      return {
+        data: items,
+        total: response.total ?? items.length,
+        page: response.page ?? page,
+        limit: response.limit ?? limit,
+        totalPages: response.totalPages ?? Math.max(1, Math.ceil((response.total ?? items.length) / limit)),
+      };
+    }
 
-        if (!Array.isArray(response) && 'data' in response && 'totalPages' in response) {
-          const items = normalizeApiDocuments(response.data);
-          return { ...response, data: items };
-        }
+    if (!Array.isArray(response) && 'items' in response && Array.isArray(response.items)) {
+      const items = normalizeApiDocuments(response.items);
+      const total = response.total ?? response.meta?.total ?? items.length;
+      return {
+        data: items,
+        total,
+        page: response.page ?? response.meta?.page ?? page,
+        limit: response.limit ?? response.meta?.limit ?? limit,
+        totalPages: response.totalPages ?? response.meta?.totalPages ?? Math.max(1, Math.ceil(total / limit)),
+      };
+    }
 
-        if (!Array.isArray(response) && 'items' in response) {
-          const items = normalizeApiDocuments(response.items);
-          return {
-            data: items,
-            total: response.meta?.total || items.length,
-            page: response.meta?.page || page,
-            limit: response.meta?.limit || limit,
-            totalPages: response.meta?.totalPages || Math.max(1, Math.ceil(items.length / limit)),
-          };
-        }
-
-        const items = Array.isArray(response) ? normalizeApiDocuments(response) : [];
-        return { data: items, total: items.length, page, limit, totalPages: 1 };
-      }
-    );
+    const items = Array.isArray(response) ? normalizeApiDocuments(response) : [];
+    return {
+      data: items,
+      total: items.length,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(items.length / limit)),
+    };
   },
 
   async getDocumentById(id: string): Promise<Document | null> {
-    return runWithMock(
-      async () => {
-        const documents = await loadMockDocuments();
-        return documents.find((document) => document.id === id) || null;
-      },
-      async () => {
-        try {
-          const response = await apiClient.get<unknown, ApiDocument>(`/documents/${id}`);
-          return normalizeApiDocument(response);
-        } catch (error) {
-          console.error(error);
-          return null;
-        }
-      }
-    );
+    try {
+      const response = await apiClient.get<ApiDocument>(`/documents/${id}`);
+      return response ? normalizeApiDocument(response) : null;
+    } catch (error) {
+      console.error(`Lỗi khi lấy thông tin tài liệu ${id}:`, error);
+      return null;
+    }
   },
 
   async getDocumentReadUrl(document: Document): Promise<string> {
-    return runWithMock(
-      () => document.pdfUrl,
-      async () => {
-        if (document.pdfUrl) {
-          return document.pdfUrl;
-        }
+    if (document.pdfUrl) {
+      return document.pdfUrl;
+    }
 
-        const response = await apiClient.get<unknown, { url: string; documentId: string }>(
-          `/documents/${document.id}/read`
-        );
-        return toBackendUrl(response.url);
-      }
-    );
+    try {
+      const response = await apiClient.get<{ url: string; documentId?: string }>(
+        `/documents/${document.id}/read`
+      );
+      return toBackendUrl(response.url);
+    } catch {
+      return toBackendUrl(`/storage/documents/${document.id}.pdf`);
+    }
   },
 };
+
+export const DocumentService = LibraryService;

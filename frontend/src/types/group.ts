@@ -9,6 +9,7 @@ export interface StudyGroup {
   name: string;
   description: string;
   topic: string;
+  ownerId?: string;
   membersCount: number;
   members?: GroupMember[];
   isJoined?: boolean;

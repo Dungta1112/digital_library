@@ -24,7 +24,7 @@ export function LoginForm() {
             login(res.user, res.accessToken, res.refreshToken);
             router.push('/library');
         } catch (err: any) {
-            setError(err.message || 'Đăng nhập thất bại');
+            setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
         }
@@ -32,19 +32,42 @@ export function LoginForm() {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
-            {error && <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">{error}</div>}
-            <div className="bg-blue-50 text-blue-800 p-3 rounded-md text-sm mb-4">
-                Gợi ý (dữ liệu giả): dùng email bất kỳ, mật khẩu: <strong>password</strong>
+            {error && (
+                <div className="p-3.5 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 rounded-xl text-sm border border-red-200 dark:border-red-800/50">
+                    {error}
+                </div>
+            )}
+            <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Địa chỉ email
+                </label>
+                <Input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    placeholder="email@truong.edu.vn"
+                    className="h-12"
+                />
             </div>
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Địa chỉ email</label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="sinhvien@truong.edu.vn" />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Mật khẩu
+                </label>
+                <Input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="h-12"
+                />
             </div>
-            <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full h-12 text-lg mt-2">
+            <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 text-base font-bold mt-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-sm transition-all active:scale-[0.98]"
+            >
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
         </form>
@@ -57,7 +80,6 @@ export function RegisterForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -66,10 +88,10 @@ export function RegisterForm() {
         setLoading(true);
         try {
             await AuthService.register(email, password, fullName);
-            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
             router.push('/login');
         } catch (err: any) {
-            setError(err.message || 'Đăng ký thất bại');
+            setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
@@ -77,20 +99,56 @@ export function RegisterForm() {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
-            {error && <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">{error}</div>}
+            {error && (
+                <div className="p-3.5 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 rounded-xl text-sm border border-red-200 dark:border-red-800/50">
+                    {error}
+                </div>
+            )}
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Họ và tên</label>
-                <Input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Nguyễn Văn A" />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Họ và tên
+                </label>
+                <Input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    required
+                    placeholder="Nguyễn Văn A"
+                    className="h-12"
+                />
             </div>
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Địa chỉ email</label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="sinhvien@truong.edu.vn" />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Địa chỉ email
+                </label>
+                <Input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    placeholder="sinhvien@truong.edu.vn"
+                    className="h-12"
+                />
             </div>
             <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" minLength={6} />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Mật khẩu
+                </label>
+                <Input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    minLength={6}
+                    className="h-12"
+                />
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-12 text-lg mt-2">
+            <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 text-base font-bold mt-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-sm transition-all active:scale-[0.98]"
+            >
                 {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
             </Button>
         </form>

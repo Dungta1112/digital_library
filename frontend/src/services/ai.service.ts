@@ -1,18 +1,18 @@
-import { apiClient } from './api.client';
-import { config, fetchWithMock } from './config';
+import { apiClient } from './api-client';
 import type { AIChatMessage, AICitation } from '../types/ai';
 
 interface AISearchResultItem {
   id: string;
   title: string;
-  description: string;
-  distance: number;
+  description?: string;
+  abstract?: string;
+  distance?: number;
 }
 
 interface AISearchResponse {
   query: string;
   answer: string;
-  results: AISearchResultItem[];
+  results?: AISearchResultItem[];
 }
 
 interface AIAskSource {
@@ -21,63 +21,38 @@ interface AIAskSource {
   page: number;
   chunk_index: number;
   snippet: string;
-  distance: number;
+  distance?: number;
 }
 
 interface AIAskResponse {
   query: string;
   answer: string;
-  sources: AIAskSource[];
+  sources?: AIAskSource[];
 }
 
 export const AIService = {
   async getInitialHistory(): Promise<AIChatMessage[]> {
-    if (!config.USE_MOCKS) {
-      // Backend chưa lưu lịch sử chat — bắt đầu với hội thoại trống.
-      return [];
-    }
-    return fetchWithMock<AIChatMessage[]>(
-      () => import('../mocks/ai.json').then(m => ({ default: m.default as AIChatMessage[] }))
-    );
+    // Trả về danh sách rỗng ban đầu khi bắt đầu phiên hội thoại mới
+    return [];
   },
 
-  async sendMessage(message: string, contextDocId?: string, history?: AIChatMessage[], signal?: AbortSignal): Promise<AIChatMessage> {
-    if (config.USE_MOCKS) {
-      // simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: `This is a simulated AI response to: "${message}". ${contextDocId ? 'I have analyzed document ID ' + contextDocId + ' to answer your question.' : 'I searched the general library corpus to formulate this answer.'}`,
-        timestamp: new Date().toISOString(),
-        citations: contextDocId ? [
-          {
-            id: 'cit1',
-            documentId: contextDocId,
-            documentTitle: 'Contextual Document Title',
-            pageNumber: 1,
-            textSnippet: 'This is a simulated text snippet demonstrating how the AI pulls exact quotes from the referenced material to support its claims.'
-          }
-        ] : [
-          {
-            id: 'cit2',
-            documentId: '1',
-            documentTitle: 'Machine Learning in Healthcare',
-            pageNumber: 12,
-            textSnippet: 'ML models have significantly improved diagnostic accuracy...'
-          }
-        ]
-      };
-    }
-
+  async sendMessage(
+    message: string,
+    contextDocId?: string,
+    history?: AIChatMessage[],
+    signal?: AbortSignal
+  ): Promise<AIChatMessage> {
     if (contextDocId) {
-      // Hỏi theo nội dung 1 tài liệu cụ thể: POST /api/v1/ai/ask (cần đăng nhập).
-      // Citations là trích đoạn thật từ file kèm số trang chính xác.
-      const data = (await apiClient.post('/ai/ask', {
-        query: message,
-        documentId: contextDocId,
-        history: history?.slice(-6).map((m) => ({ role: m.role, content: m.content })),
-      }, { signal })) as unknown as AIAskResponse;
+      // Hỏi đáp ngữ cảnh tài liệu cụ thể: POST /api/v1/ai/ask
+      const data = await apiClient.post<AIAskResponse>(
+        '/ai/ask',
+        {
+          query: message,
+          documentId: contextDocId,
+          history: history?.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+        },
+        { signal }
+      );
 
       const citations: AICitation[] = (data.sources ?? []).map((s) => ({
         id: `${s.document_id}:${s.chunk_index}`,
@@ -88,33 +63,37 @@ export const AIService = {
       }));
 
       return {
-        id: Date.now().toString(),
+        id: `msg-${Date.now()}`,
         role: 'assistant',
-        content: data.answer,
+        content: data.answer || 'Trợ lý AI không tìm thấy nội dung phù hợp trong tài liệu này.',
         timestamp: new Date().toISOString(),
         citations,
       };
     }
 
-    // Không có tài liệu ngữ cảnh: tìm sách toàn thư viện như cũ.
-    const data = (await apiClient.post('/ai/search', {
-      query: message,
-    }, { signal })) as unknown as AISearchResponse;
+    // Tìm kiếm / hỏi đáp toàn thư viện: POST /api/v1/ai/search
+    const data = await apiClient.post<AISearchResponse>(
+      '/ai/search',
+      {
+        query: message,
+      },
+      { signal }
+    );
 
     const citations: AICitation[] = (data.results ?? []).map((r) => ({
       id: r.id,
       documentId: r.id,
       documentTitle: r.title,
       pageNumber: 1,
-      textSnippet: r.description,
+      textSnippet: r.description || r.abstract || '',
     }));
 
     return {
-      id: Date.now().toString(),
+      id: `msg-${Date.now()}`,
       role: 'assistant',
-      content: data.answer,
+      content: data.answer || 'Trợ lý AI đã xử lý xong yêu cầu của bạn.',
       timestamp: new Date().toISOString(),
       citations,
     };
-  }
+  },
 };

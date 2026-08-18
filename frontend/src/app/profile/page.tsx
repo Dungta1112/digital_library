@@ -34,7 +34,7 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage('');
     try {
-      await apiClient.patch<any, any>('/users/me', { fullName });
+      await apiClient.patch<any>('/users/me', { fullName });
       if (user && token) {
         login({ ...user, fullName }, token, localStorage.getItem('refresh_token') || undefined);
       }

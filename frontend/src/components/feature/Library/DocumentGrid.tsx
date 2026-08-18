@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Document } from '@/types/library';
@@ -7,6 +9,7 @@ import {
   FloppyDisk,
   MagnifyingGlass,
   Eye,
+  BookOpen,
 } from '@phosphor-icons/react';
 
 const CATEGORY_STYLES: Record<string, { cover: string; badge: string; accent: string }> = {
@@ -26,6 +29,26 @@ const CATEGORY_STYLES: Record<string, { cover: string; badge: string; accent: st
     accent: 'text-violet-700',
   },
   'Archive Document': {
+    cover: 'from-amber-900 via-orange-700 to-yellow-600',
+    badge: 'bg-amber-50 text-amber-700 border-amber-100',
+    accent: 'text-amber-700',
+  },
+  'Luận văn': {
+    cover: 'from-emerald-900 via-emerald-700 to-teal-600',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    accent: 'text-emerald-700',
+  },
+  'Giáo trình': {
+    cover: 'from-blue-950 via-blue-800 to-cyan-700',
+    badge: 'bg-blue-50 text-blue-700 border-blue-100',
+    accent: 'text-blue-700',
+  },
+  'Bài báo khoa học': {
+    cover: 'from-violet-950 via-violet-800 to-fuchsia-700',
+    badge: 'bg-violet-50 text-violet-700 border-violet-100',
+    accent: 'text-violet-700',
+  },
+  'Tài liệu tham khảo': {
     cover: 'from-amber-900 via-orange-700 to-yellow-600',
     badge: 'bg-amber-50 text-amber-700 border-amber-100',
     accent: 'text-amber-700',
@@ -65,10 +88,10 @@ function DocumentCover({ document }: { document: Document }) {
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wide backdrop-blur">
             <FileIcon weight="duotone" className="h-4 w-4" />
-            {document.fileType?.toUpperCase() || 'FILE'}
+            {document.fileType?.toUpperCase() || 'PDF'}
           </span>
           <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-            {document.publicationYear}
+            Năm {document.publicationYear}
           </span>
         </div>
 
@@ -119,25 +142,26 @@ export function DocumentCard({ document }: { document: Document }) {
         </p>
 
         <p className="mb-5 line-clamp-3 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          {document.abstract || 'No abstract has been provided for this document.'}
+          {document.abstract || 'Chưa có phần tóm tắt cho tài liệu này.'}
         </p>
 
         <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5" title="Lượt xem">
               <Eye weight="bold" className="h-4 w-4" />
               {document.viewCount}
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5" title="Lượt lưu">
               <FloppyDisk weight="bold" className="h-4 w-4" />
               {document.saveCount}
             </span>
           </div>
           <Link
             href={`/library/document/${document.id}`}
-            className="rounded-lg bg-emerald-50 px-3.5 py-2 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
           >
-            View
+            <BookOpen weight="bold" className="h-3.5 w-3.5" />
+            Đọc tài liệu
           </Link>
         </div>
       </div>
@@ -180,11 +204,10 @@ export function DocumentGrid({
           <MagnifyingGlass weight="duotone" className="h-8 w-8" />
         </div>
         <h3 className="mb-2 text-xl font-bold text-slate-950 dark:text-white">
-          No matching documents
+          Không tìm thấy tài liệu phù hợp
         </h3>
         <p className="max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-          Try changing the search keyword, selecting another category, or clearing the current
-          filters.
+          Hãy thử thay đổi từ khóa tìm kiếm, chọn danh mục khác hoặc xóa bộ lọc hiện tại.
         </p>
       </div>
     );

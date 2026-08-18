@@ -90,17 +90,17 @@ export function HeroSection() {
             <span className="inline-flex items-center gap-3 rounded-full border border-red-100 bg-white/85 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-red-700 shadow-sm backdrop-blur dark:border-red-900/50 dark:bg-slate-900/70 dark:text-red-300">
               <Image
                 src="/trung-vuong-university-logo.svg"
-                alt="Trung Vuong University"
+                alt="Đại học Trưng Vương"
                 width={28}
                 height={28}
                 className="rounded-full"
                 priority
               />
-              Trung Vuong University
+              Đại học Trưng Vương
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900/50">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Digital Library
+              Thư viện số
             </span>
           </motion.div>
 

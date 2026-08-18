@@ -46,7 +46,7 @@ export default function MyDocumentsPage() {
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get<any, any>('/lecturer/documents');
+      const res = await apiClient.get<any>('/lecturer/documents');
       const items = Array.isArray(res) ? res : (res?.items || []);
       setDocuments(items);
     } catch (e) {

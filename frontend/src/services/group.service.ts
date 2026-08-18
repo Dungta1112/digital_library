@@ -1,145 +1,98 @@
-import { apiClient } from './api.client';
-import { runWithMock } from './config';
+import { apiClient } from './api-client';
 import type { ChatMessage, StudyGroup } from '../types/group';
 
-let mockGroups: StudyGroup[] | null = null;
-let mockMessages: ChatMessage[] | null = null;
-
-async function getMockGroups() {
-    if (!mockGroups) {
-        const mockModule = await import('../mocks/group.json');
-        mockGroups = structuredClone(mockModule.default) as StudyGroup[];
-    }
-    return mockGroups;
-}
-
-async function getMockMessages() {
-    if (!mockMessages) {
-        const mockModule = await import('../mocks/group-messages.json');
-        mockMessages = structuredClone(mockModule.default) as ChatMessage[];
-    }
-    return mockMessages;
+interface ApiGroupPost {
+  id: string;
+  groupId: string;
+  senderId?: string;
+  authorId?: string;
+  senderName?: string;
+  author?: { fullName?: string };
+  content: string;
+  createdAt?: string;
+  timestamp?: string;
 }
 
 export const GroupService = {
-    async getGroups(): Promise<StudyGroup[]> {
-        return runWithMock(
-            async () => [...(await getMockGroups())],
-            async () => {
-                const response = await apiClient.get<
-                    unknown,
-                    StudyGroup[] | { items: StudyGroup[] }
-                >('/study-groups');
-                return Array.isArray(response) ? response : response.items || [];
-            }
-        );
-    },
+  async getGroups(): Promise<StudyGroup[]> {
+    try {
+      const response = await apiClient.get<StudyGroup[] | { items: StudyGroup[] }>('/study-groups');
+      if (Array.isArray(response)) return response;
+      if (response && 'items' in response && Array.isArray(response.items)) return response.items;
+      return [];
+    } catch (e) {
+      console.error('Lỗi khi tải danh sách nhóm:', e);
+      return [];
+    }
+  },
 
-    async getGroupById(id: string): Promise<StudyGroup | null> {
-        return runWithMock(
-            async () => {
-                const groups = await getMockGroups();
-                return groups.find((group) => group.id === id) || null;
-            },
-            async () => {
-                try {
-                    return await apiClient.get<unknown, StudyGroup>(`/study-groups/${id}`);
-                } catch (error) {
-                    // Backend hiện tại có thể chưa khai báo route chi tiết nhóm.
-                    // Khi đó lấy danh sách rồi tìm theo id để giao diện vẫn hoạt động.
-                    console.warn('Không lấy được chi tiết nhóm, chuyển sang tìm trong danh sách.', error);
-                    const groups = await this.getGroups();
-                    return groups.find((group) => group.id === id) || null;
-                }
-            }
-        );
-    },
+  async getGroupById(id: string): Promise<StudyGroup | null> {
+    try {
+      return await apiClient.get<StudyGroup>(`/study-groups/${id}`);
+    } catch (error) {
+      console.warn('Lỗi lấy chi tiết nhóm, thử tìm lại trong danh sách:', error);
+      const groups = await this.getGroups();
+      return groups.find((group) => group.id === id) || null;
+    }
+  },
 
-    async createGroup(name: string, description: string, visibility: 'PUBLIC' | 'REQUEST_TO_JOIN' | 'PRIVATE'): Promise<void> {
-        return runWithMock(
-            async () => {
-                const groups = await getMockGroups();
-                groups.unshift({
-                    id: `group-${Date.now()}`,
-                    name,
-                    description,
-                    topic: visibility === 'PUBLIC' ? 'GENERAL' : 'PRIVATE',
-                    membersCount: 1,
-                    isJoined: true,
-                    members: []
-                });
-            },
-            async () => {
-                await apiClient.post('/study-groups', { name, description, visibility });
-            }
-        );
-    },
+  async createGroup(
+    name: string,
+    description: string,
+    visibility: 'PUBLIC' | 'REQUEST_TO_JOIN' | 'PRIVATE' = 'PUBLIC'
+  ): Promise<StudyGroup> {
+    return apiClient.post<StudyGroup>('/study-groups', {
+      name: name.trim(),
+      description: description.trim(),
+      visibility,
+    });
+  },
 
-    async deleteGroup(id: string): Promise<void> {
-        return runWithMock(
-            async () => {
-                const groups = await getMockGroups();
-                const idx = groups.findIndex((g) => g.id === id);
-                if (idx !== -1) groups.splice(idx, 1);
-            },
-            async () => {
-                await apiClient.delete(`/study-groups/${id}`);
-            }
-        );
-    },
+  async deleteGroup(id: string): Promise<void> {
+    await apiClient.delete(`/study-groups/${id}`);
+  },
 
-    async joinGroup(id: string): Promise<void> {
-        return runWithMock(
-            async () => {
-                const groups = await getMockGroups();
-                const group = groups.find((item) => item.id === id);
-                if (group && !group.isJoined) {
-                    group.isJoined = true;
-                    group.membersCount += 1;
-                }
-            },
-            async () => {
-                await apiClient.post(`/study-groups/${id}/join`);
-            }
-        );
-    },
+  async joinGroup(id: string): Promise<void> {
+    await apiClient.post(`/study-groups/${id}/join`);
+  },
 
-    async getGroupMessages(groupId: string): Promise<ChatMessage[]> {
-        return runWithMock(
-            async () => {
-                const messages = await getMockMessages();
-                return messages.filter((message) => message.groupId === groupId);
-            },
-            async () => {
-                const response = await apiClient.get<
-                    unknown,
-                    ChatMessage[] | { items: ChatMessage[] }
-                >(`/study-groups/${groupId}/posts`);
-                return Array.isArray(response) ? response : response.items || [];
-            }
-        );
-    },
+  async leaveGroup(id: string): Promise<void> {
+    await apiClient.post(`/study-groups/${id}/leave`);
+  },
 
-    async sendGroupMessage(groupId: string, content: string): Promise<ChatMessage> {
-        return runWithMock(
-            async () => {
-                const messages = await getMockMessages();
-                const message: ChatMessage = {
-                    id: `message-${Date.now()}`,
-                    groupId,
-                    senderId: 'demo-user',
-                    senderName: 'Tài khoản Demo',
-                    content,
-                    timestamp: new Date().toISOString(),
-                };
-                messages.push(message);
-                return message;
-            },
-            () =>
-                apiClient.post<unknown, ChatMessage>(`/study-groups/${groupId}/posts`, {
-                    title: 'Group Message',
-                    content,
-                })
-        );
-    },
+  async getGroupMessages(groupId: string): Promise<ChatMessage[]> {
+    try {
+      const response = await apiClient.get<ApiGroupPost[] | { items: ApiGroupPost[] }>(
+        `/study-groups/${groupId}/posts`
+      );
+      const posts = Array.isArray(response) ? response : response?.items || [];
+      return posts.map((post) => ({
+        id: post.id,
+        groupId: post.groupId || groupId,
+        senderId: post.senderId || post.authorId || '',
+        senderName: post.senderName || post.author?.fullName || 'Người dùng',
+        content: post.content,
+        timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+      }));
+    } catch (e) {
+      console.error('Lỗi khi tải tin nhắn nhóm:', e);
+      return [];
+    }
+  },
+
+  async sendGroupMessage(groupId: string, content: string): Promise<ChatMessage> {
+    const post = await apiClient.post<ApiGroupPost>(`/study-groups/${groupId}/posts`, {
+      title: 'Tin nhắn nhóm',
+      content: content.trim(),
+    });
+
+    return {
+      id: post.id,
+      groupId: post.groupId || groupId,
+      senderId: post.senderId || post.authorId || '',
+      senderName: post.senderName || post.author?.fullName || 'Bạn',
+      content: post.content,
+      timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+    };
+  },
 };

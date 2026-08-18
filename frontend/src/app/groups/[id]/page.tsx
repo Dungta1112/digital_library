@@ -5,19 +5,20 @@ import { useRouter } from 'next/navigation';
 import { GroupService } from '@/services/group.service';
 import { StudyGroup } from '@/types/group';
 import { GroupAction } from '@/components/feature/Group/GroupComponents';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useAuthPermission } from '@/hooks/use-auth-permission';
+import { DeleteConfirmModal } from '@/components/feature/Group/DeleteConfirmModal';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Lock, Crown, User, Trash } from '@phosphor-icons/react';
-
+import { ArrowLeft, Lock, Crown, Trash } from '@phosphor-icons/react';
 import { GroupChat } from '@/components/feature/Group/GroupChat';
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
-    const { can } = usePermissions();
+    const { canDeleteGroup } = useAuthPermission();
     const [group, setGroup] = useState<StudyGroup | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
@@ -28,16 +29,16 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         });
     }, [id]);
 
-    const handleDeleteGroup = async () => {
+    const handleConfirmDelete = async () => {
         if (!group) return;
-        if (!confirm(`Xoá nhóm "${group.name}"? Hành động này không thể hoàn tác.`)) return;
         setDeleting(true);
         try {
             await GroupService.deleteGroup(group.id);
+            setIsDeleteModalOpen(false);
             router.push('/groups');
-        } catch (error) {
-            console.error(error);
-            alert('Không thể xoá nhóm, vui lòng thử lại');
+        } catch (error: any) {
+            console.error('Lỗi khi giải tán nhóm:', error);
+            alert(error.message || 'Không thể giải tán nhóm, vui lòng thử lại sau.');
             setDeleting(false);
         }
     };
@@ -51,7 +52,6 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
         );
     }
 
-    // Generate a deterministic gradient for the group avatar based on name
     const gradients = [
         'from-emerald-400 to-cyan-500',
         'from-emerald-500 to-teal-600',
@@ -60,6 +60,8 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
     ];
     const gradientIdx = group.name.length % gradients.length;
     const groupGradient = gradients[gradientIdx];
+
+    const hasDeletePermission = canDeleteGroup(group);
 
     return (
         <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
@@ -71,14 +73,14 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                         <ArrowLeft weight="bold" className="w-4 h-4" />
                         Nhóm học tập
                     </Link>
-                    {can('CREATE_GROUP') && (
+                    {hasDeletePermission && (
                         <button
-                            onClick={handleDeleteGroup}
-                            disabled={deleting}
-                            title="Xoá nhóm"
-                            className="flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                            type="button"
+                            onClick={() => setIsDeleteModalOpen(true)}
+                            title="Giải tán nhóm"
+                            className="flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                         >
-                            <Trash weight="bold" className="w-3 h-3" /> {deleting ? '...' : 'Xoá'}
+                            <Trash weight="bold" className="w-3.5 h-3.5" /> Giải tán nhóm
                         </button>
                     )}
                 </div>
@@ -91,13 +93,13 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                             {group.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md mb-2 inline-block">
-                            {group.topic}
+                            {group.topic === 'GENERAL' || group.topic === 'Chung' ? 'Nhóm công khai' : 'Nhóm riêng tư'}
                         </span>
                         <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 leading-tight">
                             {group.name}
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {group.description}
+                            {group.description || 'Chưa có mô tả cho nhóm học tập này.'}
                         </p>
                     </div>
 
@@ -128,7 +130,6 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                                             <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${mGrad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
                                                 {m.name.charAt(0).toUpperCase()}
                                             </div>
-                                            {/* Online status indicator */}
                                             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-50 dark:border-slate-900 rounded-full animate-pulse" />
                                         </div>
                                         <div className="flex flex-col min-w-0">
@@ -162,12 +163,21 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                             </div>
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chỉ dành cho thành viên</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Tham gia nhóm để xem thảo luận và trò chuyện cùng mọi người.
+                                Tham gia nhóm để xem thảo luận và trò chuyện cùng các thành viên.
                             </p>
                         </div>
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                group={group}
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                loading={deleting}
+            />
         </div>
     );
 }

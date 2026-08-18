@@ -1,113 +1,75 @@
-import { apiClient } from './api.client';
-import { runWithMock } from './config';
+import { apiClient } from './api-client';
 import type { User, AuthResponse } from '../types/auth';
 
-interface MockAccount extends User {
-  password: string;
-}
-
-interface ApiUser extends Omit<User, 'role'> {
+interface ApiUser {
+  id: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
   role?: User['role'];
-  roles?: User['role'][];
+  roles?: Array<string | { code?: string; role?: { code?: string } }>;
 }
 
-interface ApiAuthResponse extends Omit<AuthResponse, 'user'> {
+interface ApiAuthResponse {
+  accessToken: string;
+  refreshToken: string;
   user: ApiUser;
 }
 
-let mockAccounts: MockAccount[] | null = null;
-
-async function getMockAccounts() {
-  if (!mockAccounts) {
-    const mockModule = await import('../mocks/auth.json');
-    mockAccounts = structuredClone(mockModule.default) as MockAccount[];
-  }
-  return mockAccounts;
-}
-
-function withoutPassword(account: MockAccount): User {
-  const user = { ...account } as Partial<MockAccount>;
-  delete user.password;
-  return user as User;
-}
-
 function normalizeApiUser(user: ApiUser): User {
+  let role: User['role'] = 'STUDENT';
+
+  if (user.role) {
+    role = user.role;
+  } else if (user.roles && user.roles.length > 0) {
+    const firstRole = user.roles[0];
+    if (typeof firstRole === 'string') {
+      role = firstRole as User['role'];
+    } else if (firstRole && typeof firstRole === 'object') {
+      if ('role' in firstRole && firstRole.role?.code) {
+        role = firstRole.role.code as User['role'];
+      } else if ('code' in firstRole && firstRole.code) {
+        role = firstRole.code as User['role'];
+      }
+    }
+  }
+
   return {
-    ...user,
-    role: user.role || user.roles?.[0] || 'STUDENT',
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    avatarUrl: user.avatarUrl,
+    role,
   };
 }
 
 export const AuthService = {
   async login(email: string, password: string): Promise<AuthResponse> {
-    return runWithMock(
-      async () => {
-        const account = (await getMockAccounts()).find(
-          (item) => item.email.toLowerCase() === email.trim().toLowerCase()
-        );
-        if (!account || account.password !== password) {
-          throw new Error('Email hoặc mật khẩu demo không đúng');
-        }
+    const response = await apiClient.post<ApiAuthResponse>('/auth/login', {
+      email: email.trim(),
+      password,
+    });
 
-        return {
-          accessToken: `mock-token-${account.id}`,
-          refreshToken: `mock-refresh-${account.id}`,
-          user: withoutPassword(account),
-        };
-      },
-      async () => {
-        const response = await apiClient.post<unknown, ApiAuthResponse>('/auth/login', {
-          email,
-          password,
-        });
-        return { ...response, user: normalizeApiUser(response.user) };
-      }
-    );
+    return {
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      user: normalizeApiUser(response.user),
+    };
   },
 
   async register(email: string, password: string, fullName: string): Promise<User> {
-    return runWithMock(
-      async () => {
-        const accounts = await getMockAccounts();
-        if (accounts.some((account) => account.email.toLowerCase() === email.toLowerCase())) {
-          throw new Error('Email này đã tồn tại trong dữ liệu demo');
-        }
-        const account: MockAccount = {
-          id: `demo-user-${Date.now()}`,
-          email,
-          password,
-          fullName,
-          role: 'STUDENT',
-        };
-        accounts.push(account);
-        return withoutPassword(account);
-      },
-      async () => {
-        const response = await apiClient.post<unknown, ApiUser>('/auth/register', {
-          email,
-          password,
-          fullName,
-          role: 'STUDENT',
-        });
-        return normalizeApiUser(response);
-      }
-    );
+    const response = await apiClient.post<ApiUser>('/auth/register', {
+      email: email.trim(),
+      password,
+      fullName: fullName.trim(),
+      role: 'STUDENT',
+    });
+
+    return normalizeApiUser(response);
   },
 
   async getCurrentUser(): Promise<User> {
-    return runWithMock(
-      async () => {
-        // Token mock chứa id tài khoản để đăng nhập vẫn được khôi phục sau khi reload.
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-        const accountId = token?.replace('mock-token-', '');
-        const account = (await getMockAccounts()).find((item) => item.id === accountId);
-        if (!account) throw new Error('Phiên đăng nhập demo không hợp lệ');
-        return withoutPassword(account);
-      },
-      async () => {
-        const response = await apiClient.get<unknown, ApiUser>('/users/me');
-        return normalizeApiUser(response);
-      }
-    );
+    const response = await apiClient.get<ApiUser>('/users/me');
+    return normalizeApiUser(response);
   },
 };
