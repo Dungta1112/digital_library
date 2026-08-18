@@ -10,16 +10,18 @@ export interface AdminUserRecord {
   email: string;
   fullName: string;
   role: string;
-  status: 'ACTIVE' | 'SUSPENDED';
-  joinedAt: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  joinedAt?: string;
+  createdAt?: string;
 }
 
 export interface AdminDocRecord {
   id: string;
   title: string;
-  author: string;
+  author?: string;
   uploadedBy: string;
-  uploadedAt: string;
+  uploadedAt?: string;
+  uploadDate?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
@@ -27,26 +29,29 @@ export interface AdminForumPost {
   id: string;
   title: string;
   authorName: string;
-  contentSnippet: string;
+  contentSnippet?: string;
   createdAt: string;
   status: 'ACTIVE' | 'LOCKED' | 'DELETED';
-  reportsCount: number;
+  reportsCount?: number;
 }
 
 export interface AdminReport {
   id: string;
-  reporterName: string;
+  reporterName?: string;
+  reportedBy?: string;
   targetType: 'DOCUMENT' | 'POST' | 'COMMENT' | 'USER';
   targetId: string;
   reason: string;
   createdAt: string;
-  status: 'PENDING' | 'RESOLVED' | 'IGNORED';
+  status: 'PENDING' | 'RESOLVED' | 'IGNORED' | 'REJECTED';
 }
 
 export interface SystemConfigParam {
   key: string;
-  group: 'GENERAL' | 'SECURITY' | 'LIBRARY';
-  label: string;
-  value: string | boolean | number;
-  type: 'text' | 'boolean' | 'number';
+  group?: 'GENERAL' | 'SECURITY' | 'LIBRARY';
+  label?: string;
+  description?: string;
+  value: string;
+  type?: 'text' | 'boolean' | 'number';
+  updatedAt?: string;
 }

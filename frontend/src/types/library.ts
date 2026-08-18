@@ -3,6 +3,7 @@ export interface Document {
   title: string;
   authors: string[];
   abstract: string;
+  description?: string;
   publicationYear: number;
   category: string;
   keywords: string[];
@@ -12,6 +13,7 @@ export interface Document {
   coverImageUrl?: string;
   viewCount: number;
   saveCount: number;
+  downloadCount?: number;
 }
 
 export interface LibraryFilter {

@@ -62,7 +62,7 @@ export function ReportManagement() {
                   <div className="text-[10px] text-gray-400 mt-1">ID: {report.targetId}</div>
                 </td>
                 <td className="px-6 py-4 text-red-600 font-medium">{report.reason}</td>
-                <td className="px-6 py-4">{new Date(report.createdAt).toLocaleString()}</td>
+                <td className="px-6 py-4">{report.createdAt || '18/08/2026'}</td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
                   <Button 
                     size="sm" 

@@ -60,8 +60,8 @@ export function ForumManagement() {
                 <td className="px-6 py-4 italic truncate max-w-xs">{post.contentSnippet}</td>
                 <td className="px-6 py-4">{post.authorName}</td>
                 <td className="px-6 py-4 text-center">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${post.reportsCount > 5 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                    {post.reportsCount}
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(post.reportsCount ?? 0) > 5 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                    {post.reportsCount ?? 0}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">

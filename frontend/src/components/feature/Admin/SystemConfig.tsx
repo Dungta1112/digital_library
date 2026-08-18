@@ -72,7 +72,7 @@ export function SystemConfig() {
                           <input 
                             type="checkbox" 
                             className="sr-only peer" 
-                            checked={config.value as boolean}
+                            checked={config.value === 'true'}
                             onChange={(e) => handleChange(config.key, e.target.checked)}
                           />
                           <div className="w-11 h-6 bg-gray-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 transition-colors duration-300"></div>
@@ -81,7 +81,7 @@ export function SystemConfig() {
                         <input 
                           type={config.type} 
                           className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg text-sm px-3 py-2 w-32 focus:ring-green-500 focus:border-green-500 transition-colors duration-300"
-                          value={config.value as string | number}
+                          value={String(config.value || '')}
                           onChange={(e) => handleChange(config.key, config.type === 'number' ? Number(e.target.value) : e.target.value)}
                         />
                       )}

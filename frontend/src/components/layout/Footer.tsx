@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   MapPin,
   Phone,
@@ -17,6 +18,9 @@ import {
 } from '@phosphor-icons/react';
 
 export function Footer() {
+  const pathname = usePathname() || '/';
+  if (pathname.startsWith('/admin')) return null;
+
   return (
     <footer className="relative bg-slate-950 text-white border-t border-slate-800 transition-colors">
       {/* Top Banner with University Highlight */}

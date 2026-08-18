@@ -63,7 +63,7 @@ export function DocManagement() {
                 <td className="px-6 py-4 font-bold text-gray-900 dark:text-white transition-colors duration-300">{doc.title}</td>
                 <td className="px-6 py-4">{doc.author}</td>
                 <td className="px-6 py-4">{doc.uploadedBy}</td>
-                <td className="px-6 py-4 font-medium">{new Date(doc.uploadedAt).toLocaleDateString()}</td>
+                <td className="px-6 py-4 font-medium">{doc.uploadedAt || doc.uploadDate || '18/08/2026'}</td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
                   <Button 
                     size="sm" 

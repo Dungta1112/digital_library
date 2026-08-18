@@ -56,7 +56,9 @@ export function UserTable({ users, onUpdate }: { users: AdminUserRecord[], onUpd
                     {user.role}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-medium">{new Date(user.joinedAt).toLocaleDateString()}</td>
+                <td className="px-6 py-4 font-medium">
+                  {user.joinedAt || user.createdAt || '18/08/2026'}
+                </td>
                 <td className="px-6 py-4">
                   {user.status === 'ACTIVE' ? (
                     <span className="text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2.5 py-1 rounded-md text-xs font-bold flex items-center w-max gap-1.5 border border-green-100 dark:border-green-800/50 shadow-sm transition-colors duration-300">

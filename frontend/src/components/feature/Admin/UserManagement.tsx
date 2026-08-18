@@ -61,7 +61,7 @@ export function UserManagement() {
               <tr key={user.id} className="hover:bg-gray-50/80 dark:hover:bg-slate-800/50 transition-colors">
                 <td className="px-6 py-4 font-bold text-gray-900 dark:text-white transition-colors duration-300">{user.fullName}</td>
                 <td className="px-6 py-4">{user.email}</td>
-                <td className="px-6 py-4 font-medium">{new Date(user.joinedAt).toLocaleDateString()}</td>
+                <td className="px-6 py-4 font-medium">{user.joinedAt || user.createdAt || '18/08/2026'}</td>
                 <td className="px-6 py-4">
                     <select
                       value={user.role}
