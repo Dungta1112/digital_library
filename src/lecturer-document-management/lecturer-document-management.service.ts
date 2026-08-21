@@ -59,8 +59,18 @@ export class LecturerDocumentManagementService {
 
     private async ensureOwner(ownerId: string, documentId: string) {
         const document = await this.prisma.document.findUniqueOrThrow({ where: { id: documentId } });
-        if (document.ownerId !== ownerId) {
-            throw new ForbiddenException('Only owner can manage this document');
+        if (document.ownerId === ownerId) {
+            return;
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: ownerId },
+            include: { roles: { include: { role: true } } }
+        });
+
+        const isAdmin = user?.roles?.some(r => r.role.code === 'ADMIN' || (r as any).code === 'ADMIN');
+        if (!isAdmin) {
+            throw new ForbiddenException('Only owner or admin can manage this document');
         }
     }
 }
