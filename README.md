@@ -35,7 +35,7 @@ Hệ thống **Digital Library** và diễn đàn học thuật dành cho các c
 
 | Phần mềm | Phiên bản tối thiểu | Kiểm tra |
 |---|---|---|
-| **Node.js** | v18+ | `node -v` |
+| **Node.js** | v20.9.0+ | `node -v` |
 | **npm** | v9+ | `npm -v` |
 | **Docker & Docker Compose** | Latest | `docker --version` |
 | **Git** | Latest | `git --version` |
