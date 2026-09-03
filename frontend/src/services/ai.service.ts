@@ -7,6 +7,8 @@ interface AISearchResultItem {
   description?: string;
   abstract?: string;
   distance?: number;
+  page?: number;
+  pageNumber?: number;
 }
 
 interface AISearchResponse {
@@ -16,11 +18,15 @@ interface AISearchResponse {
 }
 
 interface AIAskSource {
-  document_id: string;
-  title: string;
-  page: number;
-  chunk_index: number;
-  snippet: string;
+  document_id?: string;
+  documentId?: string;
+  title?: string;
+  documentTitle?: string;
+  page?: number;
+  pageNumber?: number;
+  chunk_index?: number;
+  snippet?: string;
+  textSnippet?: string;
   distance?: number;
 }
 
@@ -28,6 +34,7 @@ interface AIAskResponse {
   query: string;
   answer: string;
   sources?: AIAskSource[];
+  citations?: AIAskSource[];
 }
 
 export const AIService = {
@@ -41,79 +48,74 @@ export const AIService = {
     history?: AIChatMessage[],
     signal?: AbortSignal
   ): Promise<AIChatMessage> {
-    try {
-      if (contextDocId) {
-        // Hỏi đáp ngữ cảnh tài liệu cụ thể: POST /api/v1/ai/ask
-        const data = await apiClient.post<AIAskResponse>(
-          '/ai/ask',
-          {
-            query: message,
-            documentId: contextDocId,
-            history: history?.slice(-6).map((m) => ({ role: m.role, content: m.content })),
-          },
-          { signal }
-        );
-
-        const citations: AICitation[] = (data.sources ?? []).map((s) => ({
-          id: `${s.document_id}:${s.chunk_index}`,
-          documentId: s.document_id,
-          documentTitle: s.title,
-          pageNumber: s.page,
-          textSnippet: s.snippet,
-        }));
-
-        return {
-          id: `msg-${Date.now()}`,
-          role: 'assistant',
-          content: data.answer || 'Trợ lý AI không tìm thấy nội dung phù hợp trong tài liệu này.',
-          timestamp: new Date().toISOString(),
-          citations,
-        };
-      }
-
-      // Tìm kiếm / hỏi đáp toàn thư viện: POST /api/v1/ai/search
-      const data = await apiClient.post<AISearchResponse>(
-        '/ai/search',
+    if (contextDocId) {
+      // Chế độ hỏi đáp theo tài liệu cụ thể: POST /api/v1/ai/ask
+      const data = await apiClient.post<AIAskResponse>(
+        '/ai/ask',
         {
           query: message,
+          documentId: contextDocId,
+          history: (history || [])
+            .filter((m) => m.status !== 'error' && m.status !== 'canceled' && m.content)
+            .slice(-6)
+            .map((m) => ({ role: m.role, content: m.content })),
         },
         { signal }
       );
 
-      const citations: AICitation[] = (data.results ?? []).map((r) => ({
-        id: r.id,
-        documentId: r.id,
-        documentTitle: r.title,
-        pageNumber: 1,
-        textSnippet: r.description || r.abstract || '',
-      }));
+      const rawSources = data.sources || data.citations || [];
+
+      const citations: AICitation[] = rawSources.map((item, idx) => {
+        const docId = item.document_id || item.documentId || contextDocId;
+        const pageNumber = typeof item.page === 'number' ? item.page : typeof item.pageNumber === 'number' ? item.pageNumber : undefined;
+
+        return {
+          id: `${docId}:${item.chunk_index ?? idx}`,
+          documentId: docId,
+          documentTitle: item.title || item.documentTitle || 'Tài liệu tham chiếu',
+          pageNumber,
+          textSnippet: item.snippet || item.textSnippet || '',
+        };
+      });
 
       return {
-        id: `msg-${Date.now()}`,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         role: 'assistant',
-        content: data.answer || 'Trợ lý AI đã phân tích tài liệu và phản hồi yêu cầu của bạn.',
+        content: data.answer || 'Không tìm thấy câu trả lời phù hợp trong tài liệu này.',
         timestamp: new Date().toISOString(),
-        citations,
-      };
-    } catch (err: any) {
-      console.warn('AI Backend service unavailable, generating smart fallback response:', err);
-
-      // Fallback academic response
-      return {
-        id: `msg-${Date.now()}`,
-        role: 'assistant',
-        content: `Dựa trên dữ liệu tài liệu học thuật số của Đại học Trưng Vương:\n\nĐối với câu hỏi "${message}", hệ thống nhận thấy đây là chủ đề thuộc các giáo trình chuyên ngành cốt lõi. Bạn có thể tham khảo trực tiếp các chương học liên quan trong kho giáo trình số để có dẫn chứng chi tiết và bài tập thực hành.`,
-        timestamp: new Date().toISOString(),
-        citations: [
-          {
-            id: 'cite-fallback-1',
-            documentId: 'doc-csdl-2026',
-            documentTitle: 'Giáo trình Cơ sở Dữ liệu & Hệ Quản trị Dữ liệu Nâng cao',
-            pageNumber: 42,
-            textSnippet: 'Nguyên lý chuẩn hóa, tối ưu hóa truy vấn và kiến trúc cơ sở dữ liệu quan hệ.',
-          },
-        ],
+        status: 'success',
+        citations: citations.length > 0 ? citations : undefined,
       };
     }
+
+    // Chế độ tìm kiếm / hỏi đáp toàn thư viện: POST /api/v1/ai/search
+    const data = await apiClient.post<AISearchResponse>(
+      '/ai/search',
+      {
+        query: message,
+      },
+      { signal }
+    );
+
+    const citations: AICitation[] = (data.results || []).map((r, idx) => {
+      const pageNumber = typeof r.page === 'number' ? r.page : typeof r.pageNumber === 'number' ? r.pageNumber : undefined;
+
+      return {
+        id: r.id || `search-res-${idx}`,
+        documentId: r.id,
+        documentTitle: r.title || 'Tài liệu liên quan',
+        pageNumber,
+        textSnippet: r.description || r.abstract || '',
+      };
+    });
+
+    return {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      role: 'assistant',
+      content: data.answer || 'Không tìm thấy câu trả lời phù hợp trong kho tài liệu.',
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      citations: citations.length > 0 ? citations : undefined,
+    };
   },
 };

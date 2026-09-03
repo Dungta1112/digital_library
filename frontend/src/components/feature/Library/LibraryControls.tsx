@@ -1,134 +1,156 @@
-import React, { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { LibraryService } from '@/services/library.service';
-import { CaretLeft, CaretRight, MagnifyingGlass, X } from '@phosphor-icons/react';
+'use client';
+
+import React from 'react';
+import { Category } from '@/services/library.service';
+import {
+  CaretLeft,
+  CaretRight,
+  Folder,
+  X,
+} from '@phosphor-icons/react';
 
 interface LibraryControlsProps {
-    query: string;
-    setQuery: (q: string) => void;
-    category: string;
-    setCategory: (c: string) => void;
-    onSearch: () => void;
+  categories: Category[];
+  activeCategoryId: string;
+  onSelectCategory: (id: string) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
 }
 
 export function LibraryControls({
-    query,
-    setQuery,
-    category,
-    setCategory,
-    onSearch,
+  categories,
+  activeCategoryId,
+  onSelectCategory,
+  mobileOpen,
+  setMobileOpen,
 }: LibraryControlsProps) {
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-    const hasFilters = Boolean(query.trim() || category);
+  const content = (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <Folder weight="duotone" className="h-4 w-4 text-emerald-600" />
+          <span>Danh mục học thuật</span>
+        </h3>
+        {activeCategoryId && (
+          <button
+            type="button"
+            onClick={() => onSelectCategory('')}
+            className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            Tất cả
+          </button>
+        )}
+      </div>
 
-    useEffect(() => {
-        LibraryService.getCategories().then((data) => {
-            setCategories([{ id: '', name: 'Tất cả tài liệu' }, ...data]);
-        });
-    }, []);
+      <nav className="space-y-1">
+        <button
+          type="button"
+          onClick={() => {
+            onSelectCategory('');
+            setMobileOpen(false);
+          }}
+          className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors ${
+            activeCategoryId === ''
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 font-bold border border-emerald-200/60 dark:border-emerald-800/50'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
+          }`}
+        >
+          <span>Tất cả tài liệu</span>
+        </button>
 
-    const clearFilters = () => {
-        setQuery('');
-        setCategory('');
-    };
+        {categories.map((cat) => {
+          const isActive = activeCategoryId === cat.id;
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => {
+                onSelectCategory(cat.id);
+                setMobileOpen(false);
+              }}
+              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 font-bold border border-emerald-200/60 dark:border-emerald-800/50'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
+              }`}
+            >
+              <span className="truncate text-left">{cat.name}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
 
-    return (
-        <aside className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div>
-                <div className="mb-3 flex items-center justify-between">
-                    <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                        <MagnifyingGlass weight="bold" className="h-4 w-4 text-emerald-600" />
-                        Tìm kiếm
-                    </h2>
-                    {hasFilters && (
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white"
-                        >
-                            <X weight="bold" className="h-3 w-3" />
-                            Xoá lọc
-                        </button>
-                    )}
-                </div>
+  return (
+    <>
+      {/* 1. Desktop 240px Sticky Sidebar */}
+      <div className="hidden lg:block sticky top-24 rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        {content}
+      </div>
 
-                <Input
-                    placeholder="Tiêu đề, tác giả, từ khoá..."
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    onKeyDown={(event) => event.key === 'Enter' && onSearch()}
-                    className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-950/50"
-                />
-                <Button
-                    onClick={onSearch}
-                    className="mt-3 h-11 w-full rounded-xl bg-emerald-700 font-bold text-white shadow-sm transition-all hover:bg-emerald-800 active:scale-[0.98]"
-                >
-                    Tìm kiếm
-                </Button>
+      {/* 2. Mobile Drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm lg:hidden p-4">
+          <div className="w-full max-w-sm rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                Bộ lọc danh mục
+              </h2>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+              >
+                <X weight="bold" className="h-5 w-5" />
+              </button>
             </div>
+            {content}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
-            <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-            <div>
-                <h2 className="mb-3 text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                    Danh mục
-                </h2>
-                <div className="flex flex-col gap-1.5">
-                    {categories.map((item) => {
-                        const isActive = category === item.id;
-                        return (
-                            <button
-                                key={item.id || 'all'}
-                                type="button"
-                                onClick={() => setCategory(item.id)}
-                                className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors ${isActive
-                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-900/20 dark:text-emerald-300'
-                                        : 'border-transparent text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/60'
-                                    }`}
-                            >
-                                {item.name}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-        </aside>
-    );
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 export function Pagination({
-    page,
-    totalPages,
-    setPage,
-}: {
-    page: number;
-    totalPages: number;
-    setPage: (p: number) => void;
-}) {
-    if (totalPages <= 1) return null;
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationProps) {
+  if (totalPages <= 1) return null;
 
-    return (
-        <div className="mb-8 mt-14 flex items-center justify-center gap-4">
-            <Button
-                variant="secondary"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className="flex h-11 w-11 items-center justify-center rounded-xl border-slate-200 bg-white p-0 shadow-sm hover:border-emerald-500 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900"
-            >
-                <CaretLeft weight="bold" className="h-5 w-5" />
-            </Button>
-            <span className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                Trang {page} / {totalPages}
-            </span>
-            <Button
-                variant="secondary"
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                className="flex h-11 w-11 items-center justify-center rounded-xl border-slate-200 bg-white p-0 shadow-sm hover:border-emerald-500 hover:text-emerald-600 dark:border-slate-800 dark:bg-slate-900"
-            >
-                <CaretRight weight="bold" className="h-5 w-5" />
-            </Button>
-        </div>
-    );
+  return (
+    <nav className="flex items-center justify-center gap-1.5" aria-label="Phân trang thư viện">
+      <button
+        type="button"
+        disabled={currentPage <= 1}
+        onClick={() => onPageChange(currentPage - 1)}
+        title="Trang trước"
+        className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition-colors"
+      >
+        <CaretLeft weight="bold" className="h-4 w-4" />
+      </button>
+
+      <span className="px-3 text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+        {currentPage} / {totalPages}
+      </span>
+
+      <button
+        type="button"
+        disabled={currentPage >= totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+        title="Trang sau"
+        className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition-colors"
+      >
+        <CaretRight weight="bold" className="h-4 w-4" />
+      </button>
+    </nav>
+  );
 }

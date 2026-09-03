@@ -10,7 +10,6 @@ import {
   UsersThree,
   ArrowRight,
   ShieldCheck,
-  Lightning,
   Sparkle,
 } from '@phosphor-icons/react';
 

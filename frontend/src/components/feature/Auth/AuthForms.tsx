@@ -23,8 +23,8 @@ export function LoginForm() {
             const res = await AuthService.login(email, password);
             login(res.user, res.accessToken, res.refreshToken);
             router.push('/library');
-        } catch (err: any) {
-            setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
         }
@@ -90,8 +90,8 @@ export function RegisterForm() {
             await AuthService.register(email, password, fullName);
             alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
             router.push('/login');
-        } catch (err: any) {
-            setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Đăng ký thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }

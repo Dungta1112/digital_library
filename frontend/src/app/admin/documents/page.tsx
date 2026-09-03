@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import { AdminService, AdminDocumentItem } from '@/services/admin.service';
 import { DocumentFormModal } from '@/components/admin/document-form-modal';
 import { DeleteConfirmModal } from '@/components/ui/delete-confirm-modal';
 import {
-  Books,
   Plus,
   MagnifyingGlass,
   PencilSimple,
@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react';
 
 export default function AdminDocumentsPage() {
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<AdminDocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,8 +28,9 @@ export default function AdminDocumentsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const canManageDocs = user?.role === 'ADMIN' || user?.role === 'LECTURER';
+
   const fetchDocs = async () => {
-    setLoading(true);
     try {
       const data = await AdminService.getDocuments();
       setDocuments(data);
@@ -40,38 +42,54 @@ export default function AdminDocumentsPage() {
   };
 
   useEffect(() => {
-    fetchDocs();
+    let active = true;
+    AdminService.getDocuments()
+      .then((data) => {
+        if (active) setDocuments(data);
+      })
+      .catch((e) => {
+        console.error('Lỗi tải danh sách tài liệu:', e);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Mở modal Thêm mới
   const handleOpenAdd = () => {
+    if (!canManageDocs) return;
     setSelectedDoc(null);
     setIsFormModalOpen(true);
   };
 
   // Mở modal Chỉnh sửa
   const handleOpenEdit = (doc: AdminDocumentItem) => {
+    if (!canManageDocs) return;
     setSelectedDoc(doc);
     setIsFormModalOpen(true);
   };
 
   // Mở modal Xóa
   const handleOpenDelete = (doc: AdminDocumentItem) => {
+    if (!canManageDocs) return;
     setSelectedDoc(doc);
     setIsDeleteModalOpen(true);
   };
 
   // Xử lý Xóa thực tế qua API
   const handleConfirmDelete = async () => {
-    if (!selectedDoc) return;
+    if (!selectedDoc || !canManageDocs) return;
     setDeleting(true);
     try {
       await AdminService.deleteDocument(selectedDoc.id);
       setDocuments((prev) => prev.filter((d) => d.id !== selectedDoc.id));
       setIsDeleteModalOpen(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Lỗi xóa tài liệu:', err);
-      alert(err.message || 'Không thể xóa tài liệu. Vui lòng thử lại!');
+      alert(err instanceof Error ? err.message : 'Không thể xóa tài liệu. Vui lòng thử lại!');
     } finally {
       setDeleting(false);
     }
@@ -101,16 +119,20 @@ export default function AdminDocumentsPage() {
             Quản Lý Kho Tài Liệu Số
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Thêm mới, chỉnh sửa thông tin giáo trình và quản lý toàn bộ tệp lưu trữ số hóa.
+            {canManageDocs
+              ? 'Thêm mới, chỉnh sửa thông tin giáo trình và quản lý toàn bộ tệp lưu trữ số hóa.'
+              : 'Xem danh sách giáo trình và tài liệu đã được lưu trữ trong hệ thống.'}
           </p>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all active:scale-95 flex-shrink-0"
-        >
-          <Plus weight="bold" className="h-4 w-4" />
-          Thêm tài liệu mới
-        </button>
+        {canManageDocs && (
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all active:scale-95 flex-shrink-0"
+          >
+            <Plus weight="bold" className="h-4 w-4" />
+            Thêm tài liệu mới
+          </button>
+        )}
       </div>
 
       {/* Search & Filters */}
@@ -213,20 +235,24 @@ export default function AdminDocumentsPage() {
                         <BookOpen weight="bold" className="h-3 w-3" />
                         Đọc
                       </Link>
-                      <button
-                        onClick={() => handleOpenEdit(doc)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
-                      >
-                        <PencilSimple weight="bold" className="h-3 w-3" />
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => handleOpenDelete(doc)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-900/50 bg-red-950/40 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 hover:bg-red-900/60 hover:text-white transition-colors"
-                      >
-                        <Trash weight="bold" className="h-3 w-3" />
-                        Xóa
-                      </button>
+                      {canManageDocs && (
+                        <>
+                          <button
+                            onClick={() => handleOpenEdit(doc)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                          >
+                            <PencilSimple weight="bold" className="h-3 w-3" />
+                            Sửa
+                          </button>
+                          <button
+                            onClick={() => handleOpenDelete(doc)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-900/50 bg-red-950/40 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 hover:bg-red-900/60 hover:text-white transition-colors"
+                          >
+                            <Trash weight="bold" className="h-3 w-3" />
+                            Xóa
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))

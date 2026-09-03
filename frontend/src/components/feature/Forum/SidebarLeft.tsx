@@ -5,10 +5,8 @@ import {
   House, 
   Users, 
   BookmarkSimple, 
-  Calendar, 
   Gear, 
   Student, 
-  UserCircle 
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 

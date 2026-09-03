@@ -114,7 +114,7 @@ export const ForumService = {
     }
   },
 
-  async createPost(title: string, content: string, category: string = 'General'): Promise<ForumPost> {
+  async createPost(title: string, content: string, category: string = 'GENERAL'): Promise<ForumPost> {
     const post = await apiClient.post<ApiForumPost>('/forum/posts', {
       title: title.trim(),
       content: content.trim(),

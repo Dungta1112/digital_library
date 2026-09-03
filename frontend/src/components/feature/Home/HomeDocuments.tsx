@@ -13,7 +13,6 @@ import {
   FloppyDisk,
   ArrowRight,
   Sparkle,
-  BookmarkSimple,
 } from '@phosphor-icons/react';
 
 const GRADIENTS = [
@@ -171,7 +170,7 @@ export function HomeDocuments() {
                         </span>
                         <span className="flex items-center gap-1">
                           <FloppyDisk weight="bold" className="h-3.5 w-3.5 text-slate-500" />
-                          {doc.saveCount || doc.downloadCount || 0}
+                          {doc.saveCount ?? 0}
                         </span>
                       </div>
 

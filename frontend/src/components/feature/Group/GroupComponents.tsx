@@ -4,7 +4,7 @@ import { StudyGroup } from '@/types/group';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { GroupService } from '@/services/group.service';
-import { UsersThree, CheckCircle, ArrowRight, BookOpenText } from '@phosphor-icons/react';
+import { UsersThree, CheckCircle, ArrowRight } from '@phosphor-icons/react';
 
 export function GroupCard({ group }: { group: StudyGroup }) {
     return (

@@ -2,49 +2,52 @@
 
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/admin.service';
-import type { AdminUserRecord } from '@/types/admin';
+import type { AdminUserRecord, RoleOption } from '@/types/admin';
 import {
-  UsersThree,
   MagnifyingGlass,
   Lock,
   LockOpen,
-  ShieldCheck,
-  User,
   CheckCircle,
 } from '@phosphor-icons/react';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getUsers();
-      setUsers(data);
-    } catch (e) {
-      console.error('Lỗi tải danh sách người dùng:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
+    let active = true;
+    Promise.all([AdminService.getUsers(), AdminService.getRoles()])
+      .then(([userData, rolesData]) => {
+        if (active) {
+          setUsers(userData);
+          setRoles(rolesData);
+        }
+      })
+      .catch((e) => {
+        console.error('Lỗi tải danh sách người dùng:', e);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleRoleChange = async (userId: string, newRoleId: string) => {
     setUpdatingId(userId);
     try {
-      await AdminService.updateUserRole(userId, newRole);
+      await AdminService.updateUserRole(userId, newRoleId);
+      const roleObj = roles.find((r) => r.id === newRoleId);
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole as any } : u))
+        prev.map((u) => (u.id === userId ? { ...u, role: roleObj?.code || u.role } : u))
       );
-    } catch (e: any) {
-      alert(e.message || 'Không thể đổi vai trò người dùng.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Không thể đổi vai trò người dùng.');
     } finally {
       setUpdatingId(null);
     }
@@ -65,8 +68,8 @@ export default function AdminUsersPage() {
           prev.map((u) => (u.id === user.id ? { ...u, status: 'LOCKED' } : u))
         );
       }
-    } catch (e: any) {
-      alert(e.message || 'Lỗi thay đổi trạng thái khóa.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Lỗi thay đổi trạng thái khóa.');
     } finally {
       setUpdatingId(null);
     }
@@ -160,17 +163,22 @@ export default function AdminUsersPage() {
                       {user.email}
                     </td>
                     <td className="px-5 py-4">
-                      <select
-                        value={user.role}
-                        disabled={updatingId === user.id}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs font-semibold text-slate-200 focus:border-blue-500 focus:outline-none disabled:opacity-50"
-                      >
-                        <option value="STUDENT">Sinh viên (STUDENT)</option>
-                        <option value="LECTURER">Giảng viên (LECTURER)</option>
-                        <option value="CONTENT_MANAGER">Kiểm duyệt (CONTENT_MGR)</option>
-                        <option value="ADMIN">Quản trị viên (ADMIN)</option>
-                      </select>
+                      {roles.length > 0 ? (
+                        <select
+                          value={roles.find((r) => r.code === user.role)?.id || user.role}
+                          disabled={updatingId === user.id}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs font-semibold text-slate-200 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+                        >
+                          {roles.map((role) => (
+                            <option key={role.id} value={role.id}>
+                              {role.name} ({role.code})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="font-semibold">{user.role}</span>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       {user.status === 'LOCKED' ? (

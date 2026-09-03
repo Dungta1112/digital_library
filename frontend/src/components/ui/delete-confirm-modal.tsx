@@ -72,7 +72,7 @@ export function DeleteConfirmModal({
 
           {itemName && (
             <p className="mb-2 text-xs font-semibold text-red-300 bg-red-950/30 p-2.5 rounded-xl border border-red-900/40 line-clamp-2">
-              "{itemName}"
+              &ldquo;{itemName}&rdquo;
             </p>
           )}
 

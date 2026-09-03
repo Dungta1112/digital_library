@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { QuickSearchModal } from '@/components/feature/Home/QuickSearchModal';
-import { MagnifyingGlass, Command, ShieldCheck, UserCheck } from '@phosphor-icons/react';
+import { MagnifyingGlass, Command } from '@phosphor-icons/react';
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
@@ -49,7 +49,7 @@ export function Navbar() {
     { name: 'Nhóm học tập', href: '/groups' },
   ];
 
-  if (user?.role === 'ADMIN') {
+  if (user?.role === 'ADMIN' || user?.role === 'CONTENT_MANAGER') {
     navLinks.push({ name: 'Quản trị', href: '/admin/dashboard' });
   }
 

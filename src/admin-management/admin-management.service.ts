@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssignRolesDto, SearchUsersDto, UpdateAccountStatusDto } from './dto/admin-management.dto';
@@ -34,9 +34,49 @@ export class AdminManagementService {
   }
 
   async assignRoles(actorId: string, userId: string, dto: AssignRolesDto) {
-    await this.prisma.userRole.deleteMany({ where: { userId } });
-    await this.prisma.userRole.createMany({ data: dto.roleIds.map((roleId) => ({ userId, roleId, assignedById: actorId })) });
-    await this.audit.record({ actorId, action: 'ROLE_ASSIGN', targetType: 'user', targetId: userId, metadata: { roleIds: dto.roleIds } });
+    const targetUser = await this.detail(userId);
+    if (!targetUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Verify all requested roleIds exist
+    const foundRoles = await this.prisma.role.findMany({
+      where: { id: { in: dto.roleIds } }
+    });
+    if (foundRoles.length !== dto.roleIds.length) {
+      throw new NotFoundException('Role not found');
+    }
+
+    // Last ADMIN protection
+    const adminRole = await this.prisma.role.findUnique({ where: { code: 'ADMIN' } });
+    if (adminRole) {
+      const userIsAdmin = targetUser.roles.some((r) => r.roleId === adminRole.id);
+      const willBeAdmin = dto.roleIds.includes(adminRole.id);
+      if (userIsAdmin && !willBeAdmin) {
+        const adminCount = await this.prisma.userRole.count({
+          where: { roleId: adminRole.id }
+        });
+        if (adminCount <= 1) {
+          throw new ForbiddenException('Cannot remove the last administrator');
+        }
+      }
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userRole.deleteMany({ where: { userId } });
+      await tx.userRole.createMany({
+        data: dto.roleIds.map((roleId) => ({ userId, roleId, assignedById: actorId }))
+      });
+    });
+
+    await this.audit.record({
+      actorId,
+      action: 'ROLE_ASSIGN',
+      targetType: 'user',
+      targetId: userId,
+      metadata: { roleIds: dto.roleIds }
+    });
+
     return this.detail(userId);
   }
 }

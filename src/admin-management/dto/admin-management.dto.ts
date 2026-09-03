@@ -1,4 +1,4 @@
-import { IsArray, IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaginationQueryDto } from '../../common/pagination/pagination.dto';
 
 export class SearchUsersDto extends PaginationQueryDto {
@@ -18,6 +18,8 @@ export class UpdateAccountStatusDto {
 
 export class AssignRolesDto {
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1)
   @IsUUID('all', { each: true })
   roleIds!: string[];
 }

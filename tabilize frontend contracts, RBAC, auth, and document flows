@@ -1,0 +1,211 @@
+warning: in the working copy of 'frontend/src/app/admin/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/admin/documents/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/admin/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/admin/moderation/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/admin/system/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/admin/users/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/forum/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/groups/[id]/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/my-documents/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/admin/admin-header.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/admin/admin-sidebar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/admin/document-form-modal.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Auth/AuthForms.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Forum/PostCard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Forum/PostCreator.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Forum/SidebarLeft.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Forum/SidebarRight.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Group/DeleteConfirmModal.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Home/HeroSection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Home/HomeCategories.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Home/HomeDocuments.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Home/HomeFeatures.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/feature/Library/DocumentInfo.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/layout/Footer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/layout/Navbar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ui/delete-confirm-modal.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/hooks/useForumStore.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/admin.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/ai.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/api-client.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/auth.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/forum.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/services/library.service.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/types/admin.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/utils/rbac.ts', LF will be replaced by CRLF the next time Git touches it
+frontend/src/app/my-documents/page.tsx:13: trailing whitespace.
+[32m+[m[32mimport {[m[41m [m
+frontend/src/app/my-documents/page.tsx:14: trailing whitespace.
+[32m+[m[32m  UploadSimple,[m[41m [m
+frontend/src/app/my-documents/page.tsx:15: trailing whitespace.
+[32m+[m[32m  Folder,[m[41m [m
+frontend/src/app/my-documents/page.tsx:16: trailing whitespace.
+[32m+[m[32m  Eye,[m[41m [m
+frontend/src/app/my-documents/page.tsx:17: trailing whitespace.
+[32m+[m[32m  Download,[m[41m [m
+frontend/src/app/my-documents/page.tsx:18: trailing whitespace.
+[32m+[m[32m  Trash,[m[41m [m
+frontend/src/app/my-documents/page.tsx:19: trailing whitespace.
+[32m+[m[32m  Files,[m[41m [m
+frontend/src/app/my-documents/page.tsx:39: trailing whitespace.
+[32m+[m[41m  [m
+frontend/src/app/my-documents/page.tsx:182: trailing whitespace.
+[32m+[m[32m                ? 'Quản lý tài liệu giảng dạy đã tải lên và tài liệu yêu thích'[m[41m [m
+frontend/src/app/my-documents/page.tsx:350: trailing whitespace.
+[32m+[m[32m                      <button[m[41m [m
+frontend/src/app/profile/page.tsx:13: trailing whitespace.
+[32m+[m[32m  CheckCircle, Star, DownloadSimple, Users, BookOpenText,[m[41m [m
+frontend/src/components/feature/Forum/PostCreator.tsx:152: trailing whitespace.
+[32m+[m[32m                  placeholder="Viết nội dung thảo luận ở đây..."[m[41m [m
+prisma/schema.prisma:60: trailing whitespace.
+[32m+[m[32menum ForumCategory {[m[41m[m
+prisma/schema.prisma:61: trailing whitespace.
+[32m+[m[32m  GENERAL[m[41m[m
+prisma/schema.prisma:62: trailing whitespace.
+[32m+[m[32m  QUESTIONS[m[41m[m
+prisma/schema.prisma:63: trailing whitespace.
+[32m+[m[32m  RESOURCES[m[41m[m
+prisma/schema.prisma:64: trailing whitespace.
+[32m+[m[32m  ANNOUNCEMENTS[m[41m[m
+prisma/schema.prisma:65: trailing whitespace.
+[32m+[m[32m}[m[41m[m
+prisma/schema.prisma:66: trailing whitespace.
+[32m+[m[41m[m
+prisma/schema.prisma:299: trailing whitespace.
+[32m+[m[32m  category     ForumCategory     @default(GENERAL)[m[41m[m
+src/content-management/content-management.service.ts:65: trailing whitespace.
+[32m+[m[32m      this.prisma.documentReport.findMany({[m[41m[m
+src/content-management/content-management.service.ts:66: trailing whitespace.
+[32m+[m[32m        include: { reporter: { select: { fullName: true } }, document: { select: { title: true } } },[m[41m[m
+src/content-management/content-management.service.ts:67: trailing whitespace.
+[32m+[m[32m        orderBy: { createdAt: 'desc' }[m[41m[m
+src/content-management/content-management.service.ts:68: trailing whitespace.
+[32m+[m[32m      }),[m[41m[m
+src/content-management/content-management.service.ts:69: trailing whitespace.
+[32m+[m[32m      this.prisma.forumReport.findMany({[m[41m[m
+src/content-management/content-management.service.ts:70: trailing whitespace.
+[32m+[m[32m        include: { reporter: { select: { fullName: true } }, post: { select: { title: true } }, comment: true },[m[41m[m
+src/content-management/content-management.service.ts:71: trailing whitespace.
+[32m+[m[32m        orderBy: { createdAt: 'desc' }[m[41m[m
+src/content-management/content-management.service.ts:72: trailing whitespace.
+[32m+[m[32m      })[m[41m[m
+src/forum/forum.controller.ts:1: trailing whitespace.
+[32m+[m[32mimport { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';[m[41m[m
+src/forum/forum.controller.ts:7: trailing whitespace.
+[32m+[m[32mimport { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, ForumPostQueryDto, UpdateForumPostDto } from './dto/forum.dto';[m[41m[m
+src/forum/forum.controller.ts:16: trailing whitespace.
+[32m+[m[32m    async list(@Query() query: ForumPostQueryDto) {[m[41m[m
+src/forum/forum.controller.ts:17: trailing whitespace.
+[32m+[m[32m        return ok(await this.service.list(query));[m[41m[m
+src/forum/forum.service.ts:3: trailing whitespace.
+[32m+[m[32mimport { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, ForumPostQueryDto, UpdateForumPostDto } from './dto/forum.dto';[m[41m[m
+src/forum/forum.service.ts:43: trailing whitespace.
+[32m+[m[32m            category: post.category ?? 'GENERAL',[m[41m[m
+src/forum/forum.service.ts:52: trailing whitespace.
+[32m+[m[32m    async list(query?: ForumPostQueryDto) {[m[41m[m
+src/forum/forum.service.ts:53: trailing whitespace.
+[32m+[m[32m        const where: any = {[m[41m[m
+src/forum/forum.service.ts:54: trailing whitespace.
+[32m+[m[32m            deletedAt: null,[m[41m[m
+src/forum/forum.service.ts:55: trailing whitespace.
+[32m+[m[32m            ...(query?.category ? { category: query.category } : {})[m[41m[m
+src/forum/forum.service.ts:56: trailing whitespace.
+[32m+[m[32m        };[m[41m[m
+src/forum/forum.service.ts:57: trailing whitespace.
+[32m+[m[32m        const posts = await this.prisma.forumPost.findMany({[m[41m[m
+src/forum/forum.service.ts:58: trailing whitespace.
+[32m+[m[32m            where,[m[41m[m
+src/forum/forum.service.ts:59: trailing whitespace.
+[32m+[m[32m            include: postInclude,[m[41m[m
+src/forum/forum.service.ts:60: trailing whitespace.
+[32m+[m[32m            orderBy: { createdAt: 'desc' }[m[41m[m
+src/forum/forum.service.ts:61: trailing whitespace.
+[32m+[m[32m        });[m[41m[m
+src/library-document/library-document.controller.ts:90: trailing whitespace.
+[32m+[m[32m    @Get('me/favorites')[m[41m[m
+src/library-document/library-document.controller.ts:91: trailing whitespace.
+[32m+[m[32m    async getFavorites(@CurrentUser() user: RequestUser) {[m[41m[m
+src/library-document/library-document.controller.ts:92: trailing whitespace.
+[32m+[m[32m        return ok(await this.service.getFavorites(user.id));[m[41m[m
+src/library-document/library-document.controller.ts:93: trailing whitespace.
+[32m+[m[32m    }[m[41m[m
+src/library-document/library-document.controller.ts:94: trailing whitespace.
+[32m+[m[41m[m
+src/library-document/library-document.controller.ts:95: trailing whitespace.
+[32m+[m[32m    @ApiProtected()[m[41m[m
+src/library-document/library-document.controller.ts:96: trailing whitespace.
+[32m+[m[32m    @UseGuards(JwtAuthGuard)[m[41m[m
+src/library-document/library-document.service.ts:24: trailing whitespace.
+[32m+[m[32m            this.prisma.document.findMany({[m[41m[m
+src/library-document/library-document.service.ts:25: trailing whitespace.
+[32m+[m[32m                where,[m[41m[m
+src/library-document/library-document.service.ts:26: trailing whitespace.
+[32m+[m[32m                skip: (query.page - 1) * query.limit,[m[41m[m
+src/library-document/library-document.service.ts:27: trailing whitespace.
+[32m+[m[32m                take: query.limit,[m[41m[m
+src/library-document/library-document.service.ts:28: trailing whitespace.
+[32m+[m[32m                include: { files: true, category: true, _count: { select: { favorites: true } } },[m[41m[m
+src/library-document/library-document.service.ts:29: trailing whitespace.
+[32m+[m[32m                orderBy: { createdAt: 'desc' }[m[41m[m
+src/library-document/library-document.service.ts:30: trailing whitespace.
+[32m+[m[32m            }),[m[41m[m
+src/library-document/library-document.service.ts:33: trailing whitespace.
+[32m+[m[32m        const mappedItems = items.map((doc) => ({[m[41m[m
+src/library-document/library-document.service.ts:34: trailing whitespace.
+[32m+[m[32m            ...doc,[m[41m[m
+src/library-document/library-document.service.ts:35: trailing whitespace.
+[32m+[m[32m            saveCount: doc._count?.favorites ?? 0[m[41m[m
+src/library-document/library-document.service.ts:36: trailing whitespace.
+[32m+[m[32m        }));[m[41m[m
+src/library-document/library-document.service.ts:37: trailing whitespace.
+[32m+[m[32m        return { items: mappedItems, total, page: query.page, limit: query.limit };[m[41m[m
+src/library-document/library-document.service.ts:41: trailing whitespace.
+[32m+[m[32m        const document = await this.prisma.document.findFirst({[m[41m[m
+src/library-document/library-document.service.ts:42: trailing whitespace.
+[32m+[m[32m            where: { id: documentId, status: 'APPROVED', deletedAt: null },[m[41m[m
+src/library-document/library-document.service.ts:43: trailing whitespace.
+[32m+[m[32m            include: { files: true, category: true, _count: { select: { favorites: true } } }[m[41m[m
+src/library-document/library-document.service.ts:44: trailing whitespace.
+[32m+[m[32m        });[m[41m[m
+src/library-document/library-document.service.ts:48: trailing whitespace.
+[32m+[m[32m        return {[m[41m[m
+src/library-document/library-document.service.ts:49: trailing whitespace.
+[32m+[m[32m            ...document,[m[41m[m
+src/library-document/library-document.service.ts:50: trailing whitespace.
+[32m+[m[32m            saveCount: document._count?.favorites ?? 0[m[41m[m
+src/library-document/library-document.service.ts:51: trailing whitespace.
+[32m+[m[32m        };[m[41m[m
+src/library-document/library-document.service.ts:60: trailing whitespace.
+[32m+[m[32m    async getFavorites(userId: string) {[m[41m[m
+src/library-document/library-document.service.ts:61: trailing whitespace.
+[32m+[m[32m        const favorites = await this.prisma.documentFavorite.findMany({[m[41m[m
+src/library-document/library-document.service.ts:62: trailing whitespace.
+[32m+[m[32m            where: { userId, document: { status: 'APPROVED', deletedAt: null } },[m[41m[m
+src/library-document/library-document.service.ts:63: trailing whitespace.
+[32m+[m[32m            include: {[m[41m[m
+src/library-document/library-document.service.ts:64: trailing whitespace.
+[32m+[m[32m                document: {[m[41m[m
+src/library-document/library-document.service.ts:65: trailing whitespace.
+[32m+[m[32m                    include: { files: true, category: true, _count: { select: { favorites: true } } }[m[41m[m
+src/library-document/library-document.service.ts:66: trailing whitespace.
+[32m+[m[32m                }[m[41m[m
+src/library-document/library-document.service.ts:67: trailing whitespace.
+[32m+[m[32m            },[m[41m[m
+src/library-document/library-document.service.ts:68: trailing whitespace.
+[32m+[m[32m            orderBy: { createdAt: 'desc' }[m[41m[m
+src/library-document/library-document.service.ts:69: trailing whitespace.
+[32m+[m[32m        });[m[41m[m
+src/library-document/library-document.service.ts:70: trailing whitespace.
+[32m+[m[32m        const items = favorites.map((fav) => ({[m[41m[m
+src/library-document/library-document.service.ts:71: trailing whitespace.
+[32m+[m[32m            ...fav.document,[m[41m[m
+src/library-document/library-document.service.ts:72: trailing whitespace.
+[32m+[m[32m            saveCount: fav.document._count?.favorites ?? 0[m[41m[m
+src/library-document/library-document.service.ts:73: trailing whitespace.
+[32m+[m[32m        }));[m[41m[m
+src/library-document/library-document.service.ts:74: trailing whitespace.
+[32m+[m[32m        return { items };[m[41m[m
+src/library-document/library-document.service.ts:75: trailing whitespace.
+[32m+[m[32m    }[m[41m[m
+src/library-document/library-document.service.ts:76: trailing whitespace.
+[32m+[m[41m[m

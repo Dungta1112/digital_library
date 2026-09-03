@@ -8,8 +8,6 @@ import {
   Check,
   X,
   Warning,
-  Clock,
-  User,
   FilePdf,
 } from '@phosphor-icons/react';
 
@@ -19,24 +17,24 @@ export default function AdminModerationPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const loadModerationData = async () => {
-    setLoading(true);
-    try {
-      const [docsData, reportsData] = await Promise.all([
-        AdminService.getPendingDocuments(),
-        AdminService.getReports(),
-      ]);
-      setPendingDocs(docsData);
-      setReports(reportsData);
-    } catch (e) {
-      console.error('Lỗi tải dữ liệu kiểm duyệt:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadModerationData();
+    let active = true;
+    Promise.all([AdminService.getPendingDocuments(), AdminService.getReports()])
+      .then(([docsData, reportsData]) => {
+        if (active) {
+          setPendingDocs(docsData);
+          setReports(reportsData);
+        }
+      })
+      .catch((e) => {
+        console.error('Lỗi tải dữ liệu kiểm duyệt:', e);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleApprove = async (docId: string) => {
@@ -44,8 +42,8 @@ export default function AdminModerationPage() {
     try {
       await AdminService.approveDocument(docId);
       setPendingDocs((prev) => prev.filter((d) => d.id !== docId));
-    } catch (e: any) {
-      alert(e.message || 'Lỗi phê duyệt tài liệu.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Lỗi phê duyệt tài liệu.');
     } finally {
       setActionLoading(null);
     }
@@ -57,20 +55,24 @@ export default function AdminModerationPage() {
     try {
       await AdminService.rejectDocument(docId, reason);
       setPendingDocs((prev) => prev.filter((d) => d.id !== docId));
-    } catch (e: any) {
-      alert(e.message || 'Lỗi từ chối tài liệu.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Lỗi từ chối tài liệu.');
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleResolveReport = async (reportId: string, action: 'RESOLVE' | 'REJECT') => {
+    const defaultNote = action === 'RESOLVE' ? 'Nội dung vi phạm đã được giải quyết' : 'Báo cáo không chính xác hoặc không đủ cơ sở';
+    const note = prompt(`Nhập ghi chú xử lý báo cáo (${action === 'RESOLVE' ? 'Xử lý' : 'Bỏ qua'}):`, defaultNote);
+    if (note === null) return;
+
     setActionLoading(reportId);
     try {
-      await AdminService.resolveReport(reportId, action);
+      await AdminService.resolveReport(reportId, action === 'RESOLVE' ? 'RESOLVED' : 'REJECTED', note || defaultNote);
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-    } catch (e: any) {
-      alert(e.message || 'Lỗi xử lý báo cáo.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Lỗi xử lý báo cáo.');
     } finally {
       setActionLoading(null);
     }

@@ -31,7 +31,7 @@ export function IngestStatusBadge({ documentId }: { documentId: string }) {
         if (cancelled) return;
         setStatus(data);
         stop = data.state === 'done' || data.state === 'failed';
-      } catch (e) {
+      } catch {
         if (cancelled) return;
         stop = true;
       }

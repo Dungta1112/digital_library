@@ -68,6 +68,14 @@ export const AuthService = {
     return normalizeApiUser(response);
   },
 
+  async logout(): Promise<void> {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (e) {
+      console.warn('Lỗi khi gọi API đăng xuất:', e);
+    }
+  },
+
   async getCurrentUser(): Promise<User> {
     const response = await apiClient.get<ApiUser>('/users/me');
     return normalizeApiUser(response);

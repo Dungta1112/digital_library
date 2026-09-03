@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { ForumService } from '@/services/forum.service';
-import { ForumPost, ForumComment } from '@/types/forum';
+import { ForumPost } from '@/types/forum';
 
 export type ReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
 
@@ -77,8 +77,8 @@ export const useForumStore = create<ForumState>((set, get) => ({
         localStorage.setItem('forum_reactions_v1', JSON.stringify(newReactions));
       }
       set({ posts, reactions: newReactions, loading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi tải bài viết', loading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'Lỗi khi tải bài viết', loading: false });
     }
   },
 
@@ -107,8 +107,8 @@ export const useForumStore = create<ForumState>((set, get) => ({
       
       get().clearDraft();
       return newPost;
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi tạo bài viết', loading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'Lỗi khi tạo bài viết', loading: false });
       return null;
     }
   },
@@ -143,8 +143,8 @@ export const useForumStore = create<ForumState>((set, get) => ({
           return post;
         })
       }));
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi gửi bình luận' });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'Lỗi khi gửi bình luận' });
       throw err;
     }
   },
@@ -165,8 +165,8 @@ export const useForumStore = create<ForumState>((set, get) => ({
           return post;
         })
       }));
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi xóa bình luận' });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'Lỗi khi xóa bình luận' });
       throw err;
     }
   },

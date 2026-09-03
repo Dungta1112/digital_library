@@ -8,20 +8,14 @@ export function DocManagement() {
   const [docs, setDocs] = useState<AdminDocRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDocs = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getPendingDocs();
-      setDocs(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchDocs();
+    let active = true;
+    AdminService.getPendingDocs().then((data) => {
+      if (active) setDocs(data);
+    }).catch(console.error).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const handleReview = async (docId: string, action: 'APPROVE' | 'REJECT') => {
@@ -32,8 +26,7 @@ export function DocManagement() {
     }
     
     await AdminService.reviewDoc(docId, action, reason);
-    alert(`Mock: Đã ${action === 'APPROVE' ? 'phê duyệt' : 'từ chối'} tài liệu.`);
-    fetchDocs();
+    setDocs((prev) => prev.filter((d) => d.id !== docId));
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>;

@@ -22,7 +22,6 @@ export default function GroupsPage() {
     const [createError, setCreateError] = useState('');
 
     const loadGroups = () => {
-        setLoading(true);
         GroupService.getGroups().then(g => {
             setGroups(g);
             setLoading(false);

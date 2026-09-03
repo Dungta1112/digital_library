@@ -4,13 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/admin.service';
 import type { SystemConfigParam } from '@/types/admin';
 import {
-  SlidersHorizontal,
   FloppyDisk,
   CheckCircle,
   WarningCircle,
-  Robot,
-  HardDrives,
-  ShieldCheck,
 } from '@phosphor-icons/react';
 
 export default function AdminSystemPage() {
@@ -20,20 +16,21 @@ export default function AdminSystemPage() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const loadConfigs = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getConfigs();
-      setConfigs(data);
-    } catch (e) {
-      console.error('Lỗi tải cấu hình:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadConfigs();
+    let active = true;
+    AdminService.getConfigs()
+      .then((data) => {
+        if (active) setConfigs(data);
+      })
+      .catch((e) => {
+        console.error('Lỗi tải cấu hình:', e);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleValueChange = (key: string, newValue: string) => {
@@ -50,8 +47,8 @@ export default function AdminSystemPage() {
       await AdminService.updateConfig(key, value);
       setSuccessMsg(`Đã cập nhật cấu hình "${key}" thành công!`);
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Không thể lưu cấu hình.');
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Không thể lưu cấu hình.');
     } finally {
       setSavingKey(null);
     }

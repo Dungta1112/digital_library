@@ -62,8 +62,14 @@ export class ContentManagementService {
 
   async reports() {
     const [documentReports, forumReports] = await Promise.all([
-      this.prisma.documentReport.findMany(),
-      this.prisma.forumReport.findMany()
+      this.prisma.documentReport.findMany({
+        include: { reporter: { select: { fullName: true } }, document: { select: { title: true } } },
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.prisma.forumReport.findMany({
+        include: { reporter: { select: { fullName: true } }, post: { select: { title: true } }, comment: true },
+        orderBy: { createdAt: 'desc' }
+      })
     ]);
     return { documentReports, forumReports };
   }
