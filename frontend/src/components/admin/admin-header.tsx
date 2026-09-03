@@ -1,12 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { House, Bell, Clock, ShieldCheck, SignOut, User } from '@phosphor-icons/react';
+import { House, SignOut, List } from '@phosphor-icons/react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const pathname = usePathname() || '/admin/dashboard';
   const { user, logout } = useAuth();
 
@@ -22,48 +26,45 @@ export function AdminHeader() {
   const currentTitle = routeNames[pathname] || 'Quản trị hệ thống';
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-950/90 px-6 sm:px-8 backdrop-blur-md">
-      {/* Left: Breadcrumbs & Current Page Title */}
-      <div className="flex items-center gap-6">
-        {/* Return to Public Site button */}
-        <Link href="/" title="Quay lại trang người dùng (Alt+H)" className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
-          <House weight="duotone" className="h-5 w-5 text-emerald-400" />
-          <span className="hidden lg:inline">Về Trang người dùng</span>
-        </Link>
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 border-l border-slate-800 pl-6">
-          <span>Quản trị</span>
-          <span>/</span>
-          <span className="text-white font-bold">{currentTitle}</span>
-        </div>
-        {/* Notification Center (placeholder) */}
-        <div className="relative">
-          <button className="relative text-slate-400 hover:text-white transition-colors" title="Thông báo (Ctrl+K)">
-            <Bell weight="duotone" className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-950/90 px-4 sm:px-8 backdrop-blur-md">
+      {/* Left: Menu Trigger & Breadcrumbs */}
+      <div className="flex items-center gap-4 sm:gap-6">
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800"
+            title="Mở menu quản trị"
+          >
+            <List weight="bold" className="h-5 w-5" />
           </button>
-          {/* Popover placeholder - sẽ được triển khai sau */}
+        )}
+
+        {/* Return to Public Site button */}
+        <Link href="/" title="Quay lại trang người dùng" className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <House weight="duotone" className="h-5 w-5 text-emerald-400" />
+          <span className="hidden sm:inline">Trang người dùng</span>
+        </Link>
+
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 sm:gap-3 text-xs font-semibold text-slate-400 border-l border-slate-800 pl-4 sm:pl-6">
+          <span className="hidden md:inline">Quản trị</span>
+          <span className="hidden md:inline">/</span>
+          <span className="text-white font-bold truncate max-w-[160px] sm:max-w-none">{currentTitle}</span>
         </div>
       </div>
 
-      {/* Right: Actions, System Status & Admin Profile */}
-      <div className="flex items-center gap-4">
-        {/* System Online Badge */}
-        <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 px-3 py-1 text-[11px] font-semibold text-emerald-400">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Hệ thống hoạt động 24/7</span>
-        </div>
-
+      {/* Right: Theme Toggle & Admin Profile */}
+      <div className="flex items-center gap-3 sm:gap-4">
         <ThemeToggle />
 
         {/* Admin User Badge */}
-        <div className="flex items-center gap-3 border-l border-slate-800 pl-4">
+        <div className="flex items-center gap-3 border-l border-slate-800 pl-3 sm:pl-4">
           <div className="hidden md:flex flex-col text-right leading-tight">
             <span className="text-xs font-bold text-white truncate max-w-[140px]">
               {user?.fullName || 'Quản trị viên'}
             </span>
             <span className="text-[10px] font-mono font-bold text-emerald-400">
-              ADMIN
+              {user?.role || 'ADMIN'}
             </span>
           </div>
 

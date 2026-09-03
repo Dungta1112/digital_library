@@ -7,7 +7,6 @@ import { SidebarRight } from '@/components/feature/Forum/SidebarRight';
 import { PostCreator } from '@/components/feature/Forum/PostCreator';
 import { PostCard } from '@/components/feature/Forum/PostCard';
 import { 
-  PencilSimple, 
   Funnel, 
   ArrowClockwise 
 } from '@phosphor-icons/react';
@@ -20,13 +19,14 @@ export default function ForumPage() {
     { code: 'All', label: 'Tất cả' },
     { code: 'GENERAL', label: 'Chung' },
     { code: 'QUESTIONS', label: 'Hỏi đáp' },
-    { code: 'RESOURCES', label: 'Tài liệu' }
+    { code: 'RESOURCES', label: 'Tài liệu' },
+    { code: 'ANNOUNCEMENTS', label: 'Thông báo' },
   ];
 
   // Fetch posts on mount & category change
   useEffect(() => {
     fetchPosts(activeCategory === 'All' ? undefined : activeCategory);
-  }, [activeCategory]);
+  }, [activeCategory, fetchPosts]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/40 py-12 transition-colors duration-300">

@@ -87,6 +87,13 @@ export class LibraryDocumentController {
 
     @ApiProtected()
     @UseGuards(JwtAuthGuard)
+    @Get('me/favorites')
+    async getFavorites(@CurrentUser() user: RequestUser) {
+        return ok(await this.service.getFavorites(user.id));
+    }
+
+    @ApiProtected()
+    @UseGuards(JwtAuthGuard)
     @Get('me/history')
     async getHistory(@CurrentUser() user: RequestUser) {
         return ok(await this.service.getHistory(user.id));

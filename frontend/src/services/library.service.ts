@@ -9,6 +9,8 @@ export interface ApiDocumentFile {
   objectKey?: string;
   originalName?: string;
   mimeType?: string;
+  sizeBytes?: number;
+  fileSize?: number;
   url?: string;
   fileUrl?: string;
   downloadUrl?: string;
@@ -42,21 +44,27 @@ export interface ApiDocument {
   viewCount?: number;
   saveCount?: number;
   downloadCount?: number;
+  _count?: { favorites?: number; views?: number };
 }
 
 export type ApiDocumentList =
   | PaginatedResult<ApiDocument>
   | ApiDocument[]
   | {
-      items: ApiDocument[];
-      meta?: Partial<Omit<PaginatedResult<ApiDocument>, 'data'>>;
-      total?: number;
-      page?: number;
-      limit?: number;
-      totalPages?: number;
-    };
+    items: ApiDocument[];
+    meta?: Partial<Omit<PaginatedResult<ApiDocument>, 'data'>>;
+    total?: number;
+    page?: number;
+    limit?: number;
+    totalPages?: number;
+  };
 
-function getFileType(fileNameOrUrl?: string): 'pdf' | 'docx' | undefined {
+function getFileType(mimeType?: string, fileNameOrUrl?: string): 'pdf' | 'docx' | undefined {
+  if (mimeType) {
+    const low = mimeType.toLowerCase();
+    if (low.includes('pdf')) return 'pdf';
+    if (low.includes('wordprocessingml') || low.includes('docx') || low.includes('msword')) return 'docx';
+  }
   const cleanValue = fileNameOrUrl?.split('?')[0].split('#')[0].toLowerCase() || '';
   if (cleanValue.endsWith('.docx')) return 'docx';
   if (cleanValue.endsWith('.pdf')) return 'pdf';
@@ -82,37 +90,53 @@ export function normalizeApiDocument(document: ApiDocument): Document {
       ? document.category
       : document.category?.name || 'Tài liệu chung';
 
+  const categoryId =
+    typeof document.category === 'object' && document.category
+      ? document.category.id
+      : undefined;
+
+  // Real authors only - do NOT invent placeholder strings
   const authors =
     document.authors ||
     document.metadata?.authors ||
-    (document.author ? [document.author] : undefined) ||
-    (document.owner?.fullName ? [document.owner.fullName] : undefined) ||
-    ['Tác giả cập nhật'];
+    (document.author ? [document.author] : undefined);
 
-  const year =
-    document.publicationYear ||
-    document.metadata?.publicationYear ||
-    (document.createdAt ? new Date(document.createdAt).getFullYear() : new Date().getFullYear());
+  // Real publication year only - do NOT invent createdAt / current year
+  const rawYear = document.publicationYear ?? document.metadata?.publicationYear;
+  const year = typeof rawYear === 'number' && !isNaN(rawYear) && rawYear > 1000 ? rawYear : undefined;
 
   const file = document.files?.[0];
   const fileName = document.fileName || file?.originalName;
   const rawFileUrl = getPrimaryFileUrl(document);
   const fileUrl = rawFileUrl ? toBackendUrl(rawFileUrl) : '';
+  const detectedFileType = document.fileType || getFileType(file?.mimeType, fileName || fileUrl);
+
+  const fileSize = file?.sizeBytes || file?.fileSize;
+  const saveCount = document.saveCount ?? document._count?.favorites;
+  const downloadCount = document.downloadCount;
+  const viewCount = document.viewCount ?? document._count?.views ?? 0;
 
   return {
     id: document.id,
     title: document.title,
-    authors,
+    authors: authors && authors.length > 0 ? authors : undefined,
+    ownerName: document.owner?.fullName || document.owner?.email,
     abstract: document.abstract || document.description || document.metadata?.abstract || 'Chưa có phần tóm tắt cho tài liệu này.',
+    description: document.description || undefined,
     publicationYear: year,
     category,
+    categoryId,
     keywords: document.keywords || document.metadata?.keywords || [],
     pdfUrl: fileUrl,
     fileName,
-    fileType: document.fileType || getFileType(fileName || fileUrl),
+    fileType: detectedFileType,
+    mimeType: file?.mimeType,
+    fileSize,
     coverImageUrl: document.coverImageUrl ? toBackendUrl(document.coverImageUrl) : undefined,
-    viewCount: document.viewCount || 0,
-    saveCount: document.saveCount || document.downloadCount || 0,
+    viewCount,
+    saveCount,
+    downloadCount,
+    createdAt: document.createdAt,
   };
 }
 
@@ -137,16 +161,18 @@ export const LibraryService = {
   async getDocuments(
     filter: LibraryFilter = {},
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    signal?: AbortSignal
   ): Promise<PaginatedResult<Document>> {
     const params: Record<string, string | number> = {
       page,
       limit,
     };
     if (filter.query) params.q = filter.query;
+    if (filter.categoryId) params.categoryId = filter.categoryId;
     if (filter.category) params.categoryId = filter.category;
 
-    const response = await apiClient.get<ApiDocumentList>('/documents', { params });
+    const response = await apiClient.get<ApiDocumentList>('/documents', { params, signal });
 
     if (!Array.isArray(response) && 'data' in response && Array.isArray(response.data)) {
       const items = normalizeApiDocuments(response.data);
@@ -191,19 +217,54 @@ export const LibraryService = {
     }
   },
 
-  async getDocumentReadUrl(document: Document): Promise<string> {
+  async getFavoriteDocuments(): Promise<Document[]> {
+    try {
+      const response = await apiClient.get<{ items?: ApiDocument[] } | ApiDocument[]>('/documents/me/favorites');
+      const items = Array.isArray(response)
+        ? response
+        : response?.items && Array.isArray(response.items)
+          ? response.items
+          : [];
+      return normalizeApiDocuments(items);
+    } catch (e) {
+      console.error('Lỗi tải danh sách tài liệu đã lưu:', e);
+      return [];
+    }
+  },
+
+  async favoriteDocument(id: string): Promise<void> {
+    await apiClient.post(`/documents/${id}/favorite`);
+  },
+
+  async unfavoriteDocument(id: string): Promise<void> {
+    await apiClient.delete(`/documents/${id}/favorite`);
+  },
+
+  async getDocumentReadUrl(document: Document, signal?: AbortSignal): Promise<string> {
     if (document.pdfUrl) {
       return document.pdfUrl;
     }
 
-    try {
-      const response = await apiClient.get<{ url: string; documentId?: string }>(
-        `/documents/${document.id}/read`
-      );
+    const response = await apiClient.get<{ url: string; documentId?: string }>(
+      `/documents/${document.id}/read`,
+      { signal }
+    );
+    if (response?.url) {
       return toBackendUrl(response.url);
-    } catch {
-      return toBackendUrl(`/storage/documents/${document.id}.pdf`);
     }
+    throw new Error('Không nhận được liên kết đọc từ máy chủ.');
+  },
+
+  async getDocumentDownloadUrl(documentId: string): Promise<string> {
+    try {
+      const response = await apiClient.get<{ url: string }>(`/documents/${documentId}/download`);
+      if (response?.url) {
+        return toBackendUrl(response.url);
+      }
+    } catch {
+      // ignore
+    }
+    return toBackendUrl(`/api/v1/documents/${documentId}/download`);
   },
 };
 

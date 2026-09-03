@@ -7,9 +7,10 @@ import { apiClient } from '@/services/api.client';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import type { User } from '@/types/auth';
 import { 
   Compass, MagnifyingGlass, Books, UserCircle, Gear, Bell, SignOut, 
-  User, CheckCircle, Star, DownloadSimple, Users, BookOpenText, 
+  CheckCircle, Star, DownloadSimple, Users, BookOpenText, 
   ArrowRight, Book, GraduationCap, CalendarBlank, PencilSimple, ShareNetwork, ClockCounterClockwise
 } from '@phosphor-icons/react';
 
@@ -20,28 +21,29 @@ export default function ProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [editing, setEditing] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [bio, setBio] = useState('Đam mê công nghệ, trí tuệ nhân tạo và nghiên cứu khoa học. Luôn tìm kiếm những góc nhìn mới qua từng trang sách.');
+  const [fullName, setFullName] = useState(() => user?.fullName || '');
+  const [bio] = useState('Đam mê công nghệ, trí tuệ nhân tạo và nghiên cứu khoa học. Luôn tìm kiếm những góc nhìn mới qua từng trang sách.');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!isLoading && !user) router.push('/login');
-    if (user) setFullName(user.fullName);
-  }, [user, isLoading]);
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
 
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
     try {
-      await apiClient.patch<any>('/users/me', { fullName });
+      await apiClient.patch<unknown>('/users/me', { fullName });
       if (user && token) {
         login({ ...user, fullName }, token, localStorage.getItem('refresh_token') || undefined);
       }
       setMessage('Cập nhật thành công!');
       setEditing(false);
-    } catch (e: any) {
-      setMessage('Lỗi: ' + (e.message || 'Không thể cập nhật'));
+    } catch (e: unknown) {
+      setMessage('Lỗi: ' + (e instanceof Error ? e.message : 'Không thể cập nhật'));
     } finally {
       setSaving(false);
     }
@@ -252,7 +254,7 @@ export default function ProfilePage() {
 }
 
 /* ===================== TAB: OVERVIEW ===================== */
-function OverviewTab({ user, bio }: { user: any; bio: string }) {
+function OverviewTab({ bio }: { user: User; bio: string }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
       {/* Left Column (2/5) */}

@@ -8,26 +8,19 @@ export function ReportManagement() {
   const [reports, setReports] = useState<AdminReport[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchReports = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getReports();
-      setReports(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchReports();
+    let active = true;
+    AdminService.getReports().then((data) => {
+      if (active) setReports(data);
+    }).catch(console.error).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const handleProcess = async (reportId: string, action: 'RESOLVE' | 'IGNORE') => {
     await AdminService.processReport(reportId, action);
-    alert(`Mock: Đã ${action === 'RESOLVE' ? 'xử lý (Ẩn/Xóa nội dung)' : 'bỏ qua'} báo cáo.`);
-    fetchReports();
+    setReports((prev) => prev.filter((r) => r.id !== reportId));
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>;

@@ -5,7 +5,6 @@ import { ForumPost } from '@/types/forum';
 import { useForumStore } from '@/hooks/useForumStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { 
-  User, 
   ChatCircle, 
   BookmarkSimple, 
   FilePdf, 

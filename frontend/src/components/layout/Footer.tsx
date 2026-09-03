@@ -14,7 +14,6 @@ import {
   YoutubeLogo,
   Clock,
   ShieldCheck,
-  Books,
 } from '@phosphor-icons/react';
 
 export function Footer() {

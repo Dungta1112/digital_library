@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
 import { ApiProtected } from '../common/decorators/api-docs.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { created, ok } from '../common/response/api-response';
-import { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, UpdateForumPostDto } from './dto/forum.dto';
+import { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, ForumPostQueryDto, UpdateForumPostDto } from './dto/forum.dto';
 import { ForumService } from './forum.service';
 
 @ApiTags('Forum')
@@ -13,8 +13,8 @@ export class ForumController {
     constructor(private readonly service: ForumService) { }
 
     @Get('posts')
-    async list() {
-        return ok(await this.service.list());
+    async list(@Query() query: ForumPostQueryDto) {
+        return ok(await this.service.list(query));
     }
 
     @ApiProtected()

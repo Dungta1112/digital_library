@@ -9,8 +9,8 @@ export function HomeNarrative() {
 
     useIsomorphicLayoutEffect(() => {
         const ctx = gsap.context(() => {
-            const sections = gsap.utils.toArray('.narrative-section');
-            sections.forEach((section: any) => {
+            const sections = gsap.utils.toArray<Element>('.narrative-section');
+            sections.forEach((section) => {
                 gsap.fromTo(section,
                     { opacity: 0, y: 50 },
                     {

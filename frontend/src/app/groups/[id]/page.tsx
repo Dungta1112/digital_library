@@ -36,9 +36,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
             await GroupService.deleteGroup(group.id);
             setIsDeleteModalOpen(false);
             router.push('/groups');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Lỗi khi giải tán nhóm:', error);
-            alert(error.message || 'Không thể giải tán nhóm, vui lòng thử lại sau.');
+            alert(error instanceof Error ? error.message : 'Không thể giải tán nhóm, vui lòng thử lại sau.');
             setDeleting(false);
         }
     };

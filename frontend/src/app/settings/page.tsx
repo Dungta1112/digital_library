@@ -21,7 +21,7 @@ export default function SettingsPage() {
     if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, router]);
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -40,8 +40,8 @@ export default function SettingsPage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (e: any) {
-      setMessage('Lỗi: ' + (e.message || 'Không thể đổi mật khẩu'));
+    } catch (e: unknown) {
+      setMessage('Lỗi: ' + (e instanceof Error ? e.message : 'Không thể đổi mật khẩu'));
     } finally {
       setSaving(false);
     }

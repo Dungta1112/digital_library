@@ -8,27 +8,20 @@ export function ForumManagement() {
   const [posts, setPosts] = useState<AdminForumPost[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getForumPosts();
-      setPosts(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPosts();
+    let active = true;
+    AdminService.getForumPosts().then((data) => {
+      if (active) setPosts(data);
+    }).catch(console.error).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const handleModerate = async (postId: string, action: 'DELETE' | 'LOCK') => {
     if (confirm(`Bạn có chắc muốn ${action === 'DELETE' ? 'XÓA' : 'KHÓA'} bài viết này?`)) {
       await AdminService.moderatePost(postId, action);
-      alert(`Mock: Đã ${action === 'DELETE' ? 'xóa' : 'khóa'} bài viết.`);
-      fetchPosts();
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
     }
   };
 

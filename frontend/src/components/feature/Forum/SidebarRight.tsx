@@ -5,7 +5,6 @@ import {
   Trophy, 
   TrendUp, 
   Megaphone,
-  CaretRight
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 
@@ -40,7 +39,7 @@ export function SidebarRight() {
         </div>
 
         <div className="space-y-3">
-          {topContributors.map((user, idx) => (
+          {topContributors.map((user) => (
             <div key={user.id} className="flex items-center justify-between p-1">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-300">

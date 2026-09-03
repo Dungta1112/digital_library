@@ -34,18 +34,6 @@ export class AuthController {
   async logout(@CurrentUser() user: RequestUser) {
     await this.authService.logout(user.id);
   }
-
-  @Post('debug-token')
-  async debugToken(@Body() dto: { token: string }) {
-    try {
-      const jwt = require('@nestjs/jwt');
-      const service = new jwt.JwtService();
-      const payload = await service.verifyAsync(dto.token, { secret: process.env.JWT_ACCESS_SECRET });
-      return ok(payload, 'Valid');
-    } catch (e: any) {
-      return ok({ error: e.message, secretLength: process.env.JWT_ACCESS_SECRET?.length }, 'Invalid');
-    }
-  }
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
     async forgotPassword(@Body() dto: { email: string }) {

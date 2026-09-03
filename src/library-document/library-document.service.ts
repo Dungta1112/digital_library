@@ -21,24 +21,57 @@ export class LibraryDocumentService {
             ...(query.q ? { OR: [{ title: { contains: query.q, mode: 'insensitive' } }, { description: { contains: query.q, mode: 'insensitive' } }] } : {})
         };
         const [items, total] = await Promise.all([
-            this.prisma.document.findMany({ where, skip: (query.page - 1) * query.limit, take: query.limit, include: { files: true, category: true } }),
+            this.prisma.document.findMany({
+                where,
+                skip: (query.page - 1) * query.limit,
+                take: query.limit,
+                include: { files: true, category: true, _count: { select: { favorites: true } } },
+                orderBy: { createdAt: 'desc' }
+            }),
             this.prisma.document.count({ where })
         ]);
-        return { items, total, page: query.page, limit: query.limit };
+        const mappedItems = items.map((doc) => ({
+            ...doc,
+            saveCount: doc._count?.favorites ?? 0
+        }));
+        return { items: mappedItems, total, page: query.page, limit: query.limit };
     }
 
     private async findDocument(documentId: string) {
-        const document = await this.prisma.document.findFirst({ where: { id: documentId, status: 'APPROVED', deletedAt: null }, include: { files: true, category: true } });
+        const document = await this.prisma.document.findFirst({
+            where: { id: documentId, status: 'APPROVED', deletedAt: null },
+            include: { files: true, category: true, _count: { select: { favorites: true } } }
+        });
         if (!document) {
             throw new NotFoundException('Document not found');
         }
-        return document;
+        return {
+            ...document,
+            saveCount: document._count?.favorites ?? 0
+        };
     }
 
     async detail(documentId: string) {
         const document = await this.findDocument(documentId);
         await this.prisma.document.update({ where: { id: documentId }, data: { viewCount: { increment: 1 } } });
         return document;
+    }
+
+    async getFavorites(userId: string) {
+        const favorites = await this.prisma.documentFavorite.findMany({
+            where: { userId, document: { status: 'APPROVED', deletedAt: null } },
+            include: {
+                document: {
+                    include: { files: true, category: true, _count: { select: { favorites: true } } }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        const items = favorites.map((fav) => ({
+            ...fav.document,
+            saveCount: fav.document._count?.favorites ?? 0
+        }));
+        return { items };
     }
 
     async read(documentId: string) {

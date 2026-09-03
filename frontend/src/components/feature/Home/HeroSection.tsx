@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   CheckCircle,
   Books,
-  GraduationCap,
 } from '@phosphor-icons/react';
 
 export function HeroSection() {
@@ -334,7 +333,7 @@ export function HeroSection() {
                         Đoạn trích dẫn nguồn AI tham chiếu:
                       </p>
                       <p className="italic">
-                        "{currentDemo.highlightSnippet}"
+                        &ldquo;{currentDemo.highlightSnippet}&rdquo;
                       </p>
                     </div>
 

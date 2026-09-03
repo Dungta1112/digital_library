@@ -4,6 +4,7 @@ import type {
   AdminForumPost,
   AdminReport,
   AdminUserRecord,
+  RoleOption,
   SystemConfigParam,
   SystemStats,
 } from '../types/admin';
@@ -41,7 +42,7 @@ interface ApiUser {
   fullName: string;
   status?: AdminUserRecord['status'];
   createdAt?: string;
-  roles?: Array<{ role?: { code?: string }; code?: string } | string>;
+  roles?: Array<{ roleId?: string; role?: { id?: string; code?: string; name?: string }; code?: string } | string>;
 }
 
 interface ApiDocument {
@@ -69,27 +70,96 @@ interface ApiForumPost {
   _count?: { reports?: number };
 }
 
-interface ApiReport {
+interface ApiDocumentReport {
   id: string;
+  documentId: string;
   reporterId?: string;
   reporter?: { fullName?: string };
-  documentId?: string;
-  postId?: string;
-  commentId?: string;
+  document?: { title?: string };
   reason: string;
+  description?: string;
   createdAt: string;
   status: AdminReport['status'];
+}
+
+interface ApiForumReport {
+  id: string;
+  postId?: string;
+  commentId?: string;
+  reporterId?: string;
+  reporter?: { fullName?: string };
+  post?: { title?: string };
+  reason: string;
+  description?: string;
+  createdAt: string;
+  status: AdminReport['status'];
+}
+
+interface ApiReportsResponse {
+  documentReports?: ApiDocumentReport[];
+  forumReports?: ApiForumReport[];
 }
 
 interface ApiConfig {
   key: string;
   description?: string;
   value: unknown;
+  updatedAt?: string;
+}
+
+export const SYSTEM_CONFIG_SCHEMA: Record<string, 'string' | 'number' | 'boolean' | 'array'> = {
+  'upload.allowed_file_types': 'string',
+  'upload.max_file_size_bytes': 'number',
+  'ai.ollama_model': 'string',
+  'ai.rate_limit_student': 'number',
+  'ai.rate_limit_lecturer': 'number',
+  'ai.rate_limit_admin': 'number',
+  'ai.max_tokens': 'number',
+  'system.maintenance_mode': 'boolean',
+  'ai.allowed_doc_types': 'array',
+  AUTH_ALLOW_REGISTRATION: 'boolean',
+  MAINTENANCE_MODE: 'boolean',
+  ENABLE_AI_FEATURES: 'boolean',
+  ENABLE_REGISTRATION: 'boolean',
+  ALLOW_PUBLIC_VIEW: 'boolean',
+  MAX_UPLOAD_SIZE_MB: 'number',
+  AUTH_MAX_FAILED_LOGINS: 'number',
+  JWT_ACCESS_EXPIRES_IN: 'number',
+  JWT_REFRESH_EXPIRES_IN: 'number',
+  MAX_FILE_SIZE_MB: 'number',
+  ALLOWED_FILE_EXTENSIONS: 'array',
+  ALLOWED_FILE_TYPES: 'array',
+  CORS_ORIGINS: 'array',
+};
+
+export function parseConfigValue(key: string, raw: string): unknown {
+  const trimmed = typeof raw === 'string' ? raw.trim() : String(raw);
+  const schemaType = SYSTEM_CONFIG_SCHEMA[key] || 'string';
+
+  switch (schemaType) {
+    case 'boolean':
+      return trimmed.toLowerCase() === 'true' || trimmed === '1';
+    case 'number': {
+      const num = Number(trimmed);
+      return isNaN(num) ? raw : num;
+    }
+    case 'array':
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return [trimmed];
+    case 'string':
+    default:
+      return raw;
+  }
 }
 
 export const AdminService = {
   // 1. Thống kê hệ thống
-  async getStats(): Promise<SystemStats & { totalStorageMb?: number; aiTokensUsed?: number }> {
+  async getStats(): Promise<SystemStats> {
     try {
       const response = await apiClient.get<{
         users?: number;
@@ -99,16 +169,14 @@ export const AdminService = {
       }>('/statistics/overview');
 
       return {
-        totalUsers: response?.users || 0,
-        totalDocuments: response?.documents || 0,
-        totalGroups: response?.studyGroups || 0,
-        activeUsersToday: response?.views || 0,
-        totalStorageMb: 245.8,
-        aiTokensUsed: 128500,
+        totalUsers: response?.users ?? 0,
+        totalDocuments: response?.documents ?? 0,
+        totalGroups: response?.studyGroups ?? 0,
+        activeUsersToday: response?.views ?? 0,
       };
     } catch (e) {
       console.error('Lỗi khi tải thống kê tổng quan:', e);
-      return { totalUsers: 0, totalDocuments: 0, totalGroups: 0, activeUsersToday: 0, totalStorageMb: 0, aiTokensUsed: 0 };
+      return { totalUsers: 0, totalDocuments: 0, totalGroups: 0, activeUsersToday: 0 };
     }
   },
 
@@ -120,7 +188,7 @@ export const AdminService = {
 
       return items.map((doc) => {
         const file = doc.files?.[0];
-        const fileSizeMb = file?.sizeBytes ? Number((file.sizeBytes / (1024 * 1024)).toFixed(1)) : 12.5;
+        const fileSizeMb = file?.sizeBytes ? Number((file.sizeBytes / (1024 * 1024)).toFixed(1)) : undefined;
         const author = doc.metadata?.authors?.join(', ') || doc.owner?.fullName || 'Đại học Trưng Vương';
 
         return {
@@ -129,15 +197,14 @@ export const AdminService = {
           author,
           authors: doc.metadata?.authors || [author],
           categoryId: doc.categoryId,
-          categoryName: doc.category?.name || 'Khoa học máy tính',
+          categoryName: doc.category?.name || 'Tài liệu',
           category: doc.category,
-          totalPages: 120,
           fileSizeMb,
           description: doc.description || doc.metadata?.abstract || '',
-          status: (doc.status === 'PENDING_REVIEW' ? 'PENDING' : doc.status) as any,
-          createdAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : 'Mới cập nhật',
-          viewCount: doc.viewCount || 0,
-          downloadCount: doc.downloadCount || 0,
+          status: (doc.status === 'PENDING_REVIEW' ? 'PENDING' : doc.status) as 'APPROVED' | 'PENDING' | 'REJECTED',
+          createdAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : '',
+          viewCount: doc.viewCount ?? 0,
+          downloadCount: doc.downloadCount ?? 0,
           files: doc.files,
         };
       });
@@ -147,15 +214,15 @@ export const AdminService = {
     }
   },
 
-  async uploadDocument(formData: FormData): Promise<any> {
+  async uploadDocument(formData: FormData): Promise<unknown> {
     return apiClient.post('/lecturer/documents', formData);
   },
 
-  async updateDocument(documentId: string, data: { title: string; categoryId?: string; description?: string }): Promise<any> {
+  async updateDocument(documentId: string, data: { title?: string; categoryId?: string; description?: string }): Promise<unknown> {
     return apiClient.patch(`/lecturer/documents/${documentId}`, data);
   },
 
-  async deleteDocument(documentId: string): Promise<any> {
+  async deleteDocument(documentId: string): Promise<unknown> {
     return apiClient.delete(`/lecturer/documents/${documentId}`);
   },
 
@@ -167,8 +234,8 @@ export const AdminService = {
         id: doc.id,
         title: doc.title,
         uploadedBy: doc.owner?.fullName || doc.owner?.email || 'Giảng viên',
-        uploadedAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : 'Hôm nay',
-        uploadDate: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : 'Hôm nay',
+        uploadedAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : '',
+        uploadDate: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : '',
         status: 'PENDING',
       }));
     } catch (e) {
@@ -189,15 +256,25 @@ export const AdminService = {
     await apiClient.post(`/content/documents/${documentId}/reject`, { reason });
   },
 
-  async reviewDoc(docId: string, action: 'APPROVE' | 'REJECT', reason?: string): Promise<void> {
+  async reviewDoc(documentId: string, action: 'APPROVE' | 'REJECT', reason?: string): Promise<void> {
     if (action === 'APPROVE') {
-      await this.approveDocument(docId);
+      await this.approveDocument(documentId);
     } else {
-      await this.rejectDocument(docId, reason || 'Không đạt chuẩn');
+      await this.rejectDocument(documentId, reason || 'Không đạt tiêu chuẩn kiểm duyệt');
     }
   },
 
   // 4. Quản lý Người dùng & Phân quyền RBAC
+  async getRoles(): Promise<RoleOption[]> {
+    try {
+      const response = await apiClient.get<RoleOption[]>('/roles');
+      return Array.isArray(response) ? response : [];
+    } catch (e) {
+      console.error('Lỗi khi tải danh sách vai trò:', e);
+      return [];
+    }
+  },
+
   async getUsers(): Promise<AdminUserRecord[]> {
     try {
       const response = await apiClient.get<ListResponse<ApiUser>>('/admin/users');
@@ -212,12 +289,12 @@ export const AdminService = {
           roleCode = firstRole.code;
         }
 
-        const dateFormatted = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '18/08/2026';
+        const dateFormatted = user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : '';
         return {
           id: user.id,
           email: user.email,
           fullName: user.fullName || user.email,
-          role: roleCode as AdminUserRecord['role'],
+          role: roleCode,
           status: user.status || 'ACTIVE',
           joinedAt: dateFormatted,
           createdAt: dateFormatted,
@@ -229,8 +306,8 @@ export const AdminService = {
     }
   },
 
-  async updateUserRole(userId: string, role: string): Promise<void> {
-    await apiClient.put(`/admin/users/${userId}/roles`, { roles: [role] });
+  async updateUserRole(userId: string, roleId: string): Promise<void> {
+    await apiClient.put(`/admin/users/${userId}/roles`, { roleIds: [roleId] });
   },
 
   async lockUser(userId: string): Promise<void> {
@@ -242,32 +319,30 @@ export const AdminService = {
   },
 
   async toggleUserStatus(userId: string, currentStatus?: string): Promise<void> {
-    if (currentStatus === 'LOCKED' || currentStatus === 'SUSPENDED') {
-      await this.unlockUser(userId);
-    } else {
+    if (currentStatus === 'ACTIVE') {
       await this.lockUser(userId);
+    } else {
+      await this.unlockUser(userId);
+    }
+  },
+
+  async updateUserStatus(userId: string, status: 'ACTIVE' | 'LOCKED'): Promise<void> {
+    if (status === 'LOCKED') {
+      await this.lockUser(userId);
+    } else {
+      await this.unlockUser(userId);
     }
   },
 
   // 5. Cấu hình Hệ thống & Tham số AI
   async getConfigs(): Promise<SystemConfigParam[]> {
-    try {
-      const response = await apiClient.get<ListResponse<ApiConfig>>('/system-configs');
-      return unwrapItems(response).map((config) => ({
-        key: config.key,
-        value: typeof config.value === 'object' ? JSON.stringify(config.value) : String(config.value),
-        description: config.description || config.key,
-        updatedAt: '18/08/2026',
-      }));
-    } catch (e) {
-      console.error('Lỗi khi tải cấu hình hệ thống:', e);
-      return [
-        { key: 'upload.allowed_file_types', value: 'application/pdf, docx', description: 'Định dạng tệp cho phép', updatedAt: '18/08/2026' },
-        { key: 'upload.max_file_size_bytes', value: '20971520', description: 'Dung lượng tải lên tối đa (20MB)', updatedAt: '18/08/2026' },
-        { key: 'ai.ollama_model', value: 'qwen2.5:7b', description: 'Mô hình ngôn ngữ AI cục bộ', updatedAt: '18/08/2026' },
-        { key: 'ai.rate_limit_student', value: '10', description: 'Giới hạn câu hỏi AI mỗi phút (Sinh viên)', updatedAt: '18/08/2026' },
-      ];
-    }
+    const response = await apiClient.get<ListResponse<ApiConfig>>('/system-configs');
+    return unwrapItems(response).map((config) => ({
+      key: config.key,
+      value: typeof config.value === 'object' ? JSON.stringify(config.value) : String(config.value ?? ''),
+      description: config.description || config.key,
+      updatedAt: config.updatedAt ? new Date(config.updatedAt).toLocaleDateString('vi-VN') : undefined,
+    }));
   },
 
   async getSystemConfigs(): Promise<SystemConfigParam[]> {
@@ -275,40 +350,54 @@ export const AdminService = {
   },
 
   async updateConfig(key: string, value: string): Promise<void> {
-    await apiClient.put(`/system-configs/${encodeURIComponent(key)}`, { value });
+    const parsedValue = parseConfigValue(key, value);
+    await apiClient.put('/system-configs', {
+      configs: { [key]: parsedValue },
+    });
   },
 
-  async updateSystemConfig(key: string, value: any): Promise<void> {
+  async updateSystemConfig(key: string, value: unknown): Promise<void> {
     await this.updateConfig(key, typeof value === 'string' ? value : JSON.stringify(value));
   },
 
   // 6. Quản lý Báo cáo & Bài viết Diễn đàn
   async getReports(): Promise<AdminReport[]> {
     try {
-      const response = await apiClient.get<ListResponse<ApiReport>>('/content/reports');
-      return unwrapItems(response).map((r) => ({
+      const response = await apiClient.get<ApiReportsResponse>('/content/reports');
+      const docReports: AdminReport[] = (response?.documentReports || []).map((r) => ({
         id: r.id,
-        targetType: r.documentId ? 'DOCUMENT' : r.postId ? 'POST' : 'COMMENT',
-        targetId: r.documentId || r.postId || r.commentId || r.id,
+        targetType: 'DOCUMENT',
+        targetId: r.documentId,
         reporterName: r.reporter?.fullName || 'Người dùng',
         reportedBy: r.reporter?.fullName || 'Người dùng',
-        reason: r.reason,
-        createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : 'Hôm nay',
+        reason: r.reason + (r.document?.title ? ` (Tài liệu: ${r.document.title})` : ''),
+        createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '',
         status: r.status,
       }));
-    } catch {
+
+      const forumReports: AdminReport[] = (response?.forumReports || []).map((r) => ({
+        id: r.id,
+        targetType: r.commentId ? 'COMMENT' : 'POST',
+        targetId: r.postId || r.commentId || r.id,
+        reporterName: r.reporter?.fullName || 'Người dùng',
+        reportedBy: r.reporter?.fullName || 'Người dùng',
+        reason: r.reason + (r.post?.title ? ` (Bài viết: ${r.post.title})` : ''),
+        createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '',
+        status: r.status,
+      }));
+
+      return [...docReports, ...forumReports];
+    } catch (e) {
+      console.error('Lỗi khi tải danh sách báo cáo:', e);
       return [];
     }
   },
 
-  async resolveReport(reportId: string, action: 'RESOLVE' | 'REJECT'): Promise<void> {
+  async resolveReport(reportId: string, status: 'RESOLVED' | 'REJECTED', resolutionNote: string = 'Đã xử lý'): Promise<void> {
     await apiClient.post(`/content/reports/${reportId}/handle`, {
-      action: action === 'RESOLVE' ? 'RESOLVED' : 'REJECTED',
+      status,
+      resolutionNote: resolutionNote.trim() || 'Đã xử lý',
     });
-  },
-
-  async processReport(reportId: string, action: 'RESOLVE' | 'DISMISS' | 'IGNORE' | 'REJECT'): Promise<void> {
-    await this.resolveReport(reportId, action === 'RESOLVE' ? 'RESOLVE' : 'REJECT');
   },
 
   async getForumPosts(): Promise<AdminForumPost[]> {
@@ -319,7 +408,7 @@ export const AdminService = {
         title: p.title,
         authorName: p.author?.fullName || 'Người dùng',
         contentSnippet: p.content?.slice(0, 100) || '',
-        createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString('vi-VN') : 'Hôm nay',
+        createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString('vi-VN') : '',
         status: p.status || 'ACTIVE',
         reportsCount: p._count?.reports || 0,
       }));
@@ -336,11 +425,16 @@ export const AdminService = {
     await apiClient.post(`/content/forum/posts/${postId}/lock`);
   },
 
-  async moderatePost(postId: string, action: 'LOCK' | 'DELETE'): Promise<void> {
-    if (action === 'LOCK') {
-      await this.lockForumPost(postId);
-    } else {
+  async moderatePost(postId: string, action: 'DELETE' | 'LOCK'): Promise<void> {
+    if (action === 'DELETE') {
       await this.deleteForumPost(postId);
+    } else {
+      await this.lockForumPost(postId);
     }
+  },
+
+  async processReport(reportId: string, action: 'RESOLVE' | 'IGNORE' | 'RESOLVED' | 'REJECTED'): Promise<void> {
+    const status = (action === 'RESOLVE' || action === 'RESOLVED') ? 'RESOLVED' : 'REJECTED';
+    await this.resolveReport(reportId, status);
   },
 };

@@ -57,6 +57,7 @@ const PermissionsMatrix: Record<Role, Action[]> = {
     'CREATE_GROUP',
     'MODERATE_FORUM',
     'PIN_POST',
+    'ACCESS_ADMIN',
   ],
   ADMIN: [
     'VIEW_PUBLIC',
@@ -75,8 +76,10 @@ const PermissionsMatrix: Record<Role, Action[]> = {
   ],
 };
 
-export const hasPermission = (user: User | null, action: Action): boolean => {
-  const role: Role = user ? user.role : 'GUEST';
+export const hasPermission = (userOrRole: User | Role | null | undefined, action: Action): boolean => {
+  const role: Role = typeof userOrRole === 'string'
+    ? userOrRole
+    : (userOrRole ? userOrRole.role : 'GUEST');
   
   // Admin has access to all actions
   if (role === 'ADMIN') return true;

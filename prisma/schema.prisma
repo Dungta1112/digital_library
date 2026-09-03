@@ -57,6 +57,13 @@ enum ForumPostStatus {
   DELETED
 }
 
+enum ForumCategory {
+  GENERAL
+  QUESTIONS
+  RESOURCES
+  ANNOUNCEMENTS
+}
+
 enum AuditAction {
   DOCUMENT_UPLOAD
   DOCUMENT_APPROVE
@@ -289,6 +296,7 @@ model ForumPost {
   authorId     String            @map("author_id")
   title        String
   content      String
+  category     ForumCategory     @default(GENERAL)
   status       ForumPostStatus   @default(PUBLISHED)
   lockedById   String?           @map("locked_by_id")
   lockedAt     DateTime?         @map("locked_at")

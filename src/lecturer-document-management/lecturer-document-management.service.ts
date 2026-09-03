@@ -42,6 +42,7 @@ export class LecturerDocumentManagementService {
             data: {
                 title: dto.title,
                 description: dto.description,
+                categoryId: dto.categoryId,
                 metadata: dto.metadata === undefined ? undefined : (dto.metadata as Prisma.InputJsonValue)
             }
         });

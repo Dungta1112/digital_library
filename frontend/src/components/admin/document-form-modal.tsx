@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AdminService, AdminDocumentItem } from '@/services/admin.service';
 import { LibraryService } from '@/services/library.service';
 import {
-  FilePdf,
-  FileDoc,
   UploadSimple,
   X,
   CheckCircle,
@@ -28,19 +26,12 @@ export function DocumentFormModal({
 }: DocumentFormModalProps) {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryName, setCategoryName] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([
-    { id: '7e67de22-d37c-4c50-8378-ba6890dcee3f', name: 'Khoa học Máy tính' },
-    { id: 'd72251db-1829-4ab7-9ab9-1fcd38cdcc92', name: 'Kinh tế & Tài chính' },
-    { id: 'dad04b8a-b750-45ae-a9a5-62ae8c2a0f77', name: 'Toán học & Thống kê' },
-    { id: 'ca56a709-4f60-4b1a-8050-9401f0873b9d', name: 'Quản trị Kinh doanh' },
-    { id: '7f0e5e77-20df-4f64-b855-8cd2df197ce5', name: 'Vật lý & Kỹ thuật' },
-    { id: '91cc5c3e-d020-429f-9679-526fa4d1fdaa', name: 'Ngoại ngữ & Ngôn ngữ Anh' },
-  ]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     async function loadCategories() {
@@ -56,23 +47,25 @@ export function DocumentFormModal({
     loadCategories();
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Form inputs must be re-initialized when modal opens or selected document data changes */
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || '');
-      setAuthor(initialData.author || '');
-      setCategoryId(initialData.categoryId || (categories[0]?.id ?? ''));
+      setAuthor(initialData.author || initialData.authors?.[0] || '');
+      setCategoryName(initialData.categoryName || initialData.category?.name || categories[0]?.name || '');
       setDescription(initialData.description || '');
       setFile(null);
       setError('');
     } else {
       setTitle('');
       setAuthor('');
-      setCategoryId(categories[0]?.id ?? '');
+      setCategoryName(categories[0]?.name || 'Công nghệ thông tin');
       setDescription('');
       setFile(null);
       setError('');
     }
   }, [initialData, isOpen, categories]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen) return null;
 
@@ -85,10 +78,21 @@ export function DocumentFormModal({
       return;
     }
 
+    if (!categoryName.trim()) {
+      setError('Vui lòng nhập chuyên ngành đào tạo.');
+      return;
+    }
+
     if (!initialData && !file) {
       setError('Vui lòng chọn tệp tài liệu PDF hoặc DOCX để tải lên.');
       return;
     }
+
+    // Find category ID if matched, or generate slug id
+    const matchedCategory = categories.find(
+      (c) => c.name.toLowerCase().trim() === categoryName.toLowerCase().trim()
+    );
+    const resolvedCategoryId = matchedCategory ? matchedCategory.id : `cat-${categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
     setIsSubmitting(true);
     try {
@@ -96,19 +100,22 @@ export function DocumentFormModal({
         // Chỉnh sửa tài liệu
         await AdminService.updateDocument(initialData.id, {
           title: title.trim(),
-          ...(categoryId ? { categoryId } : {}),
+          categoryId: resolvedCategoryId,
           description: description.trim(),
         });
       } else {
         // Thêm tài liệu mới kèm file
         const formData = new FormData();
         formData.append('title', title.trim());
+        if (author.trim()) {
+          formData.append('author', author.trim());
+          formData.append('authors', JSON.stringify([author.trim()]));
+        }
         if (description.trim()) {
           formData.append('description', description.trim());
         }
-        if (categoryId) {
-          formData.append('categoryId', categoryId);
-        }
+        formData.append('categoryId', resolvedCategoryId);
+        formData.append('categoryName', categoryName.trim());
         if (file) {
           formData.append('file', file);
         }
@@ -118,9 +125,9 @@ export function DocumentFormModal({
 
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Lỗi khi lưu tài liệu:', err);
-      setError(err.message || 'Không thể lưu tài liệu. Vui lòng kiểm tra lại!');
+      setError(err instanceof Error ? err.message : 'Không thể lưu tài liệu. Vui lòng kiểm tra lại!');
     } finally {
       setIsSubmitting(false);
     }
@@ -209,17 +216,20 @@ export function DocumentFormModal({
                 <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
                   Chuyên ngành đào tạo <span className="text-red-400">*</span>
                 </label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
-                >
+                <input
+                  type="text"
+                  required
+                  list="category-suggestions"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Chọn hoặc tự điền (VD: Công nghệ thông tin)"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <datalist id="category-suggestions">
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
+                    <option key={c.id} value={c.name} />
                   ))}
-                </select>
+                </datalist>
               </div>
             </div>
 

@@ -29,6 +29,10 @@ export class UpdateLecturerDocumentDto {
   description?: string;
 
   @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+
+  @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;
 }

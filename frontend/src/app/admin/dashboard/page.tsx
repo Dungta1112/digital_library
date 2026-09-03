@@ -2,28 +2,26 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 import { AdminService } from '@/services/admin.service';
 import type { SystemStats, AdminDocRecord } from '@/types/admin';
 import {
   Books,
   UsersThree,
-  Robot,
-  HardDrives,
+  Eye,
+  ChatCircleText,
   ShieldCheck,
   ArrowRight,
   Sparkle,
-  TrendUp,
-  Clock,
 } from '@phosphor-icons/react';
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<SystemStats & { totalStorageMb?: number; aiTokensUsed?: number }>({
+  const { user } = useAuth();
+  const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     totalDocuments: 0,
     totalGroups: 0,
     activeUsersToday: 0,
-    totalStorageMb: 0,
-    aiTokensUsed: 0,
   });
   const [pendingDocs, setPendingDocs] = useState<AdminDocRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,44 +44,50 @@ export default function AdminDashboardPage() {
     loadDashboardData();
   }, []);
 
+  const isAdmin = user?.role === 'ADMIN';
+
   const statCards = [
     {
       title: 'Tổng Số Giáo Trình / Tài Liệu',
-      value: stats.totalDocuments || 5,
+      value: stats.totalDocuments,
       subtext: 'Đã số hóa và kiểm duyệt',
       icon: Books,
       color: 'text-emerald-400',
       bg: 'from-emerald-950/40 to-slate-900 border-emerald-800/40',
       href: '/admin/documents',
+      roles: ['ADMIN', 'CONTENT_MANAGER'],
     },
     {
       title: 'Tổng Người Dùng Học Tập',
-      value: stats.totalUsers || 3,
-      subtext: 'Sinh viên & Giảng viên',
+      value: stats.totalUsers,
+      subtext: 'Sinh viên, Giảng viên & Quản trị',
       icon: UsersThree,
       color: 'text-blue-400',
       bg: 'from-blue-950/40 to-slate-900 border-blue-800/40',
       href: '/admin/users',
+      roles: ['ADMIN'],
     },
     {
-      title: 'Lượt Gọi Trợ Lý AI RAG',
-      value: stats.activeUsersToday || 1280,
-      subtext: 'Hỏi đáp có trích dẫn số trang',
-      icon: Robot,
+      title: 'Lượt Xem & Đọc Tài Liệu',
+      value: stats.activeUsersToday,
+      subtext: 'Tổng lượt truy cập học thuật',
+      icon: Eye,
       color: 'text-cyan-400',
       bg: 'from-cyan-950/40 to-slate-900 border-cyan-800/40',
-      href: '/ai',
+      href: '/admin/documents',
+      roles: ['ADMIN', 'CONTENT_MANAGER'],
     },
     {
-      title: 'Dung Lượng Lưu Trữ Số',
-      value: `${stats.totalStorageMb || 245.8} MB`,
-      subtext: 'Tài liệu PDF/DOCX trên Storage',
-      icon: HardDrives,
+      title: 'Nhóm Học Tập & Nghiên Cứu',
+      value: stats.totalGroups,
+      subtext: 'Không gian cộng tác học thuật',
+      icon: ChatCircleText,
       color: 'text-amber-400',
       bg: 'from-amber-950/40 to-slate-900 border-amber-800/40',
-      href: '/admin/system',
+      href: '/groups',
+      roles: ['ADMIN', 'CONTENT_MANAGER'],
     },
-  ];
+  ].filter(card => card.roles.includes(user?.role || ''));
 
   return (
     <div className="space-y-8">
@@ -214,41 +218,48 @@ export default function AdminDashboardPage() {
               >
                 <span className="flex items-center gap-2.5">
                   <Books weight="duotone" className="h-4 w-4 text-emerald-400" />
-                  Thêm mới & Quản lý Giáo trình
+                  Quản lý Kho Tài liệu
                 </span>
                 <ArrowRight weight="bold" className="h-3.5 w-3.5 text-slate-400" />
               </Link>
 
               <Link
-                href="/admin/users"
+                href="/admin/moderation"
                 className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-semibold text-slate-200 hover:border-blue-500/50 hover:bg-slate-900 transition-all"
               >
                 <span className="flex items-center gap-2.5">
-                  <UsersThree weight="duotone" className="h-4 w-4 text-blue-400" />
-                  Phân quyền & Khóa tài khoản User
+                  <ShieldCheck weight="duotone" className="h-4 w-4 text-amber-400" />
+                  Hàng đợi Kiểm duyệt
                 </span>
                 <ArrowRight weight="bold" className="h-3.5 w-3.5 text-slate-400" />
               </Link>
 
-              <Link
-                href="/admin/system"
-                className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-semibold text-slate-200 hover:border-blue-500/50 hover:bg-slate-900 transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <Robot weight="duotone" className="h-4 w-4 text-cyan-400" />
-                  Cấu hình Mô hình AI & Upload Limits
-                </span>
-                <ArrowRight weight="bold" className="h-3.5 w-3.5 text-slate-400" />
-              </Link>
+              {isAdmin && (
+                <>
+                  <Link
+                    href="/admin/users"
+                    className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-semibold text-slate-200 hover:border-blue-500/50 hover:bg-slate-900 transition-all"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <UsersThree weight="duotone" className="h-4 w-4 text-blue-400" />
+                      Phân quyền & Khóa tài khoản User
+                    </span>
+                    <ArrowRight weight="bold" className="h-3.5 w-3.5 text-slate-400" />
+                  </Link>
+
+                  <Link
+                    href="/admin/system"
+                    className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-semibold text-slate-200 hover:border-blue-500/50 hover:bg-slate-900 transition-all"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Books weight="duotone" className="h-4 w-4 text-cyan-400" />
+                      Cấu hình Tham số Hệ thống
+                    </span>
+                    <ArrowRight weight="bold" className="h-3.5 w-3.5 text-slate-400" />
+                  </Link>
+                </>
+              )}
             </div>
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <Clock weight="bold" className="h-3.5 w-3.5 text-emerald-400" />
-              Phiên bản: TV-Library Admin v2.5
-            </span>
-            <span className="text-emerald-400 font-bold">Trực tuyến</span>
           </div>
         </div>
       </div>

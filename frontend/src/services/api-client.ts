@@ -100,6 +100,11 @@ class ApiClient {
     if (options.data !== undefined) {
       if (typeof FormData !== 'undefined' && options.data instanceof FormData) {
         body = options.data;
+        for (const key of Object.keys(headers)) {
+          if (key.toLowerCase() === 'content-type') {
+            delete headers[key];
+          }
+        }
       } else {
         headers['Content-Type'] = headers['Content-Type'] || 'application/json';
         body = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
@@ -171,24 +176,24 @@ class ApiClient {
     }
   }
 
-  public get<T = unknown, _R = T>(url: string, options: RequestOptions = {}): Promise<_R extends T ? T : _R> {
-    return this.request<any>(url, { ...options, method: 'GET' });
+  public get<T = unknown>(url: string, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(url, { ...options, method: 'GET' });
   }
 
-  public post<T = unknown, _R = T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<_R extends T ? T : _R> {
-    return this.request<any>(url, { ...options, method: 'POST', data });
+  public post<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(url, { ...options, method: 'POST', data });
   }
 
-  public put<T = unknown, _R = T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<_R extends T ? T : _R> {
-    return this.request<any>(url, { ...options, method: 'PUT', data });
+  public put<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(url, { ...options, method: 'PUT', data });
   }
 
-  public patch<T = unknown, _R = T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<_R extends T ? T : _R> {
-    return this.request<any>(url, { ...options, method: 'PATCH', data });
+  public patch<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(url, { ...options, method: 'PATCH', data });
   }
 
-  public delete<T = unknown, _R = T>(url: string, options: RequestOptions = {}): Promise<_R extends T ? T : _R> {
-    return this.request<any>(url, { ...options, method: 'DELETE' });
+  public delete<T = unknown>(url: string, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(url, { ...options, method: 'DELETE' });
   }
 }
 

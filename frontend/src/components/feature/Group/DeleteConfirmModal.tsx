@@ -61,13 +61,13 @@ export function DeleteConfirmModal({
           Giải tán nhóm học tập?
         </h3>
         <p className="mb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          Hành động này sẽ <strong className="text-red-600 dark:text-red-400">xóa vĩnh viễn</strong> nhóm <strong className="text-slate-900 dark:text-white">"{group.name}"</strong>, toàn bộ tin nhắn trao đổi và tài liệu chia sẻ trong nhóm. Hành động này không thể khôi phục.
+          Hành động này sẽ <strong className="text-red-600 dark:text-red-400">xóa vĩnh viễn</strong> nhóm <strong className="text-slate-900 dark:text-white">&ldquo;{group.name}&rdquo;</strong>, toàn bộ tin nhắn trao đổi và tài liệu chia sẻ trong nhóm. Hành động này không thể khôi phục.
         </p>
 
         <form onSubmit={handleConfirm} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Nhập tên nhóm để xác nhận: <span className="text-emerald-700 dark:text-emerald-400 font-mono font-bold select-all">"{group.name}"</span>
+              Nhập tên nhóm để xác nhận: <span className="text-emerald-700 dark:text-emerald-400 font-mono font-bold select-all">&ldquo;{group.name}&rdquo;</span>
             </label>
             <Input
               type="text"

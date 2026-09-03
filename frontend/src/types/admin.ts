@@ -5,12 +5,19 @@ export interface SystemStats {
   activeUsersToday: number;
 }
 
+export interface RoleOption {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+}
+
 export interface AdminUserRecord {
   id: string;
   email: string;
   fullName: string;
   role: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED' | 'DISABLED';
   joinedAt?: string;
   createdAt?: string;
 }

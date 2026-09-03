@@ -8,32 +8,30 @@ export function UserManagement() {
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getUsers();
-      setUsers(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsers();
+    let active = true;
+    AdminService.getUsers().then((data) => {
+      if (active) setUsers(data);
+    }).catch(console.error).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const handleToggle = async (user: AdminUserRecord) => {
     await AdminService.toggleUserStatus(user.id, user.status);
-    alert(`Mock: Trạng thái tài khoản của ${user.fullName} đã bị thay đổi.`);
-    fetchUsers();
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === user.id ? { ...u, status: u.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE' } : u
+      )
+    );
   };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     await AdminService.updateUserRole(userId, newRole);
-    alert('Mock: Đã cập nhật quyền thành công!');
-    fetchUsers();
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>;

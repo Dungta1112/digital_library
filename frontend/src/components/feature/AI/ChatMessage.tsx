@@ -1,69 +1,146 @@
-import React from 'react';
-import { AIChatMessage } from '@/types/ai';
-import Link from 'next/link';
-import { User, Robot, LinkSimple, CaretRight } from '@phosphor-icons/react';
+'use client';
 
-export function ChatMessage({ message, loading, elapsedMs }: { message: AIChatMessage; loading?: boolean; elapsedMs?: number }) {
+import React, { useState } from 'react';
+import { AIChatMessage, AICitation } from '@/types/ai';
+import { MarkdownMessage } from './MarkdownMessage';
+import {
+  Robot,
+  Copy,
+  Check,
+  ArrowClockwise,
+  BookOpen,
+  WarningCircle,
+  StopCircle,
+} from '@phosphor-icons/react';
+
+interface ChatMessageProps {
+  message: AIChatMessage;
+  onOpenCitations?: (citations: AICitation[]) => void;
+  onRetry?: (messageId: string) => void;
+}
+
+export function ChatMessage({ message, onOpenCitations, onRetry }: ChatMessageProps) {
   const isUser = message.role === 'user';
-  const elapsedSec = elapsedMs !== undefined ? Math.max(1, Math.round(elapsedMs / 1000)) : 0;
-  
-  return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-8`}>
-      <div className={`max-w-[85%] md:max-w-[75%] rounded-3xl p-6 shadow-sm transition-colors duration-300 ${
-        isUser 
-          ? 'bg-emerald-700 text-white rounded-br-sm' 
-          : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm'
-      }`}>
-        <div className="flex items-center mb-3 gap-2.5">
-           {isUser ? (
-             <div className="w-7 h-7 rounded-full bg-emerald-800/50 flex items-center justify-center">
-               <User weight="bold" className="w-4 h-4 text-emerald-100" />
-             </div>
-           ) : (
-             <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-800/50">
-               <Robot weight="duotone" className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-             </div>
-           )}
-           <span className={`text-[11px] font-bold uppercase tracking-wider ${isUser ? 'text-emerald-100' : 'text-slate-500 dark:text-slate-400'}`}>
-             {isUser ? 'Bạn' : 'Trợ lý AI'}
-           </span>
+  const isPending = message.status === 'pending';
+  const isError = message.status === 'error';
+  const isCanceled = message.status === 'canceled';
+  const isInterrupted = message.status === 'interrupted';
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyAll = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  if (isUser) {
+    return (
+      <div className="flex w-full justify-end mb-6">
+        <div className="max-w-[85%] md:max-w-[75%] rounded-3xl bg-slate-100 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 px-5 py-3.5 shadow-sm text-sm md:text-[15px] leading-relaxed break-words">
+          {message.content}
         </div>
-        {loading ? (
-          <div className="flex items-center gap-2 text-[15px] font-medium text-slate-500 dark:text-slate-400">
-            <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            Đang xử lý ({elapsedSec} giây)...
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full justify-start mb-8 group">
+      <div className="w-full">
+        {/* Assistant Header */}
+        <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            <Robot weight="duotone" className="h-3.5 w-3.5" />
+          </div>
+          <span>Trợ lý AI</span>
+        </div>
+
+        {/* Message Body */}
+        {isPending ? (
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 py-3">
+            <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500" />
+            <span>Đang tra cứu tài liệu và chuẩn bị câu trả lời...</span>
           </div>
         ) : (
-          <div className={`whitespace-pre-wrap leading-relaxed text-[15px] ${isUser ? 'text-emerald-50' : 'text-slate-700 dark:text-slate-300'}`}>
-            {message.content}
-          </div>
-        )}
-        
-        {message.citations && message.citations.length > 0 && (
-          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3 transition-colors duration-300">
-            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <LinkSimple weight="bold" className="w-3.5 h-3.5" /> Nguồn trích dẫn
-            </h4>
-            <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar transition-colors duration-300">
-              {message.citations.map(cit => (
-                <Link key={cit.id} href={`/library/document/${cit.documentId}?page=${cit.pageNumber}`} className="shrink-0">
-                  <div className="w-[280px] bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-4 rounded-xl hover:border-emerald-400 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-colors duration-300 group">
-                    <p className="font-semibold text-sm text-slate-800 dark:text-slate-200 line-clamp-1 mb-1.5 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors duration-300">
-                      {cit.documentTitle}
-                    </p>
-                    <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-500 mb-3 tracking-wide">
-                      TRANG {cit.pageNumber}
-                    </p>
-                    <div className="flex gap-2">
-                      <div className="w-1 bg-emerald-400/50 dark:bg-emerald-500/30 rounded-full shrink-0"></div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 italic line-clamp-3 leading-relaxed">
-                        "{cit.textSnippet}"
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+          <div className="space-y-3">
+            <MarkdownMessage content={message.content} />
+
+            {/* Error or Canceled Banner */}
+            {(isError || isCanceled || isInterrupted) && (
+              <div
+                className={`flex items-center justify-between gap-3 rounded-2xl p-3.5 text-xs font-medium ${
+                  isError
+                    ? 'border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400'
+                    : 'border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {isError ? (
+                    <WarningCircle weight="fill" className="h-4 w-4 shrink-0 text-red-500" />
+                  ) : (
+                    <StopCircle weight="fill" className="h-4 w-4 shrink-0 text-amber-500" />
+                  )}
+                  <span>
+                    {isInterrupted
+                      ? 'Lượt trả lời trước bị gián đoạn do tải lại trang.'
+                      : isCanceled
+                      ? 'Yêu cầu phản hồi đã được dừng.'
+                      : message.errorMessage || 'Không thể nhận phản hồi từ mô hình AI.'}
+                  </span>
+                </div>
+
+                {onRetry && (
+                  <button
+                    type="button"
+                    onClick={() => onRetry(message.id)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-current px-3 py-1 text-xs font-bold hover:bg-white/40 dark:hover:bg-black/20 transition-colors shrink-0"
+                  >
+                    <ArrowClockwise weight="bold" className="h-3.5 w-3.5" />
+                    <span>Thử lại</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Citations Preview Tag */}
+            {message.citations && message.citations.length > 0 && onOpenCitations && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => onOpenCitations(message.citations || [])}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 transition-colors shadow-sm"
+                >
+                  <BookOpen weight="duotone" className="h-4 w-4" />
+                  <span>Nguồn tham khảo ({message.citations.length})</span>
+                </button>
+              </div>
+            )}
+
+            {/* Footer Action: Copy Button */}
+            {!isError && !isCanceled && message.content && (
+              <div className="flex items-center gap-3 pt-2 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check weight="bold" className="h-3.5 w-3.5 text-emerald-500" />
+                      <span className="text-emerald-500 font-medium">Đã sao chép</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy weight="bold" className="h-3.5 w-3.5" />
+                      <span>Sao chép toàn bộ</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

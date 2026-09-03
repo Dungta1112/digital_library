@@ -1,4 +1,12 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { ForumCategory } from '@prisma/client';
+import { IsEnum, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { PaginationQueryDto } from '../../common/pagination/pagination.dto';
+
+export class ForumPostQueryDto extends PaginationQueryDto {
+  @IsOptional()
+  @IsEnum(ForumCategory)
+  category?: ForumCategory;
+}
 
 export class CreateForumPostDto {
   @IsString()
@@ -9,6 +17,10 @@ export class CreateForumPostDto {
   @IsString()
   @IsNotEmpty()
   content!: string;
+
+  @IsOptional()
+  @IsEnum(ForumCategory)
+  category?: ForumCategory;
 }
 
 export class UpdateForumPostDto {
@@ -20,6 +32,10 @@ export class UpdateForumPostDto {
   @IsOptional()
   @IsString()
   content?: string;
+
+  @IsOptional()
+  @IsEnum(ForumCategory)
+  category?: ForumCategory;
 }
 
 export class CreateCommentDto {

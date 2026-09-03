@@ -9,27 +9,21 @@ export function SystemConfig() {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  const fetchConfigs = async () => {
-    setLoading(true);
-    try {
-      const data = await AdminService.getSystemConfigs();
-      setConfigs(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchConfigs();
+    let active = true;
+    AdminService.getSystemConfigs().then((data) => {
+      if (active) setConfigs(data);
+    }).catch(console.error).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string) => {
     setConfigs(prev => prev.map(c => c.key === key ? { ...c, value } : c));
   };
 
-  const handleSave = async (key: string, value: any) => {
+  const handleSave = async (key: string, value: string) => {
     setSavingKey(key);
     await AdminService.updateSystemConfig(key, value);
     alert('Mock: Đã lưu cấu hình thành công!');
@@ -73,7 +67,7 @@ export function SystemConfig() {
                             type="checkbox" 
                             className="sr-only peer" 
                             checked={config.value === 'true'}
-                            onChange={(e) => handleChange(config.key, e.target.checked)}
+                            onChange={(e) => handleChange(config.key, e.target.checked ? 'true' : 'false')}
                           />
                           <div className="w-11 h-6 bg-gray-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 transition-colors duration-300"></div>
                         </label>
@@ -82,13 +76,13 @@ export function SystemConfig() {
                           type={config.type} 
                           className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-lg text-sm px-3 py-2 w-32 focus:ring-green-500 focus:border-green-500 transition-colors duration-300"
                           value={String(config.value || '')}
-                          onChange={(e) => handleChange(config.key, config.type === 'number' ? Number(e.target.value) : e.target.value)}
+                          onChange={(e) => handleChange(config.key, e.target.value)}
                         />
                       )}
                       <Button 
                         size="sm"
                         disabled={savingKey === config.key}
-                        onClick={() => handleSave(config.key, config.value)}
+                        onClick={() => handleSave(config.key, String(config.value || ''))}
                         className="shadow-sm"
                       >
                         {savingKey === config.key ? 'Đang lưu...' : 'Lưu'}

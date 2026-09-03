@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {
   Code,
   ChartLineUp,
-  Brain,
   Calculator,
   Translate,
   Briefcase,

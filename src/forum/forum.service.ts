@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, UpdateForumPostDto } from './dto/forum.dto';
+import { CreateCommentDto, CreateForumPostDto, CreateForumReportDto, ForumPostQueryDto, UpdateForumPostDto } from './dto/forum.dto';
 
 const authorInclude = {
     author: { select: { id: true, fullName: true, roles: { select: { role: { select: { code: true } } } } } }
@@ -40,7 +40,7 @@ export class ForumService {
             status: post.status,
             authorName: post.author?.fullName ?? 'Người dùng ẩn danh',
             authorRole: this.roleOf(post.author),
-            category: 'GENERAL',
+            category: post.category ?? 'GENERAL',
             tags: [],
             createdAt: post.createdAt,
             likes: 0,
@@ -49,8 +49,16 @@ export class ForumService {
         };
     }
 
-    async list() {
-        const posts = await this.prisma.forumPost.findMany({ where: { deletedAt: null }, include: postInclude });
+    async list(query?: ForumPostQueryDto) {
+        const where: any = {
+            deletedAt: null,
+            ...(query?.category ? { category: query.category } : {})
+        };
+        const posts = await this.prisma.forumPost.findMany({
+            where,
+            include: postInclude,
+            orderBy: { createdAt: 'desc' }
+        });
         return posts.map((post) => this.mapPost(post));
     }
 
