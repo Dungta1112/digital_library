@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="am2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#am2)"/>
+  <!-- Lightbulb -->
+  <path d="M60 32c-13.2 0-24 10.8-24 24 0 7.8 3.8 14.8 9.6 19.2l2.4 8.8h24l2.4-8.8C78.2 70.8 82 63.8 82 56c0-13.2-10.8-24-22-24z" fill="#fef3c7"/>
+  <path d="M50 88h20M54 94h12" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 44v14M53 54l14-6" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

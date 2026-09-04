@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (user: User, token: string, refreshToken?: string) => void;
+  updateUser: (partialUser: Partial<User>) => void;
+  refreshUser: () => Promise<User | null>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -57,6 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUser = (partialUser: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...partialUser } : null));
+  };
+
+  const refreshUser = async (): Promise<User | null> => {
+    try {
+      const { AuthService } = await import('@/services/auth.service');
+      const freshUser = await AuthService.getCurrentUser();
+      setUser(freshUser);
+      return freshUser;
+    } catch (e) {
+      console.warn('Failed to refresh user', e);
+      return null;
+    }
+  };
+
   const logout = async () => {
     try {
       const { AuthService } = await import('@/services/auth.service');
@@ -72,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, updateUser, refreshUser, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

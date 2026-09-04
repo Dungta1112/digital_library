@@ -1,183 +1,223 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
-import { GroupService } from '@/services/group.service';
-import { StudyGroup } from '@/types/group';
-import { GroupAction } from '@/components/feature/Group/GroupComponents';
-import { useAuthPermission } from '@/hooks/use-auth-permission';
-import { DeleteConfirmModal } from '@/components/feature/Group/DeleteConfirmModal';
+import React, { use, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { ArrowLeft, Lock, Crown, Trash } from '@phosphor-icons/react';
-import { GroupChat } from '@/components/feature/Group/GroupChat';
+import { useGroupWorkspace } from '@/hooks/useGroupWorkspace';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  GroupWorkspaceShell,
+  GroupChat,
+  GroupDocuments,
+  GroupMembers,
+  GroupAbout,
+  DeleteConfirmModal,
+} from '@/components/feature/Group/GroupComponents';
+import { Button } from '@/components/ui/Button';
+import {
+  ArrowLeft,
+  LockKey,
+  MagnifyingGlass,
+  WarningCircle,
+} from '@phosphor-icons/react';
+
+function GroupDetailContent({ groupId }: { groupId: string }) {
+  const { user } = useAuth();
+  const {
+    group,
+    loading,
+    error,
+    isNotFound,
+    isForbidden,
+    activeTab,
+    setActiveTab,
+    isOwner,
+    isMember,
+    canManageDocs,
+    canDeleteGroup,
+    handleJoin,
+    handleLeave,
+    handleDelete,
+    refresh,
+    isActionLoading,
+  } = useGroupWorkspace(groupId);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await handleDelete();
+    } catch (err) {
+      console.error(err);
+      setIsDeleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950">
+        <div className="hidden md:block w-60 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse" />
+        <div className="flex-1 flex flex-col">
+          <div className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse" />
+          <div className="flex-1 p-6 space-y-4">
+            <div className="h-10 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isNotFound) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-xl">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MagnifyingGlass weight="duotone" className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Không tìm thấy nhóm học tập
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Nhóm học tập này có thể đã ngừng hoạt động hoặc đường dẫn không chính xác.
+          </p>
+          <Link href="/groups">
+            <Button className="h-11 px-6 text-xs font-bold rounded-xl flex items-center gap-2 mx-auto">
+              <ArrowLeft weight="bold" className="w-4 h-4" />
+              <span>Quay lại danh sách nhóm</span>
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isForbidden) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-xl">
+          <div className="w-16 h-16 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <LockKey weight="duotone" className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Không có quyền truy cập
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Nhóm học tập này được bảo vệ hoặc ở chế độ riêng tư. Bạn cần là thành viên chính thức để xem nội dung.
+          </p>
+          <Link href="/groups">
+            <Button variant="secondary" className="h-11 px-6 text-xs font-bold rounded-xl flex items-center gap-2 mx-auto">
+              <ArrowLeft weight="bold" className="w-4 h-4" />
+              <span>Khám phá nhóm khác</span>
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !group) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-xl">
+          <div className="w-16 h-16 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <WarningCircle weight="duotone" className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Lỗi khi tải thông tin nhóm
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            {error}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link href="/groups">
+              <Button variant="secondary" className="h-10 px-5 text-xs font-semibold rounded-xl">
+                Quay lại
+              </Button>
+            </Link>
+            <Button onClick={() => refresh()} className="h-10 px-5 text-xs font-bold rounded-xl">
+              Thử lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!group) return null;
+
+  return (
+    <>
+      <GroupWorkspaceShell
+        group={group}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        canDeleteGroup={canDeleteGroup}
+        onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
+        isMember={isMember}
+      >
+        {activeTab === 'discussion' && (
+          <GroupChat
+            groupId={group.id}
+            isMember={isMember}
+            onOpenDocuments={() => setActiveTab('documents')}
+          />
+        )}
+
+        {activeTab === 'documents' && (
+          <GroupDocuments
+            groupId={group.id}
+            canManageDocs={canManageDocs}
+            isMember={isMember}
+          />
+        )}
+
+        {activeTab === 'members' && (
+          <GroupMembers
+            group={group}
+            currentUserId={user?.id}
+            isOwner={isOwner}
+            isMember={isMember}
+            onRefresh={refresh}
+            onLeaveGroup={handleLeave}
+          />
+        )}
+
+        {activeTab === 'about' && (
+          <GroupAbout
+            group={group}
+            isMember={isMember}
+            onJoin={handleJoin}
+            isActionLoading={isActionLoading}
+          />
+        )}
+      </GroupWorkspaceShell>
+
+      {/* Delete Group Modal */}
+      <DeleteConfirmModal
+        group={group}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        loading={isDeleting}
+      />
+    </>
+  );
+}
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-    const router = useRouter();
-    const { canDeleteGroup } = useAuthPermission();
-    const [group, setGroup] = useState<StudyGroup | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [deleting, setDeleting] = useState(false);
+  const { id } = use(params);
 
-    useEffect(() => {
-        GroupService.getGroupById(id).then(g => {
-            if (!g) notFound();
-            setGroup(g);
-            setLoading(false);
-        });
-    }, [id]);
-
-    const handleConfirmDelete = async () => {
-        if (!group) return;
-        setDeleting(true);
-        try {
-            await GroupService.deleteGroup(group.id);
-            setIsDeleteModalOpen(false);
-            router.push('/groups');
-        } catch (error: unknown) {
-            console.error('Lỗi khi giải tán nhóm:', error);
-            alert(error instanceof Error ? error.message : 'Không thể giải tán nhóm, vui lòng thử lại sau.');
-            setDeleting(false);
-        }
-    };
-
-    if (loading || !group) {
-        return (
-            <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
-                <div className="w-72 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 animate-pulse" />
-                <div className="flex-1 animate-pulse bg-gray-50/50 dark:bg-slate-950" />
-            </div>
-        );
-    }
-
-    const gradients = [
-        'from-emerald-400 to-cyan-500',
-        'from-emerald-500 to-teal-600',
-        'from-teal-400 to-emerald-600',
-        'from-cyan-400 to-emerald-500',
-    ];
-    const gradientIdx = group.name.length % gradients.length;
-    const groupGradient = gradients[gradientIdx];
-
-    const hasDeletePermission = canDeleteGroup(group);
-
-    return (
-        <div className="flex h-[calc(100vh-73px)] w-full overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
-            {/* Left Sidebar */}
-            <div className="w-72 bg-gray-50 dark:bg-slate-900 flex flex-col flex-shrink-0 border-r border-gray-200 dark:border-slate-800">
-                {/* Header */}
-                <div className="h-12 px-4 flex items-center justify-between border-b border-gray-200 dark:border-slate-800 flex-shrink-0">
-                    <Link href="/groups" className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                        <ArrowLeft weight="bold" className="w-4 h-4" />
-                        Nhóm học tập
-                    </Link>
-                    {hasDeletePermission && (
-                        <button
-                            type="button"
-                            onClick={() => setIsDeleteModalOpen(true)}
-                            title="Giải tán nhóm"
-                            className="flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                        >
-                            <Trash weight="bold" className="w-3.5 h-3.5" /> Giải tán nhóm
-                        </button>
-                    )}
-                </div>
-
-                {/* Group Info & Members List (Scrollable) */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
-                    {/* Group Avatar + Info */}
-                    <div className="mb-6">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${groupGradient} flex items-center justify-center text-white text-lg font-bold mb-3 shadow-sm`}>
-                            {group.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md mb-2 inline-block">
-                            {group.topic === 'GENERAL' || group.topic === 'Chung' ? 'Nhóm công khai' : 'Nhóm riêng tư'}
-                        </span>
-                        <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5 leading-tight">
-                            {group.name}
-                        </h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {group.description || 'Chưa có mô tả cho nhóm học tập này.'}
-                        </p>
-                    </div>
-
-                    {!group.isJoined && (
-                        <div className="mb-6">
-                            <GroupAction group={group} onJoinSuccess={() => setGroup({ ...group, isJoined: true, membersCount: group.membersCount + 1 })} />
-                        </div>
-                    )}
-
-                    {/* Members */}
-                    <div className="mt-4">
-                        <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center justify-between">
-                            Thành viên <span className="text-gray-300 dark:text-gray-600">{group.membersCount}</span>
-                        </h3>
-                        <div className="space-y-0.5">
-                            {group.members?.map((m, idx) => {
-                                const memberGradients = [
-                                    'from-emerald-400 to-cyan-500',
-                                    'from-teal-400 to-emerald-500',
-                                    'from-cyan-400 to-teal-500',
-                                    'from-emerald-500 to-green-600',
-                                ];
-                                const mGrad = memberGradients[idx % memberGradients.length];
-
-                                return (
-                                    <div key={m.id} className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-200/50 dark:hover:bg-slate-800/80 rounded-lg cursor-pointer group/member transition-colors">
-                                        <div className="relative">
-                                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${mGrad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                                                {m.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-50 dark:border-slate-900 rounded-full animate-pulse" />
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate group-hover/member:text-gray-900 dark:group-hover/member:text-white transition-colors">
-                                                {m.name}
-                                            </span>
-                                            {m.role === 'ADMIN' && (
-                                                <span className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
-                                                    <Crown weight="fill" className="w-3 h-3" />
-                                                    Trưởng nhóm
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-950">
-                {group.isJoined ? (
-                    <GroupChat groupId={group.id} />
-                ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center p-8 max-w-sm">
-                            <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Lock weight="duotone" className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                            </div>
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chỉ dành cho thành viên</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                Tham gia nhóm để xem thảo luận và trò chuyện cùng các thành viên.
-                            </p>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Delete Confirmation Modal */}
-            <DeleteConfirmModal
-                group={group}
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={handleConfirmDelete}
-                loading={deleting}
-            />
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 items-center justify-center">
+          <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
         </div>
-    );
+      }
+    >
+      <GroupDetailContent groupId={id} />
+    </Suspense>
+  );
 }

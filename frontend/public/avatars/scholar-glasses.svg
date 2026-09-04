@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="em2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#em2)"/>
+  <!-- Glasses -->
+  <circle cx="44" cy="60" r="16" fill="none" stroke="#f0fdf4" stroke-width="4.5"/>
+  <circle cx="76" cy="60" r="16" fill="none" stroke="#f0fdf4" stroke-width="4.5"/>
+  <path d="M60 60h0M60 58c-2 0-3 2-3 2h6s-1-2-3-2z" fill="#f0fdf4"/>
+  <path d="M56 58h8" stroke="#f0fdf4" stroke-width="4" stroke-linecap="round"/>
+  <path d="M28 58l-8-8M92 58l8-8" stroke="#f0fdf4" stroke-width="4" stroke-linecap="round"/>
+</svg>

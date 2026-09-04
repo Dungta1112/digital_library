@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="vi3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#3b0764"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#vi3)"/>
+  <!-- Planet & Orbit -->
+  <circle cx="60" cy="60" r="16" fill="#f3e8ff"/>
+  <ellipse cx="60" cy="60" rx="36" ry="12" transform="rotate(-30 60 60)" fill="none" stroke="#e9d5ff" stroke-width="3.5"/>
+  <circle cx="84" cy="46" r="4" fill="#f5f3ff"/>
+</svg>

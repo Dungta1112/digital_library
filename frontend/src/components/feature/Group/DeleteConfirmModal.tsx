@@ -22,7 +22,7 @@ export function DeleteConfirmModal({
   loading = false,
 }: DeleteConfirmModalProps) {
   const [typedName, setTypedName] = useState('');
-  const isMatch = typedName.trim() === group.name.trim();
+  const isMatch = typedName.trim().toLowerCase() === group.name.trim().toLowerCase();
 
   if (!isOpen) return null;
 
@@ -57,11 +57,11 @@ export function DeleteConfirmModal({
         </div>
 
         {/* Title & Warning description */}
-        <h3 className="mb-2 text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">
-          Giải tán nhóm học tập?
+        <h3 className="mb-2 text-xl sm:text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+          Giải tán phòng học nhóm?
         </h3>
-        <p className="mb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-          Hành động này sẽ <strong className="text-red-600 dark:text-red-400">xóa vĩnh viễn</strong> nhóm <strong className="text-slate-900 dark:text-white">&ldquo;{group.name}&rdquo;</strong>, toàn bộ tin nhắn trao đổi và tài liệu chia sẻ trong nhóm. Hành động này không thể khôi phục.
+        <p className="mb-6 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          Nhóm học tập <strong className="text-slate-900 dark:text-white">&ldquo;{group.name}&rdquo;</strong> sẽ được chuyển sang trạng thái ngừng hoạt động và không còn xuất hiện trong danh sách nhóm. Các tài liệu gốc trên Thư viện số của trường vẫn được lưu trữ an toàn.
         </p>
 
         <form onSubmit={handleConfirm} className="space-y-4">
@@ -75,7 +75,8 @@ export function DeleteConfirmModal({
               onChange={(e) => setTypedName(e.target.value)}
               placeholder="Nhập chính xác tên nhóm..."
               disabled={loading}
-              className="h-12 w-full rounded-xl border-slate-200 bg-slate-50 text-sm font-medium focus:border-red-500 focus:ring-red-500/20 dark:border-slate-800 dark:bg-slate-950/60"
+              className="h-11 w-full rounded-xl text-sm"
+              autoFocus
             />
           </div>
 
@@ -85,14 +86,14 @@ export function DeleteConfirmModal({
               variant="secondary"
               onClick={handleClose}
               disabled={loading}
-              className="w-full sm:w-auto h-12 px-6 rounded-xl border-slate-200 font-bold dark:border-slate-700 text-slate-700 dark:text-slate-300"
+              className="w-full sm:w-auto h-11 px-5 rounded-xl font-semibold"
             >
               Hủy bỏ
             </Button>
             <Button
               type="submit"
               disabled={!isMatch || loading}
-              className="w-full sm:w-auto h-12 px-6 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-11 px-5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <Trash weight="bold" className="h-4 w-4" />
               {loading ? 'Đang giải tán...' : 'Xác nhận giải tán nhóm'}

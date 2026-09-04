@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="am3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#am3)"/>
+  <!-- Compass -->
+  <circle cx="60" cy="38" r="6" fill="#fef3c7"/>
+  <path d="M56 42l-18 46M64 42l18 46" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 64h28" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+</svg>

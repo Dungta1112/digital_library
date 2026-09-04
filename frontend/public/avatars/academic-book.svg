@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="em1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#em1)"/>
+  <!-- Open Book Icon -->
+  <path d="M30 42c0-4.4 3.6-8 8-8h22v48H38c-4.4 0-8-3.6-8-8V42zm60 0v32c0 4.4-3.6 8-8 8H60V34h22c4.4 0 8 3.6 8 8z" fill="#ecfdf5" opacity="0.95"/>
+  <path d="M60 34v48" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <path d="M40 50h12M40 60h12M68 50h12M68 60h12" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

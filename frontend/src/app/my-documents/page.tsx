@@ -8,8 +8,8 @@ import { apiClient } from '@/services/api-client';
 import { LibraryService } from '@/services/library.service';
 import type { Document } from '@/types/library';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { IngestStatusBadge } from '@/components/feature/Library/IngestStatusBadge';
+import { UploadDocumentDialog } from '@/components/feature/Document/UploadDocumentDialog';
 import { 
   UploadSimple, 
   Folder, 
@@ -17,7 +17,6 @@ import {
   Download, 
   Trash, 
   Files, 
-  X,
   BookmarkSimple,
   BookOpen,
 } from '@phosphor-icons/react';
@@ -43,13 +42,6 @@ export default function MyDocumentsPage() {
   const [favoriteDocs, setFavoriteDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadMsg, setUploadMsg] = useState('');
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -94,49 +86,10 @@ export default function MyDocumentsPage() {
       if (active) setLoading(false);
     });
 
-    LibraryService.getCategories().then((cats) => {
-      if (active) setCategories(cats);
-    });
-
     return () => {
       active = false;
     };
   }, [user, currentTab, canUpload]);
-
-  const handleUpload = async () => {
-    if (!title.trim()) {
-      setUploadMsg('Lỗi: Vui lòng nhập tiêu đề tài liệu');
-      return;
-    }
-    setUploading(true);
-    setUploadMsg('');
-    try {
-      const formData = new FormData();
-      formData.append('title', title);
-      if (description) formData.append('description', description);
-      if (categoryId) formData.append('categoryId', categoryId);
-      if (file) formData.append('file', file);
-
-      if (file && !file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
-        setUploadMsg('Lỗi: Chỉ chấp nhận định dạng tệp PDF');
-        setUploading(false);
-        return;
-      }
-
-      await apiClient.post('/lecturer/documents', formData);
-      setUploadMsg('Tải lên thành công! Tài liệu đang chờ duyệt.');
-      setTitle('');
-      setDescription('');
-      setCategoryId('');
-      setFile(null);
-      setShowUpload(false);
-      fetchUploaded();
-    } catch (e: unknown) {
-      setUploadMsg('Lỗi: ' + (e instanceof Error ? e.message : 'Không thể tải lên'));
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleDelete = async (docId: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
@@ -186,18 +139,10 @@ export default function MyDocumentsPage() {
 
           {canUpload && activeTab === 'uploaded' && (
             <Button 
-              onClick={() => setShowUpload(!showUpload)} 
-              className={`font-semibold shadow-sm rounded-xl h-12 px-6 flex items-center gap-2 active:scale-[0.98] transition-all ${
-                showUpload 
-                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700' 
-                  : 'bg-emerald-700 hover:bg-emerald-800 text-white'
-              }`}
+              onClick={() => setShowUpload(true)} 
+              className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-sm rounded-xl h-12 px-6 flex items-center gap-2 active:scale-[0.98] transition-all"
             >
-              {showUpload ? (
-                <><X weight="bold" className="w-5 h-5" /> Đóng</>
-              ) : (
-                <><UploadSimple weight="bold" className="w-5 h-5" /> Tải lên tài liệu</>
-              )}
+              <UploadSimple weight="bold" className="w-5 h-5" /> Tải lên tài liệu
             </Button>
           )}
         </div>
@@ -228,83 +173,12 @@ export default function MyDocumentsPage() {
           </div>
         )}
 
-        {/* Upload Form */}
-        {showUpload && canUpload && activeTab === 'uploaded' && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-8 mb-8 animate-in slide-in-from-top-4 fade-in duration-300 transition-colors">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3 tracking-tight">
-              <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-800/50">
-                <UploadSimple weight="bold" className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
-              </div>
-              Tải lên tài liệu mới
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tiêu đề <span className="text-red-500">*</span></label>
-                <Input 
-                  value={title} 
-                  onChange={e => setTitle(e.target.value)} 
-                  placeholder="Nhập tiêu đề tài liệu" 
-                  className="w-full h-12 bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mô tả</label>
-                <textarea 
-                  value={description} 
-                  onChange={e => setDescription(e.target.value)} 
-                  placeholder="Mô tả ngắn về tài liệu..."
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none shadow-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Chuyên mục</label>
-                <select 
-                  value={categoryId} 
-                  onChange={e => setCategoryId(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
-                >
-                  <option value="">-- Chọn chuyên mục --</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tệp đính kèm (PDF)</label>
-                <input 
-                  type="file" 
-                  accept=".pdf"
-                  onChange={e => setFile(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-900/20 dark:file:text-emerald-400 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/40 file:cursor-pointer file:transition-colors"
-                />
-              </div>
-            </div>
-
-            {uploadMsg && (
-              <div className={`mt-6 p-4 rounded-xl text-sm font-medium border ${uploadMsg.startsWith('Lỗi') ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50' : 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50'} transition-colors duration-300`}>
-                {uploadMsg}
-              </div>
-            )}
-
-            <div className="mt-8 flex gap-3">
-              <Button 
-                onClick={handleUpload} 
-                disabled={uploading} 
-                className="font-semibold shadow-sm bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl px-8 h-11 active:scale-[0.98] transition-all"
-              >
-                {uploading ? 'Đang tải lên...' : 'Tải lên'}
-              </Button>
-              <Button 
-                variant="secondary" 
-                onClick={() => setShowUpload(false)}
-                className="rounded-xl h-11 font-medium"
-              >
-                Hủy
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Upload Document Dialog */}
+        <UploadDocumentDialog
+          isOpen={showUpload}
+          onClose={() => setShowUpload(false)}
+          onSuccess={fetchUploaded}
+        />
 
         {/* Content list */}
         {loading ? (
