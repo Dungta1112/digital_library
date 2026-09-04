@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="vi1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#vi1)"/>
+  <!-- AI Spark -->
+  <path d="M60 28c0 17.6 14.4 32 32 32-17.6 0-32 14.4-32 32 0-17.6-14.4-32-32-32 17.6 0 32-14.4 32-32z" fill="#f5f3ff"/>
+  <circle cx="84" cy="38" r="4" fill="#ddd6fe"/>
+  <circle cx="36" cy="78" r="3" fill="#ddd6fe"/>
+</svg>

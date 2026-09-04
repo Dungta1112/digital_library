@@ -64,3 +64,10 @@ export interface ReadingProgressItem {
   totalPdfPages?: number;
   updatedAt: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
+

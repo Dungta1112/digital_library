@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="vi2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#2e1065"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#vi2)"/>
+  <!-- Math Pi -->
+  <path d="M34 44c4-2 10-4 18-4h36c4 0 8 2 8 4" stroke="#f5f3ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M48 44v38c0 4-2 6-6 6" stroke="#f5f3ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M72 44v44" stroke="#f5f3ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>

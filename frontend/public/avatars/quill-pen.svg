@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="em3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#em3)"/>
+  <!-- Quill Pen -->
+  <path d="M84 32c-20 4-38 22-44 44l12 12c22-6 40-24 44-44-4-8-8-12-12-12z" fill="#ecfdf5"/>
+  <path d="M40 76l-8 14 14-8" fill="#047857"/>
+  <path d="M50 68l24-24" stroke="#047857" stroke-width="3" stroke-linecap="round"/>
+</svg>

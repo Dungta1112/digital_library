@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="nv1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#nv1)"/>
+  <!-- Data Chart / Scientist -->
+  <rect x="32" y="64" width="10" height="24" rx="2" fill="#eff6ff"/>
+  <rect x="48" y="48" width="10" height="40" rx="2" fill="#93c5fd"/>
+  <rect x="64" y="36" width="10" height="52" rx="2" fill="#eff6ff"/>
+  <rect x="80" y="52" width="10" height="36" rx="2" fill="#93c5fd"/>
+  <path d="M37 60l16-14 16-10 16 14" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

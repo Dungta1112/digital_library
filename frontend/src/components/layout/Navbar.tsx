@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { QuickSearchModal } from '@/components/feature/Home/QuickSearchModal';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { MagnifyingGlass, Command } from '@phosphor-icons/react';
 
 export function Navbar() {
@@ -148,19 +149,30 @@ export function Navbar() {
                       {user.role}
                     </span>
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-600 font-bold text-xs text-white shadow-xs">
-                    {user.fullName.charAt(0).toUpperCase()}
-                  </div>
+                  <UserAvatar
+                    avatarUrl={user.avatarUrl}
+                    name={user.fullName}
+                    size="sm"
+                    className="w-7 h-7 rounded-xl"
+                  />
                 </button>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-slate-100 bg-white py-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900 animate-fadeIn">
-                    <div className="mb-1 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.fullName}</p>
-                      <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{user.email}</p>
-                      <span className="mt-1 inline-block rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-                        {user.role}
-                      </span>
+                    <div className="mb-1 border-b border-slate-100 px-4 py-3 dark:border-slate-800 flex items-center gap-3">
+                      <UserAvatar
+                        avatarUrl={user.avatarUrl}
+                        name={user.fullName}
+                        size="md"
+                        className="rounded-xl"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.fullName}</p>
+                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{user.email}</p>
+                        <span className="mt-1 inline-block rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+                          {user.role}
+                        </span>
+                      </div>
                     </div>
 
                     <Link

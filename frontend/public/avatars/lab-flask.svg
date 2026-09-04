@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="nv3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0c4a6e"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#nv3)"/>
+  <!-- Lab Flask -->
+  <path d="M54 32h12v16l20 32c2 3 0 8-4 8H38c-4 0-6-5-4-8l20-32V32z" fill="#f0f9ff"/>
+  <path d="M43 72l7-12h20l7 12c1 2 0 4-2 4H45c-2 0-3-2-2-4z" fill="#38bdf8"/>
+  <circle cx="56" cy="74" r="3" fill="#f0f9ff"/>
+  <circle cx="68" cy="70" r="2" fill="#f0f9ff"/>
+</svg>

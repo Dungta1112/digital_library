@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="vi4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#581c87"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="36" fill="url(#vi4)"/>
+  <!-- Neural Network -->
+  <line x1="38" y1="44" x2="60" y2="34" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="38" y1="44" x2="60" y2="60" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="38" y1="76" x2="60" y2="60" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="38" y1="76" x2="60" y2="86" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="60" y1="34" x2="82" y2="60" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="60" y1="60" x2="82" y2="60" stroke="#e9d5ff" stroke-width="2.5"/>
+  <line x1="60" y1="86" x2="82" y2="60" stroke="#e9d5ff" stroke-width="2.5"/>
+  <circle cx="38" cy="44" r="6" fill="#f5f3ff"/>
+  <circle cx="38" cy="76" r="6" fill="#f5f3ff"/>
+  <circle cx="60" cy="34" r="6" fill="#f5f3ff"/>
+  <circle cx="60" cy="60" r="7" fill="#ffffff"/>
+  <circle cx="60" cy="86" r="6" fill="#f5f3ff"/>
+  <circle cx="82" cy="60" r="7" fill="#ffffff"/>
+</svg>
