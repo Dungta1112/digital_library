@@ -15,6 +15,7 @@ export default function AdminSystemPage() {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -23,7 +24,7 @@ export default function AdminSystemPage() {
         if (active) setConfigs(data);
       })
       .catch((e) => {
-        console.error('Lỗi tải cấu hình:', e);
+        if (active) setErrorMsg(e instanceof Error ? e.message : 'Không thể tải cấu hình hệ thống.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -31,7 +32,7 @@ export default function AdminSystemPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleValueChange = (key: string, newValue: string) => {
     setConfigs((prev) =>
@@ -74,9 +75,10 @@ export default function AdminSystemPage() {
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2 rounded-2xl bg-red-950/60 border border-red-800/60 p-4 text-xs font-bold text-red-400 animate-fadeIn">
+        <div role="alert" className="flex items-center gap-2 rounded-2xl bg-red-950/60 border border-red-800/60 p-4 text-xs font-bold text-red-400 animate-fadeIn">
           <WarningCircle weight="fill" className="h-4 w-4" />
           <span>{errorMsg}</span>
+          {!loading && configs.length === 0 && <button type="button" onClick={() => { setErrorMsg(''); setLoading(true); setReloadKey((value) => value + 1); }} className="ml-auto underline">Thử lại</button>}
         </div>
       )}
 
@@ -86,7 +88,7 @@ export default function AdminSystemPage() {
           <div className="p-8 text-center text-xs text-slate-500">
             Đang tải cấu hình hệ thống...
           </div>
-        ) : (
+        ) : errorMsg && configs.length === 0 ? null : (
           configs.map((config) => (
             <div
               key={config.key}

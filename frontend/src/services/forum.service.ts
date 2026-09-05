@@ -1,5 +1,5 @@
-import { apiClient } from './api-client';
-import type { ForumPost, ForumComment } from '../types/forum';
+import { apiClient, getErrorStatus } from './api-client';
+import type { ForumPost, ForumComment, ForumCategory } from '../types/forum';
 
 interface ApiForumAuthor {
   id?: string;
@@ -25,7 +25,7 @@ interface ApiForumPost {
   id: string;
   title: string;
   content: string;
-  category?: string;
+  category?: ForumCategory;
   authorId?: string;
   author?: ApiForumAuthor;
   authorName?: string;
@@ -48,23 +48,24 @@ function extractRole(author?: ApiForumAuthor): string {
       if ('code' in r && r.code) return r.code;
     }
   }
-  return 'STUDENT';
+  return 'UNKNOWN';
 }
 
-function normalizeComment(comment: ApiForumComment, postId: string): ForumComment {
+export function normalizeComment(comment: ApiForumComment, postId: string): ForumComment {
   return {
     id: comment.id,
     postId: comment.postId || postId,
-    authorName: comment.authorName || comment.author?.fullName || 'Người dùng',
+    authorId: comment.authorId || comment.author?.id,
+    authorName: comment.authorName || comment.author?.fullName || 'Chưa cập nhật',
     authorRole: comment.authorRole || extractRole(comment.author),
     content: comment.content,
-    createdAt: comment.createdAt || new Date().toISOString(),
-    likes: comment.likes || 0,
+    createdAt: comment.createdAt || undefined,
+    likes: comment.likes ?? 0,
   };
 }
 
-function normalizePost(post: ApiForumPost): ForumPost {
-  const authorName = post.authorName || post.author?.fullName || 'Người dùng';
+export function normalizePost(post: ApiForumPost): ForumPost {
+  const authorName = post.authorName || post.author?.fullName || 'Chưa cập nhật';
   const authorRole = post.authorRole || extractRole(post.author);
   const commentsCount = post.commentsCount ?? post._count?.comments ?? post.comments?.length ?? 0;
   const comments = (post.comments || []).map((c) => normalizeComment(c, post.id));
@@ -73,11 +74,12 @@ function normalizePost(post: ApiForumPost): ForumPost {
     id: post.id,
     title: post.title,
     content: post.content,
+    authorId: post.authorId || post.author?.id,
     authorName,
     authorRole,
-    category: post.category || 'Chung',
-    tags: post.tags || ['Thảo luận'],
-    createdAt: post.createdAt || new Date().toISOString(),
+    category: post.category || 'GENERAL',
+    tags: post.tags || [],
+    createdAt: post.createdAt || undefined,
     likes: post.likes ?? post._count?.likes ?? 0,
     commentsCount,
     comments,
@@ -85,36 +87,30 @@ function normalizePost(post: ApiForumPost): ForumPost {
 }
 
 export const ForumService = {
-  async getPosts(category?: string): Promise<ForumPost[]> {
-    try {
-      const params: Record<string, string> = {};
-      if (category && category !== 'All' && category !== 'Tất cả') {
-        params.category = category;
-      }
-
-      const response = await apiClient.get<ApiForumPost[] | { items: ApiForumPost[] }>(
-        '/forum/posts',
-        { params }
-      );
-      const items = Array.isArray(response) ? response : response?.items || [];
-      return items.map(normalizePost);
-    } catch (e) {
-      console.error('Lỗi khi tải bài viết diễn đàn:', e);
-      return [];
+  async getPosts(category?: string, signal?: AbortSignal): Promise<ForumPost[]> {
+    const params: Record<string, string> = {};
+    if (category && category !== 'All' && category !== 'Tất cả') {
+      params.category = category;
     }
+
+    const response = signal
+      ? await apiClient.get<ApiForumPost[] | { items: ApiForumPost[] }>('/forum/posts', { params, signal })
+      : await apiClient.get<ApiForumPost[] | { items: ApiForumPost[] }>('/forum/posts', { params });
+    const items = Array.isArray(response) ? response : response?.items || [];
+    return items.map(normalizePost);
   },
 
-  async getPostById(id: string): Promise<ForumPost | null> {
+  async getPostById(id: string, signal?: AbortSignal): Promise<ForumPost | null> {
     try {
-      const post = await apiClient.get<ApiForumPost>(`/forum/posts/${id}`);
+      const post = await apiClient.get<ApiForumPost>(`/forum/posts/${id}`, { signal });
       return post ? normalizePost(post) : null;
     } catch (error) {
-      console.error(`Lỗi khi lấy chi tiết bài viết ${id}:`, error);
-      return null;
+      if (getErrorStatus(error) === 404) return null;
+      throw error;
     }
   },
 
-  async createPost(title: string, content: string, category: string = 'GENERAL'): Promise<ForumPost> {
+  async createPost(title: string, content: string, category: ForumCategory = 'GENERAL'): Promise<ForumPost> {
     const post = await apiClient.post<ApiForumPost>('/forum/posts', {
       title: title.trim(),
       content: content.trim(),
@@ -132,5 +128,12 @@ export const ForumService = {
 
   async deleteComment(postId: string, commentId: string): Promise<void> {
     await apiClient.delete(`/forum/posts/${postId}/comments/${commentId}`);
+  },
+
+  async deletePost(postId: string, useModerationEndpoint = false): Promise<void> {
+    const path = useModerationEndpoint
+      ? `/content/forum/posts/${postId}`
+      : `/forum/posts/${postId}`;
+    await apiClient.delete(path);
   },
 };

@@ -2,81 +2,39 @@
 
 import { create } from 'zustand';
 import { ForumService } from '@/services/forum.service';
-import { ForumPost } from '@/types/forum';
-
-export type ReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
-
-export interface PostReactionState {
-  myReaction?: ReactionType;
-  counts: Record<ReactionType, number>;
-  total: number;
-}
+import { ForumCategory, ForumPost } from '@/types/forum';
 
 interface ForumState {
   posts: ForumPost[];
   loading: boolean;
   error: string | null;
-  // Reactions local storage mapping
-  reactions: Record<string, PostReactionState>;
-  // Active drafts
   drafts: { title: string; content: string };
   
   // Actions
   fetchPosts: (category?: string) => Promise<void>;
-  createPost: (title: string, content: string, category?: string) => Promise<ForumPost | null>;
-  deletePost: (postId: string) => Promise<boolean>;
+  createPost: (title: string, content: string, category?: ForumCategory) => Promise<ForumPost | null>;
+  deletePost: (postId: string, useModerationEndpoint?: boolean) => Promise<boolean>;
   addComment: (postId: string, content: string) => Promise<void>;
   deleteComment: (postId: string, commentId: string) => Promise<void>;
   
-  // Local Reaction toggle action (Optimistic UI)
-  setReaction: (postId: string, reaction: ReactionType | undefined) => void;
-  
-  // Draft Actions
-  saveDraft: (title: string, content: string) => void;
-  clearDraft: () => void;
-  loadDraft: () => void;
+  saveDraft: (userId: string, title: string, content: string) => void;
+  clearDraft: (userId: string) => void;
+  loadDraft: (userId: string) => void;
 }
 
-export const useForumStore = create<ForumState>((set, get) => ({
+const draftKey = (userId: string) => `tvu_forum_feed_draft_${userId}`;
+
+export const useForumStore = create<ForumState>((set) => ({
   posts: [],
   loading: false,
   error: null,
-  reactions: {},
   drafts: { title: '', content: '' },
 
   fetchPosts: async (category) => {
     set({ loading: true, error: null });
     try {
       const posts = await ForumService.getPosts(category);
-      
-      // Initialize reactions randomly/mock if not present in localStorage to make it lively
-      const storedReactions = typeof window !== 'undefined' ? localStorage.getItem('forum_reactions_v1') : null;
-      const localReactions = storedReactions ? JSON.parse(storedReactions) : {};
-      
-      const newReactions = { ...localReactions };
-      posts.forEach(post => {
-        if (!newReactions[post.id]) {
-          // Generate a base count using the post.likes count
-          const baseLikes = post.likes || 0;
-          newReactions[post.id] = {
-            myReaction: undefined,
-            counts: {
-              like: baseLikes > 0 ? Math.ceil(baseLikes * 0.6) : 0,
-              love: baseLikes > 0 ? Math.floor(baseLikes * 0.3) : 0,
-              haha: 0,
-              wow: baseLikes > 0 ? Math.floor(baseLikes * 0.1) : 0,
-              sad: 0,
-              angry: 0,
-            },
-            total: baseLikes
-          };
-        }
-      });
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('forum_reactions_v1', JSON.stringify(newReactions));
-      }
-      set({ posts, reactions: newReactions, loading: false });
+      set({ posts, loading: false });
     } catch (err: unknown) {
       set({ error: err instanceof Error ? err.message : 'Lỗi khi tải bài viết', loading: false });
     }
@@ -86,26 +44,10 @@ export const useForumStore = create<ForumState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newPost = await ForumService.createPost(title, content, category);
-      
-      // Initialize reactions for new post
-      const updatedReactions = { ...get().reactions };
-      updatedReactions[newPost.id] = {
-        myReaction: undefined,
-        counts: { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 },
-        total: 0
-      };
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('forum_reactions_v1', JSON.stringify(updatedReactions));
-      }
-      
       set(state => ({
         posts: [newPost, ...state.posts],
-        reactions: updatedReactions,
         loading: false
       }));
-      
-      get().clearDraft();
       return newPost;
     } catch (err: unknown) {
       set({ error: err instanceof Error ? err.message : 'Lỗi khi tạo bài viết', loading: false });
@@ -113,16 +55,17 @@ export const useForumStore = create<ForumState>((set, get) => ({
     }
   },
 
-  deletePost: async (postId) => {
+  deletePost: async (postId, useModerationEndpoint = false) => {
+    set({ error: null });
     try {
-      await ForumService.getPostById(postId);
+      await ForumService.deletePost(postId, useModerationEndpoint);
       
       set(state => ({
         posts: state.posts.filter(p => p.id !== postId)
       }));
       return true;
-    } catch (err) {
-      console.error('Delete post error:', err);
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'Không thể xóa bài viết' });
       return false;
     }
   },
@@ -171,78 +114,28 @@ export const useForumStore = create<ForumState>((set, get) => ({
     }
   },
 
-  setReaction: (postId, reaction) => {
-    const currentReactions = { ...get().reactions };
-    const postReaction = currentReactions[postId] || {
-      myReaction: undefined,
-      counts: { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 },
-      total: 0
-    };
-
-    const previousMyReaction = postReaction.myReaction;
-    
-    // Copy the counts
-    const updatedCounts = { ...postReaction.counts };
-    
-    // Decrement previous reaction count if it existed
-    if (previousMyReaction) {
-      updatedCounts[previousMyReaction] = Math.max(0, updatedCounts[previousMyReaction] - 1);
-    }
-    
-    // Increment new reaction count if provided
-    if (reaction) {
-      updatedCounts[reaction] = (updatedCounts[reaction] || 0) + 1;
-    }
-    
-    // Calculate total
-    const total = Object.values(updatedCounts).reduce((acc, curr) => acc + curr, 0);
-    
-    currentReactions[postId] = {
-      myReaction: reaction,
-      counts: updatedCounts,
-      total
-    };
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('forum_reactions_v1', JSON.stringify(currentReactions));
-    }
-    
-    // Update local state and optimistically adjust the post likes count
-    set(state => ({
-      reactions: currentReactions,
-      posts: state.posts.map(post => {
-        if (post.id === postId) {
-          const diff = (reaction ? 1 : 0) - (previousMyReaction ? 1 : 0);
-          return {
-            ...post,
-            likes: Math.max(0, post.likes + diff)
-          };
-        }
-        return post;
-      })
-    }));
-  },
-
-  saveDraft: (title, content) => {
+  saveDraft: (userId, title, content) => {
     const drafts = { title, content };
     set({ drafts });
     if (typeof window !== 'undefined') {
-      localStorage.setItem('forum_post_draft', JSON.stringify(drafts));
+      localStorage.setItem(draftKey(userId), JSON.stringify(drafts));
     }
   },
 
-  clearDraft: () => {
+  clearDraft: (userId) => {
     set({ drafts: { title: '', content: '' } });
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('forum_post_draft');
+      localStorage.removeItem(draftKey(userId));
     }
   },
 
-  loadDraft: () => {
+  loadDraft: (userId) => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('forum_post_draft');
-      if (stored) {
-        set({ drafts: JSON.parse(stored) });
+      try {
+        const stored = localStorage.getItem(draftKey(userId));
+        set({ drafts: stored ? JSON.parse(stored) : { title: '', content: '' } });
+      } catch {
+        set({ drafts: { title: '', content: '' } });
       }
     }
   }

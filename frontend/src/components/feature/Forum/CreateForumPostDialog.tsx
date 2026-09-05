@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ForumService } from '@/services/forum.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { X, ChatCircleText, PaperPlaneTilt, WarningCircle, CheckCircle } from '@phosphor-icons/react';
 
 interface CreateForumPostDialogProps {
@@ -58,6 +59,7 @@ function CreateForumPostForm({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(true, onClose, submitting);
 
   const saveDraft = (t: string, c: string) => {
     if (typeof window === 'undefined') return;
@@ -122,14 +124,8 @@ function CreateForumPostForm({
         onPostCreated();
       }
 
-      setTimeout(() => {
-        onClose();
-        if (created?.id) {
-          router.push(`/forum#post-${created.id}`);
-        } else {
-          router.push('/forum');
-        }
-      }, 600);
+      onClose();
+      router.push(`/forum/post/${created.id}`);
     } catch (err: unknown) {
       setErrorMsg(
         err instanceof Error
@@ -144,7 +140,9 @@ function CreateForumPostForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp outline-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-forum-title"
@@ -177,14 +175,14 @@ function CreateForumPostForm({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {errorMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
+            <div role="alert" className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
               <WarningCircle weight="fill" className="w-4 h-4 shrink-0 text-red-500" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
+            <div role="status" className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
               <CheckCircle weight="fill" className="w-4 h-4 shrink-0 text-emerald-500" />
               <span>{successMsg}</span>
             </div>
@@ -248,6 +246,7 @@ function CreateForumPostForm({
               <Button
                 type="submit"
                 disabled={submitting || !title.trim() || !content.trim()}
+                aria-busy={submitting}
                 className="px-6 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95 transition-all flex items-center gap-2"
               >
                 {submitting ? (
@@ -276,7 +275,9 @@ export function CreateForumPostDialog({
   onPostCreated,
 }: CreateForumPostDialogProps) {
   const { user } = useAuth();
-  const draftKey = user ? `tvu_forum_draft_${user.id}` : 'tvu_forum_draft_anon';
+  const draftKey = user
+    ? `tvu_forum_profile_draft_${user.id}`
+    : 'tvu_forum_profile_draft_anonymous';
 
   if (!isOpen) return null;
 

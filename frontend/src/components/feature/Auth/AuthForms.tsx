@@ -88,8 +88,7 @@ export function RegisterForm() {
         setLoading(true);
         try {
             await AuthService.register(email, password, fullName);
-            alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
-            router.push('/login');
+            router.push('/login?registered=1');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Đăng ký thất bại. Vui lòng thử lại.');
         } finally {

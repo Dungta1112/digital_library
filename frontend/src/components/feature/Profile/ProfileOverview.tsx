@@ -218,7 +218,7 @@ export function ProfileOverview({
                   Chưa có lịch sử đọc tài liệu
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
-                  Khi bạn đọc hoặc tham khảo các tài liệu trong thư viện, danh sách sẽ được tự động lưu lại ở đây.
+                  Hiện chưa có bản ghi từ máy chủ. Tính năng ghi lịch sử khi đọc tài liệu đang chờ backend hỗ trợ đầy đủ.
                 </p>
                 <Link
                   href="/library"
@@ -232,7 +232,7 @@ export function ProfileOverview({
               <div className="space-y-3">
                 {recentHistory.slice(0, 5).map((item) => {
                   const docId = item.document?.id || item.documentId;
-                  const docTitle = item.document?.title || 'Tài liệu Thư viện';
+                  const docTitle = item.document?.title || 'Chưa cập nhật tiêu đề';
                   return (
                     <div
                       key={item.id}
@@ -244,7 +244,7 @@ export function ProfileOverview({
                         </div>
                         <div className="min-w-0 flex-1">
                           <Link
-                            href={`/library/${docId}`}
+                            href={`/library/document/${docId}`}
                             className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 block"
                           >
                             {docTitle}
@@ -256,7 +256,7 @@ export function ProfileOverview({
                       </div>
 
                       <Link
-                        href={`/library/${docId}`}
+                        href={`/library/document/${docId}`}
                         className="ml-3 p-2 rounded-xl text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors shrink-0"
                         title="Mở tài liệu"
                         aria-label={`Mở tài liệu ${docTitle}`}

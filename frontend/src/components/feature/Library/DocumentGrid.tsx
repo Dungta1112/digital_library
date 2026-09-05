@@ -13,6 +13,9 @@ interface DocumentGridProps {
   error?: string | null;
   onRetry?: () => void;
   onResetFilters?: () => void;
+  favoriteIds?: Set<string>;
+  favoritePendingIds?: Set<string>;
+  onToggleFavorite?: (document: Document) => Promise<boolean>;
 }
 
 export function DocumentGrid({
@@ -22,6 +25,9 @@ export function DocumentGrid({
   error,
   onRetry,
   onResetFilters,
+  favoriteIds = new Set(),
+  favoritePendingIds = new Set(),
+  onToggleFavorite,
 }: DocumentGridProps) {
   // 1. Loading Skeleton
   if (loading) {
@@ -120,7 +126,13 @@ export function DocumentGrid({
     return (
       <div className="space-y-3">
         {documents.map((doc) => (
-          <DocumentListItem key={doc.id} document={doc} />
+          <DocumentListItem
+            key={doc.id}
+            document={doc}
+            isFavorite={favoriteIds.has(doc.id)}
+            favoritePending={favoritePendingIds.has(doc.id)}
+            onToggleFavorite={onToggleFavorite}
+          />
         ))}
       </div>
     );
@@ -130,7 +142,13 @@ export function DocumentGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
       {documents.map((doc) => (
-        <DocumentCard key={doc.id} document={doc} />
+        <DocumentCard
+          key={doc.id}
+          document={doc}
+          isFavorite={favoriteIds.has(doc.id)}
+          favoritePending={favoritePendingIds.has(doc.id)}
+          onToggleFavorite={onToggleFavorite}
+        />
       ))}
     </div>
   );

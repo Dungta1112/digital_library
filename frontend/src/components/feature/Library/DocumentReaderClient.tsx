@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { LibraryService } from '@/services/library.service';
-import { LibraryLocalStorage } from '@/lib/library-local-storage';
 import { Document } from '@/types/library';
 import { ReaderShell } from './ReaderShell';
 import { PdfViewer } from './PdfViewer';
@@ -28,7 +27,6 @@ export function DocumentReaderClient({ documentId }: DocumentReaderClientProps) 
   const initialPage = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
 
   const { user, isLoading: isAuthLoading } = useAuth();
-  const userId = user?.id || 'guest_user';
 
   const [document, setDocument] = useState<Document | null>(null);
   const [readUrl, setReadUrl] = useState<string | null>(null);
@@ -55,14 +53,6 @@ export function DocumentReaderClient({ documentId }: DocumentReaderClientProps) 
       }
       setDocument(doc);
 
-      // Check saved progress if URL has no specific ?page
-      if (!searchParams.get('page')) {
-        const savedProgress = LibraryLocalStorage.getReadingProgress(userId, documentId);
-        if (savedProgress && savedProgress.pageNumber > 1) {
-          setCurrentPage(savedProgress.pageNumber);
-        }
-      }
-
       // Fetch verified read URL
       try {
         const url = await LibraryService.getDocumentReadUrl(doc);
@@ -85,7 +75,7 @@ export function DocumentReaderClient({ documentId }: DocumentReaderClientProps) 
     } finally {
       setLoading(false);
     }
-  }, [documentId, userId, searchParams]);
+  }, [documentId]);
 
   /* eslint-disable react-hooks/set-state-in-effect -- Asynchronous loader for document reader */
   useEffect(() => {
@@ -99,15 +89,12 @@ export function DocumentReaderClient({ documentId }: DocumentReaderClientProps) 
       if (newPage < 1) return;
       setCurrentPage(newPage);
 
-      // Save reading progress debounced
-      LibraryLocalStorage.saveReadingProgress(userId, documentId, newPage, totalPages);
-
       // Update URL page silently
       const params = new URLSearchParams(searchParams.toString());
       params.set('page', String(newPage));
       router.replace(`/library/read/${documentId}?${params.toString()}`);
     },
-    [userId, documentId, totalPages, searchParams, router]
+    [documentId, searchParams, router]
   );
 
   const handleZoomIn = () => setScale((s) => Math.min(2.5, +(s + 0.15).toFixed(2)));

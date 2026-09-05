@@ -159,8 +159,9 @@ export function getFullAvatarUrl(relativeOrAbsoluteUrl: string): string {
   if (relativeOrAbsoluteUrl.startsWith('http://') || relativeOrAbsoluteUrl.startsWith('https://')) {
     return relativeOrAbsoluteUrl;
   }
-  if (typeof window !== 'undefined') {
-    const origin = window.location.origin;
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (configuredOrigin || typeof window !== 'undefined') {
+    const origin = configuredOrigin || window.location.origin;
     const cleanPath = relativeOrAbsoluteUrl.startsWith('/') ? relativeOrAbsoluteUrl : `/${relativeOrAbsoluteUrl}`;
     return `${origin}${cleanPath}`;
   }

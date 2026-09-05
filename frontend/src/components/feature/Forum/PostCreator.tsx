@@ -4,35 +4,39 @@ import React, { useState, useEffect } from 'react';
 import { X, ChatCircleText } from '@phosphor-icons/react';
 import { useForumStore } from '@/hooks/useForumStore';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '@/hooks/useAuth';
+import type { ForumCategory } from '@/types/forum';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function PostCreator() {
-  const { createPost, drafts, saveDraft, loadDraft } = useForumStore();
+  const { createPost, drafts, saveDraft, loadDraft, clearDraft, error } = useForumStore();
   const { can } = usePermissions();
+  const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState(() => drafts.title || '');
   const [content, setContent] = useState(() => drafts.content || '');
-  const [category, setCategory] = useState('GENERAL');
+  const [category, setCategory] = useState<ForumCategory>('GENERAL');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load draft on mount
   useEffect(() => {
-    loadDraft();
-  }, [loadDraft]);
+    if (user) loadDraft(user.id);
+  }, [loadDraft, user]);
 
   // Debounced auto-save draft to local storage
   useEffect(() => {
     if (title || content) {
       const timer = setTimeout(() => {
-        saveDraft(title, content);
+        if (user) saveDraft(user.id, title, content);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [title, content, saveDraft]);
+  }, [title, content, saveDraft, user]);
 
   const handleOpen = () => {
-    loadDraft();
+    if (!user) return;
+    loadDraft(user.id);
     const currentDrafts = useForumStore.getState().drafts;
     if (currentDrafts.title && !title) setTitle(currentDrafts.title);
     if (currentDrafts.content && !content) setContent(currentDrafts.content);
@@ -50,13 +54,11 @@ export function PostCreator() {
       // Create post via store
       const result = await createPost(title, content, category);
       if (result) {
+        clearDraft(user!.id);
         setTitle('');
         setContent('');
         setIsOpen(false);
       }
-    } catch (e) {
-      console.error(e);
-      alert('Có lỗi xảy ra khi tạo bài viết');
     } finally {
       setIsSubmitting(false);
     }
@@ -122,7 +124,8 @@ export function PostCreator() {
                   {/* Category Selector */}
                   <select 
                     value={category} 
-                    onChange={e => setCategory(e.target.value)}
+                    onChange={e => setCategory(e.target.value as ForumCategory)}
+                    aria-label="Danh mục bài viết"
                     className="bg-slate-100 dark:bg-slate-800 text-xs font-bold text-emerald-700 dark:text-emerald-400 py-1.5 px-4 rounded-full border border-emerald-100 dark:border-emerald-900/30 outline-none cursor-pointer"
                   >
                     <option value="GENERAL">Chung</option>
@@ -140,20 +143,30 @@ export function PostCreator() {
                 </div>
 
                 {/* Text Inputs */}
+                <label htmlFor="feed-post-title" className="sr-only">Tiêu đề bài viết</label>
                 <input 
+                  id="feed-post-title"
                   type="text" 
                   placeholder="Tiêu đề thảo luận hoặc câu hỏi..." 
                   className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
+                  maxLength={255}
                 />
-                
+
+                <label htmlFor="feed-post-content" className="sr-only">Nội dung bài viết</label>
                 <textarea 
+                  id="feed-post-content"
                   placeholder="Viết nội dung thảo luận ở đây..." 
                   className="w-full min-h-[160px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-y leading-relaxed text-sm"
                   value={content}
                   onChange={e => setContent(e.target.value)}
                 />
+                {error && (
+                  <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
+                )}
               </div>
 
               {/* Upload Tools & Footer */}

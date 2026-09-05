@@ -25,22 +25,30 @@ const GRADIENTS = [
 export function HomeDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchDocs() {
+      setLoading(true);
+      setError('');
       try {
-        const res = await LibraryService.getDocuments({}, 1, 4);
-        if (res.data) {
+        const res = await LibraryService.getDocuments({}, 1, 4, controller.signal);
+        if (!controller.signal.aborted) {
           setDocuments(res.data.slice(0, 4));
         }
-      } catch (err) {
-        console.error('Lỗi khi tải tài liệu trang chủ:', err);
+      } catch (reason: unknown) {
+        if (!controller.signal.aborted) {
+          setError(reason instanceof Error ? reason.message : 'Không thể tải tài liệu.');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     fetchDocs();
-  }, []);
+    return () => controller.abort();
+  }, [reloadKey]);
 
   return (
     <section className="relative bg-slate-950 py-20 lg:py-28 text-white border-t border-slate-800 overflow-hidden">
@@ -83,6 +91,11 @@ export function HomeDocuments() {
               />
             ))}
           </div>
+        ) : error ? (
+          <div role="alert" className="rounded-3xl border border-red-900/60 bg-red-950/30 p-10 text-center">
+            <p className="mb-4 text-sm text-red-300">{error}</p>
+            <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="rounded-xl bg-red-700 px-5 py-2.5 text-xs font-bold hover:bg-red-600">Thử lại</button>
+          </div>
         ) : documents.length === 0 ? (
           <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-12 text-center">
             <Books weight="duotone" className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
@@ -122,24 +135,22 @@ export function HomeDocuments() {
                     {/* Top Badges */}
                     <div className="flex items-center justify-between z-10">
                       <span className="rounded-full bg-black/40 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300 border border-white/10">
-                        {doc.category || 'Giáo trình'}
+                        {doc.category || 'Chưa cập nhật'}
                       </span>
-                      <span className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
-                        <FilePdf weight="fill" className="h-3 w-3 text-red-400" />
-                        {doc.fileType?.toUpperCase() || 'PDF'}
-                      </span>
+                      {doc.fileType && (
+                        <span className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-slate-300">
+                          <FilePdf weight="fill" className="h-3 w-3 text-red-400" />
+                          {doc.fileType.toUpperCase()}
+                        </span>
+                      )}
                     </div>
 
                     {/* Bottom Metadata inside cover */}
                     <div className="z-10">
                       <p className="text-[11px] font-medium text-slate-300 truncate">
-                        {doc.authors && doc.authors.length > 0
-                          ? doc.authors.join(', ')
-                          : 'Đại học Trưng Vương'}
+                        {doc.authors && doc.authors.length > 0 ? doc.authors.join(', ') : 'Chưa cập nhật tác giả'}
                       </p>
-                      <p className="text-[10px] text-slate-400">
-                        Năm XB: {doc.publicationYear || 2026}
-                      </p>
+                      {doc.publicationYear && <p className="text-[10px] text-slate-400">Năm XB: {doc.publicationYear}</p>}
                     </div>
                   </div>
 
@@ -154,11 +165,9 @@ export function HomeDocuments() {
                       </Link>
 
                       {/* Abstract / Description */}
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                        {doc.abstract ||
-                          doc.description ||
-                          'Tài liệu phục vụ công tác giảng dạy, nghiên cứu và học tập chính quy.'}
-                      </p>
+                      {(doc.abstract || doc.description) && (
+                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{doc.abstract || doc.description}</p>
+                      )}
                     </div>
 
                     {/* Footer Stats & Actions */}

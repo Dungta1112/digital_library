@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Document } from '@/types/library';
 import { DocumentCover } from './DocumentCover';
-import { LibraryLocalStorage } from '@/lib/library-local-storage';
 import { LibraryService } from '@/services/library.service';
+import { useLibraryFavorites } from '@/hooks/useLibraryFavorites';
 import {
   BookOpen,
   DownloadSimple,
@@ -37,32 +37,19 @@ function formatBytes(bytes?: number): string {
 export function DocumentInfo({ document }: DocumentInfoProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const userId = user?.id || 'guest_user';
-
-  const [isSaved, setIsSaved] = useState(() =>
-    LibraryLocalStorage.isDocumentSaved(userId, document.id)
-  );
+  const favorites = useLibraryFavorites(user?.id);
+  const isSaved = favorites.favoriteIds.has(document.id);
   const [copiedCitation, setCopiedCitation] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   const authorText = document.authors && document.authors.length > 0 ? document.authors.join(', ') : null;
 
-  const handleToggleSave = () => {
-    if (isSaved) {
-      LibraryLocalStorage.removeSavedDocument(userId, document.id);
-      setIsSaved(false);
-    } else {
-      LibraryLocalStorage.saveDocument(userId, {
-        id: document.id,
-        title: document.title,
-        authors: document.authors,
-        category: document.category,
-        fileType: document.fileType,
-        coverImageUrl: document.coverImageUrl,
-        savedAt: new Date().toISOString(),
-      });
-      setIsSaved(true);
+  const handleToggleSave = async () => {
+    if (!user) {
+      router.push(`/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
+      return;
     }
+    await favorites.toggleFavorite(document);
   };
 
   const handleCopyCitation = async () => {
@@ -196,6 +183,8 @@ export function DocumentInfo({ document }: DocumentInfoProps) {
             <button
               type="button"
               onClick={handleToggleSave}
+              disabled={favorites.loading || favorites.pendingIds.has(document.id)}
+              aria-busy={favorites.loading || favorites.pendingIds.has(document.id)}
               className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-colors ${
                 isSaved
                   ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
@@ -203,8 +192,14 @@ export function DocumentInfo({ document }: DocumentInfoProps) {
               }`}
             >
               <BookmarkSimple weight={isSaved ? 'fill' : 'bold'} className="h-4 w-4" />
-              <span>{isSaved ? 'Đã lưu trên thiết bị' : 'Lưu tài liệu'}</span>
+              <span>{favorites.loading ? 'Đang kiểm tra...' : isSaved ? 'Đã lưu' : 'Lưu tài liệu'}</span>
             </button>
+
+            {favorites.error && (
+              <span role="alert" className="w-full text-xs font-semibold text-red-600 dark:text-red-400">
+                {favorites.error}
+              </span>
+            )}
 
             <Link
               href={`/ai?doc=${document.id}`}

@@ -34,7 +34,8 @@ export function GroupChat({ groupId, isMember, onOpenDocuments }: GroupChatProps
     lastSyncedAt,
   } = useGroupMessages(groupId);
 
-  const formatMessageTime = (isoString: string) => {
+  const formatMessageTime = (isoString?: string) => {
+    if (!isoString) return '';
     try {
       const date = new Date(isoString);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -43,7 +44,8 @@ export function GroupChat({ groupId, isMember, onOpenDocuments }: GroupChatProps
     }
   };
 
-  const formatMessageDate = (isoString: string) => {
+  const formatMessageDate = (isoString?: string) => {
+    if (!isoString) return '';
     try {
       const date = new Date(isoString);
       const today = new Date();
@@ -116,15 +118,22 @@ export function GroupChat({ groupId, isMember, onOpenDocuments }: GroupChatProps
           <div className="space-y-3 max-w-4xl mx-auto">
             {messages.map((msg, index) => {
               const prevMsg = index > 0 ? messages[index - 1] : null;
-              const isSameSender =
+              const isSameSender = Boolean(
                 prevMsg &&
                 prevMsg.senderId === msg.senderId &&
-                Math.abs(new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()) <
-                  300000;
+                msg.timestamp &&
+                prevMsg.timestamp &&
+                Math.abs(
+                  new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime()
+                ) <
+                  300000
+              );
 
               const showDateDivider =
-                !prevMsg ||
-                new Date(msg.timestamp).toDateString() !== new Date(prevMsg.timestamp).toDateString();
+                Boolean(msg.timestamp) &&
+                (!prevMsg ||
+                  !prevMsg.timestamp ||
+                  new Date(msg.timestamp!).toDateString() !== new Date(prevMsg.timestamp).toDateString());
 
               const gradient = getGroupGradient(msg.senderName || msg.senderId);
               const initial = (msg.senderName || 'U').trim().charAt(0).toUpperCase();
@@ -141,7 +150,7 @@ export function GroupChat({ groupId, isMember, onOpenDocuments }: GroupChatProps
 
                   <div
                     className={`flex items-start gap-3 group rounded-xl p-1.5 -mx-1.5 transition-colors ${
-                      msg.status === 'failed'
+                      msg.status === 'failed' || msg.status === 'unknown'
                         ? 'bg-red-50/70 dark:bg-red-950/30'
                         : 'hover:bg-slate-50/80 dark:hover:bg-slate-900/60'
                     }`}
@@ -195,6 +204,20 @@ export function GroupChat({ groupId, isMember, onOpenDocuments }: GroupChatProps
                           >
                             <Copy weight="bold" className="w-3 h-3" />
                             Sao chép
+                          </button>
+                        </div>
+                      )}
+
+                      {msg.status === 'unknown' && (
+                        <div className="flex items-center gap-2 mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                          <WarningCircle weight="bold" className="w-3.5 h-3.5" />
+                          <span>Chưa xác nhận được kết quả gửi. Làm mới trước khi gửi lại.</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(msg.content)}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline"
+                          >
+                            <Copy weight="bold" className="w-3 h-3" /> Sao chép
                           </button>
                         </div>
                       )}

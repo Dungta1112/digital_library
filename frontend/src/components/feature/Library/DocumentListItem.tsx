@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Document } from '@/types/library';
-import { LibraryLocalStorage } from '@/lib/library-local-storage';
-import { useAuth } from '@/hooks/useAuth';
 import {
   BookOpen,
   BookmarkSimple,
@@ -17,40 +15,23 @@ import {
 
 interface DocumentListItemProps {
   document: Document;
+  isFavorite?: boolean;
+  favoritePending?: boolean;
+  onToggleFavorite?: (document: Document) => Promise<boolean>;
 }
 
-export function DocumentListItem({ document }: DocumentListItemProps) {
-  const { user } = useAuth();
-  const userId = user?.id || 'guest_user';
-
-  const [isSaved, setIsSaved] = useState(() =>
-    LibraryLocalStorage.isDocumentSaved(userId, document.id)
-  );
+export function DocumentListItem({ document, isFavorite = false, favoritePending = false, onToggleFavorite }: DocumentListItemProps) {
 
   const authorText =
     document.authors && document.authors.length > 0
       ? document.authors.join(', ')
       : 'Chưa cập nhật tác giả';
 
-  const handleToggleSave = (e: React.MouseEvent) => {
+  const handleToggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSaved) {
-      LibraryLocalStorage.removeSavedDocument(userId, document.id);
-      setIsSaved(false);
-    } else {
-      LibraryLocalStorage.saveDocument(userId, {
-        id: document.id,
-        title: document.title,
-        authors: document.authors,
-        category: document.category,
-        fileType: document.fileType,
-        coverImageUrl: document.coverImageUrl,
-        savedAt: new Date().toISOString(),
-      });
-      setIsSaved(true);
-    }
+    await onToggleFavorite?.(document);
   };
 
   return (
@@ -74,7 +55,7 @@ export function DocumentListItem({ document }: DocumentListItemProps) {
             <div className="flex flex-col items-center justify-center p-2 text-center">
               <FileText weight="duotone" className="h-6 w-6 text-emerald-400 mb-1" />
               <span className="text-[9px] font-mono font-bold uppercase text-slate-300">
-                {document.fileType || 'PDF'}
+                {document.fileType || 'Chưa cập nhật'}
               </span>
             </div>
           )}
@@ -117,18 +98,21 @@ export function DocumentListItem({ document }: DocumentListItemProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-        <button
+        {onToggleFavorite && <button
           type="button"
           onClick={handleToggleSave}
-          title={isSaved ? 'Xóa khỏi kệ tài liệu' : 'Lưu tài liệu trên thiết bị'}
+          disabled={favoritePending}
+          title={isFavorite ? 'Xóa khỏi danh sách đã lưu' : 'Lưu tài liệu'}
+          aria-label={isFavorite ? `Bỏ lưu ${document.title}` : `Lưu ${document.title}`}
+          aria-busy={favoritePending}
           className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-colors ${
-            isSaved
+            isFavorite
               ? 'border-emerald-300 bg-emerald-50 text-emerald-600 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
               : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:text-emerald-600 hover:border-emerald-300'
           }`}
         >
-          <BookmarkSimple weight={isSaved ? 'fill' : 'bold'} className="h-4 w-4" />
-        </button>
+          <BookmarkSimple weight={isFavorite ? 'fill' : 'bold'} className="h-4 w-4" />
+        </button>}
 
         <Link
           href={`/library/document/${document.id}`}

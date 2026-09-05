@@ -25,24 +25,34 @@ export default function AdminDashboardPage() {
   });
   const [pendingDocs, setPendingDocs] = useState<AdminDocRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function loadDashboardData() {
+      setLoading(true);
+      setError('');
       try {
         const [statsData, pendingData] = await Promise.all([
-          AdminService.getStats(),
-          AdminService.getPendingDocuments(),
+          AdminService.getStats(controller.signal),
+          AdminService.getPendingDocuments(controller.signal),
         ]);
-        setStats(statsData);
-        setPendingDocs(pendingData);
-      } catch (e) {
-        console.error('Lỗi khi tải dữ liệu Dashboard:', e);
+        if (!controller.signal.aborted) {
+          setStats(statsData);
+          setPendingDocs(pendingData);
+        }
+      } catch (reason: unknown) {
+        if (!controller.signal.aborted) {
+          setError(reason instanceof Error ? reason.message : 'Không thể tải dữ liệu quản trị.');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     loadDashboardData();
-  }, []);
+    return () => controller.abort();
+  }, [reloadKey]);
 
   const isAdmin = user?.role === 'ADMIN';
 
@@ -91,6 +101,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
+      {error && (
+        <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-red-900/60 bg-red-950/40 p-4 text-xs font-semibold text-red-300">
+          <span>{error}</span>
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="shrink-0 font-bold underline">Thử lại</button>
+        </div>
+      )}
       {/* Top Welcome Banner */}
       <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/50 p-6 sm:p-8 shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -174,13 +190,13 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
 
-          {pendingDocs.length === 0 ? (
+          {!loading && !error && pendingDocs.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/40 p-8 text-center">
               <ShieldCheck weight="fill" className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
               <p className="text-xs font-bold text-slate-200">Không có tài liệu nào đang chờ duyệt</p>
               <p className="text-[11px] text-slate-500 mt-0.5">Mọi tài liệu gửi lên đã được xử lý hoàn tất.</p>
             </div>
-          ) : (
+          ) : !error && (
             <div className="space-y-3">
               {pendingDocs.slice(0, 3).map((doc) => (
                 <div

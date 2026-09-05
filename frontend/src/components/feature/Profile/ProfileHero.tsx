@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { User } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfileService } from '@/services/profile.service';
@@ -33,12 +33,18 @@ export function ProfileHero({
   onOpenForumComposer,
   onOpenDocumentUpload,
 }: ProfileHeroProps) {
-  const { updateUser, refreshUser } = useAuth();
+  const { updateUser } = useAuth();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [fullNameInput, setFullNameInput] = useState(user.fullName);
   const [savingName, setSavingName] = useState(false);
   const [nameError, setNameError] = useState('');
+
+  /* eslint-disable react-hooks/set-state-in-effect -- reflect the latest server-confirmed profile */
+  useEffect(() => {
+    setFullNameInput(user.fullName);
+  }, [user.fullName]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const canUpload = user.role === 'LECTURER' || user.role === 'ADMIN';
 
@@ -78,12 +84,15 @@ export function ProfileHero({
       setNameError('Họ và tên không được để trống.');
       return;
     }
+    if (fullNameInput.trim().length > 120) {
+      setNameError('Họ và tên không được vượt quá 120 ký tự.');
+      return;
+    }
     setSavingName(true);
     setNameError('');
     try {
       const updated = await ProfileService.updateProfile({ fullName: fullNameInput.trim() });
-      updateUser({ fullName: updated.fullName });
-      await refreshUser();
+      updateUser(updated);
       setIsEditingName(false);
     } catch (e: unknown) {
       setNameError(e instanceof Error ? e.message : 'Không thể lưu tên mới.');
@@ -146,6 +155,8 @@ export function ProfileHero({
                       value={fullNameInput}
                       onChange={(e) => setFullNameInput(e.target.value)}
                       disabled={savingName}
+                      maxLength={120}
+                      aria-label="Họ và tên"
                       className="h-10 text-base font-bold max-w-xs rounded-xl"
                       autoFocus
                     />
@@ -187,7 +198,7 @@ export function ProfileHero({
               </div>
 
               {nameError && (
-                <p className="text-xs font-semibold text-red-500">{nameError}</p>
+                <p role="alert" className="text-xs font-semibold text-red-500">{nameError}</p>
               )}
 
               <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">

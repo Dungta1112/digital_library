@@ -159,45 +159,39 @@ export function parseConfigValue(key: string, raw: string): unknown {
 
 export const AdminService = {
   // 1. Thống kê hệ thống
-  async getStats(): Promise<SystemStats> {
-    try {
-      const response = await apiClient.get<{
+  async getStats(signal?: AbortSignal): Promise<SystemStats> {
+    const response = await apiClient.get<{
         users?: number;
         documents?: number;
         studyGroups?: number;
         views?: number;
-      }>('/statistics/overview');
+    }>('/statistics/overview', { signal });
 
-      return {
-        totalUsers: response?.users ?? 0,
-        totalDocuments: response?.documents ?? 0,
-        totalGroups: response?.studyGroups ?? 0,
-        activeUsersToday: response?.views ?? 0,
-      };
-    } catch (e) {
-      console.error('Lỗi khi tải thống kê tổng quan:', e);
-      return { totalUsers: 0, totalDocuments: 0, totalGroups: 0, activeUsersToday: 0 };
-    }
+    return {
+      totalUsers: response?.users ?? 0,
+      totalDocuments: response?.documents ?? 0,
+      totalGroups: response?.studyGroups ?? 0,
+      activeUsersToday: response?.views ?? 0,
+    };
   },
 
   // 2. Quản lý Tài liệu (Admin Documents CRUD)
   async getDocuments(): Promise<AdminDocumentItem[]> {
-    try {
-      const response = await apiClient.get<ListResponse<ApiDocument>>('/documents');
-      const items = unwrapItems(response);
+    const response = await apiClient.get<ListResponse<ApiDocument>>('/documents');
+    const items = unwrapItems(response);
 
-      return items.map((doc) => {
+    return items.map((doc) => {
         const file = doc.files?.[0];
         const fileSizeMb = file?.sizeBytes ? Number((file.sizeBytes / (1024 * 1024)).toFixed(1)) : undefined;
-        const author = doc.metadata?.authors?.join(', ') || doc.owner?.fullName || 'Đại học Trưng Vương';
+        const author = doc.metadata?.authors?.join(', ') || doc.owner?.fullName || 'Chưa cập nhật';
 
         return {
           id: doc.id,
           title: doc.title,
           author,
-          authors: doc.metadata?.authors || [author],
+          authors: doc.metadata?.authors,
           categoryId: doc.categoryId,
-          categoryName: doc.category?.name || 'Tài liệu',
+          categoryName: doc.category?.name || 'Chưa cập nhật',
           category: doc.category,
           fileSizeMb,
           description: doc.description || doc.metadata?.abstract || '',
@@ -207,11 +201,7 @@ export const AdminService = {
           downloadCount: doc.downloadCount ?? 0,
           files: doc.files,
         };
-      });
-    } catch (e) {
-      console.error('Lỗi khi tải danh sách tài liệu admin:', e);
-      return [];
-    }
+    });
   },
 
   async uploadDocument(formData: FormData): Promise<unknown> {
@@ -227,25 +217,16 @@ export const AdminService = {
   },
 
   // 3. Hàng đợi kiểm duyệt (Moderation)
-  async getPendingDocuments(): Promise<AdminDocRecord[]> {
-    try {
-      const response = await apiClient.get<ListResponse<ApiDocument>>('/content/documents/pending');
-      return unwrapItems(response).map((doc) => ({
+  async getPendingDocuments(signal?: AbortSignal): Promise<AdminDocRecord[]> {
+    const response = await apiClient.get<ListResponse<ApiDocument>>('/content/documents/pending', { signal });
+    return unwrapItems(response).map((doc) => ({
         id: doc.id,
         title: doc.title,
-        uploadedBy: doc.owner?.fullName || doc.owner?.email || 'Giảng viên',
+        uploadedBy: doc.owner?.fullName || doc.owner?.email || 'Chưa cập nhật',
         uploadedAt: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : '',
         uploadDate: doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('vi-VN') : '',
         status: 'PENDING',
-      }));
-    } catch (e) {
-      console.error('Lỗi khi tải tài liệu chờ duyệt:', e);
-      return [];
-    }
-  },
-
-  async getPendingDocs(): Promise<AdminDocRecord[]> {
-    return this.getPendingDocuments();
+    }));
   },
 
   async approveDocument(documentId: string): Promise<void> {
@@ -256,31 +237,17 @@ export const AdminService = {
     await apiClient.post(`/content/documents/${documentId}/reject`, { reason });
   },
 
-  async reviewDoc(documentId: string, action: 'APPROVE' | 'REJECT', reason?: string): Promise<void> {
-    if (action === 'APPROVE') {
-      await this.approveDocument(documentId);
-    } else {
-      await this.rejectDocument(documentId, reason || 'Không đạt tiêu chuẩn kiểm duyệt');
-    }
-  },
-
   // 4. Quản lý Người dùng & Phân quyền RBAC
   async getRoles(): Promise<RoleOption[]> {
-    try {
-      const response = await apiClient.get<RoleOption[]>('/roles');
-      return Array.isArray(response) ? response : [];
-    } catch (e) {
-      console.error('Lỗi khi tải danh sách vai trò:', e);
-      return [];
-    }
+    const response = await apiClient.get<RoleOption[]>('/roles');
+    return Array.isArray(response) ? response : [];
   },
 
   async getUsers(): Promise<AdminUserRecord[]> {
-    try {
-      const response = await apiClient.get<ListResponse<ApiUser>>('/admin/users');
-      return unwrapItems(response).map((user) => {
+    const response = await apiClient.get<ListResponse<ApiUser>>('/admin/users');
+    return unwrapItems(response).map((user) => {
         const firstRole = user.roles?.[0];
-        let roleCode = 'STUDENT';
+        let roleCode = 'UNKNOWN';
         if (typeof firstRole === 'string') {
           roleCode = firstRole;
         } else if (firstRole?.role?.code) {
@@ -295,15 +262,11 @@ export const AdminService = {
           email: user.email,
           fullName: user.fullName || user.email,
           role: roleCode,
-          status: user.status || 'ACTIVE',
+          status: user.status || 'UNKNOWN',
           joinedAt: dateFormatted,
           createdAt: dateFormatted,
         };
-      });
-    } catch (e) {
-      console.error('Lỗi khi tải danh sách người dùng:', e);
-      return [];
-    }
+    });
   },
 
   async updateUserRole(userId: string, roleId: string): Promise<void> {
@@ -318,22 +281,6 @@ export const AdminService = {
     await apiClient.post(`/admin/users/${userId}/unlock`);
   },
 
-  async toggleUserStatus(userId: string, currentStatus?: string): Promise<void> {
-    if (currentStatus === 'ACTIVE') {
-      await this.lockUser(userId);
-    } else {
-      await this.unlockUser(userId);
-    }
-  },
-
-  async updateUserStatus(userId: string, status: 'ACTIVE' | 'LOCKED'): Promise<void> {
-    if (status === 'LOCKED') {
-      await this.lockUser(userId);
-    } else {
-      await this.unlockUser(userId);
-    }
-  },
-
   // 5. Cấu hình Hệ thống & Tham số AI
   async getConfigs(): Promise<SystemConfigParam[]> {
     const response = await apiClient.get<ListResponse<ApiConfig>>('/system-configs');
@@ -345,10 +292,6 @@ export const AdminService = {
     }));
   },
 
-  async getSystemConfigs(): Promise<SystemConfigParam[]> {
-    return this.getConfigs();
-  },
-
   async updateConfig(key: string, value: string): Promise<void> {
     const parsedValue = parseConfigValue(key, value);
     await apiClient.put('/system-configs', {
@@ -356,20 +299,15 @@ export const AdminService = {
     });
   },
 
-  async updateSystemConfig(key: string, value: unknown): Promise<void> {
-    await this.updateConfig(key, typeof value === 'string' ? value : JSON.stringify(value));
-  },
-
   // 6. Quản lý Báo cáo & Bài viết Diễn đàn
   async getReports(): Promise<AdminReport[]> {
-    try {
-      const response = await apiClient.get<ApiReportsResponse>('/content/reports');
+    const response = await apiClient.get<ApiReportsResponse>('/content/reports');
       const docReports: AdminReport[] = (response?.documentReports || []).map((r) => ({
         id: r.id,
         targetType: 'DOCUMENT',
         targetId: r.documentId,
-        reporterName: r.reporter?.fullName || 'Người dùng',
-        reportedBy: r.reporter?.fullName || 'Người dùng',
+        reporterName: r.reporter?.fullName || 'Chưa cập nhật',
+        reportedBy: r.reporter?.fullName || 'Chưa cập nhật',
         reason: r.reason + (r.document?.title ? ` (Tài liệu: ${r.document.title})` : ''),
         createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '',
         status: r.status,
@@ -379,42 +317,36 @@ export const AdminService = {
         id: r.id,
         targetType: r.commentId ? 'COMMENT' : 'POST',
         targetId: r.postId || r.commentId || r.id,
-        reporterName: r.reporter?.fullName || 'Người dùng',
-        reportedBy: r.reporter?.fullName || 'Người dùng',
+        reporterName: r.reporter?.fullName || 'Chưa cập nhật',
+        reportedBy: r.reporter?.fullName || 'Chưa cập nhật',
         reason: r.reason + (r.post?.title ? ` (Bài viết: ${r.post.title})` : ''),
         createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '',
         status: r.status,
       }));
 
-      return [...docReports, ...forumReports];
-    } catch (e) {
-      console.error('Lỗi khi tải danh sách báo cáo:', e);
-      return [];
-    }
+    return [...docReports, ...forumReports];
   },
 
-  async resolveReport(reportId: string, status: 'RESOLVED' | 'REJECTED', resolutionNote: string = 'Đã xử lý'): Promise<void> {
+  async resolveReport(reportId: string, status: 'RESOLVED' | 'REJECTED', resolutionNote: string): Promise<void> {
+    const note = resolutionNote.trim();
+    if (!note) throw new Error('Vui lòng nhập ghi chú xử lý báo cáo.');
     await apiClient.post(`/content/reports/${reportId}/handle`, {
       status,
-      resolutionNote: resolutionNote.trim() || 'Đã xử lý',
+      resolutionNote: note,
     });
   },
 
   async getForumPosts(): Promise<AdminForumPost[]> {
-    try {
-      const response = await apiClient.get<ListResponse<ApiForumPost>>('/forum/posts');
-      return unwrapItems(response).map((p) => ({
+    const response = await apiClient.get<ListResponse<ApiForumPost>>('/forum/posts');
+    return unwrapItems(response).map((p) => ({
         id: p.id,
         title: p.title,
-        authorName: p.author?.fullName || 'Người dùng',
+        authorName: p.author?.fullName || 'Chưa cập nhật',
         contentSnippet: p.content?.slice(0, 100) || '',
         createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString('vi-VN') : '',
-        status: p.status || 'ACTIVE',
+        status: p.status || 'UNKNOWN',
         reportsCount: p._count?.reports || 0,
-      }));
-    } catch {
-      return [];
-    }
+    }));
   },
 
   async deleteForumPost(postId: string): Promise<void> {
@@ -425,16 +357,4 @@ export const AdminService = {
     await apiClient.post(`/content/forum/posts/${postId}/lock`);
   },
 
-  async moderatePost(postId: string, action: 'DELETE' | 'LOCK'): Promise<void> {
-    if (action === 'DELETE') {
-      await this.deleteForumPost(postId);
-    } else {
-      await this.lockForumPost(postId);
-    }
-  },
-
-  async processReport(reportId: string, action: 'RESOLVE' | 'IGNORE' | 'RESOLVED' | 'REJECTED'): Promise<void> {
-    const status = (action === 'RESOLVE' || action === 'RESOLVED') ? 'RESOLVED' : 'REJECTED';
-    await this.resolveReport(reportId, status);
-  },
 };

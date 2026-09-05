@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/admin.service';
 import type { AdminDocRecord, AdminReport } from '@/types/admin';
+import { TextActionDialog } from '@/components/ui/text-action-dialog';
 import {
   ShieldCheck,
   Check,
@@ -16,6 +17,13 @@ export default function AdminModerationPage() {
   const [reports, setReports] = useState<AdminReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [pendingAction, setPendingAction] = useState<{
+    kind: 'REJECT_DOCUMENT' | 'RESOLVE_REPORT' | 'REJECT_REPORT';
+    id: string;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -27,7 +35,7 @@ export default function AdminModerationPage() {
         }
       })
       .catch((e) => {
-        console.error('Lỗi tải dữ liệu kiểm duyệt:', e);
+        if (active) setLoadError(e instanceof Error ? e.message : 'Không thể tải dữ liệu kiểm duyệt.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -35,44 +43,41 @@ export default function AdminModerationPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleApprove = async (docId: string) => {
     setActionLoading(docId);
+    setActionError('');
     try {
       await AdminService.approveDocument(docId);
       setPendingDocs((prev) => prev.filter((d) => d.id !== docId));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Lỗi phê duyệt tài liệu.');
+      setActionError(e instanceof Error ? e.message : 'Lỗi phê duyệt tài liệu.');
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleReject = async (docId: string) => {
-    const reason = prompt('Nhập lý do từ chối tài liệu:') || 'Tài liệu chưa đạt yêu cầu học thuật';
-    setActionLoading(docId);
+  const handleReasonAction = async (note: string) => {
+    if (!pendingAction) return false;
+    setActionLoading(pendingAction.id);
+    setActionError('');
     try {
-      await AdminService.rejectDocument(docId, reason);
-      setPendingDocs((prev) => prev.filter((d) => d.id !== docId));
+      if (pendingAction.kind === 'REJECT_DOCUMENT') {
+        await AdminService.rejectDocument(pendingAction.id, note);
+        setPendingDocs((prev) => prev.filter((document) => document.id !== pendingAction.id));
+      } else {
+        await AdminService.resolveReport(
+          pendingAction.id,
+          pendingAction.kind === 'RESOLVE_REPORT' ? 'RESOLVED' : 'REJECTED',
+          note
+        );
+        setReports((prev) => prev.filter((report) => report.id !== pendingAction.id));
+      }
+      return true;
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Lỗi từ chối tài liệu.');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleResolveReport = async (reportId: string, action: 'RESOLVE' | 'REJECT') => {
-    const defaultNote = action === 'RESOLVE' ? 'Nội dung vi phạm đã được giải quyết' : 'Báo cáo không chính xác hoặc không đủ cơ sở';
-    const note = prompt(`Nhập ghi chú xử lý báo cáo (${action === 'RESOLVE' ? 'Xử lý' : 'Bỏ qua'}):`, defaultNote);
-    if (note === null) return;
-
-    setActionLoading(reportId);
-    try {
-      await AdminService.resolveReport(reportId, action === 'RESOLVE' ? 'RESOLVED' : 'REJECTED', note || defaultNote);
-      setReports((prev) => prev.filter((r) => r.id !== reportId));
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Lỗi xử lý báo cáo.');
+      setActionError(e instanceof Error ? e.message : 'Không thể hoàn tất thao tác kiểm duyệt.');
+      return false;
     } finally {
       setActionLoading(null);
     }
@@ -80,6 +85,15 @@ export default function AdminModerationPage() {
 
   return (
     <div className="space-y-8">
+      <TextActionDialog
+        isOpen={pendingAction !== null}
+        title={pendingAction?.kind === 'REJECT_DOCUMENT' ? 'Từ chối tài liệu' : 'Xử lý báo cáo'}
+        description="Nhập ghi chú cụ thể. Nội dung này sẽ được gửi nguyên văn tới API kiểm duyệt."
+        confirmLabel="Xác nhận"
+        loading={Boolean(pendingAction && actionLoading === pendingAction.id)}
+        onClose={() => setPendingAction(null)}
+        onConfirm={handleReasonAction}
+      />
       {/* Top Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-white tracking-tight">
@@ -89,6 +103,13 @@ export default function AdminModerationPage() {
           Phê duyệt các giáo trình do Giảng viên gửi lên và xử lý các báo cáo vi phạm nội dung diễn đàn.
         </p>
       </div>
+
+      {(loadError || actionError) && (
+        <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-red-900/60 bg-red-950/40 p-4 text-xs font-semibold text-red-300">
+          <span>{loadError || actionError}</span>
+          {loadError && <button type="button" onClick={() => { setLoadError(''); setLoading(true); setReloadKey((value) => value + 1); }} className="font-bold underline">Thử lại</button>}
+        </div>
+      )}
 
       {/* 1. Pending Documents Queue */}
       <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-7 shadow-xl">
@@ -105,7 +126,7 @@ export default function AdminModerationPage() {
           <div className="p-8 text-center text-xs text-slate-500">
             Đang tải danh sách chờ duyệt...
           </div>
-        ) : pendingDocs.length === 0 ? (
+        ) : loadError ? null : pendingDocs.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/40 p-10 text-center">
             <ShieldCheck weight="fill" className="h-10 w-10 text-emerald-400 mx-auto mb-2" />
             <p className="text-sm font-bold text-slate-200">Không có tài liệu nào chờ kiểm duyệt</p>
@@ -140,7 +161,7 @@ export default function AdminModerationPage() {
                     Duyệt xuất bản
                   </button>
                   <button
-                    onClick={() => handleReject(doc.id)}
+                    onClick={() => setPendingAction({ kind: 'REJECT_DOCUMENT', id: doc.id })}
                     disabled={actionLoading === doc.id}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-red-950/60 border border-red-800/60 px-3.5 py-1.5 text-xs font-bold text-red-400 hover:bg-red-900/60 hover:text-white disabled:opacity-50 transition-colors"
                   >
@@ -169,7 +190,7 @@ export default function AdminModerationPage() {
           <div className="p-8 text-center text-xs text-slate-500">
             Đang tải danh sách báo cáo...
           </div>
-        ) : reports.length === 0 ? (
+        ) : loadError ? null : reports.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/40 p-10 text-center">
             <p className="text-sm font-bold text-slate-200">Không có báo cáo vi phạm nào</p>
             <p className="text-xs text-slate-500 mt-0.5">Diễn đàn và kho tài liệu đang hoạt động an toàn và chuẩn mực.</p>
@@ -193,14 +214,14 @@ export default function AdminModerationPage() {
 
                 <div className="flex items-center gap-2 self-end sm:self-center">
                   <button
-                    onClick={() => handleResolveReport(report.id, 'RESOLVE')}
+                    onClick={() => setPendingAction({ kind: 'RESOLVE_REPORT', id: report.id })}
                     disabled={actionLoading === report.id}
                     className="rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors"
                   >
                     Đã xử lý
                   </button>
                   <button
-                    onClick={() => handleResolveReport(report.id, 'REJECT')}
+                    onClick={() => setPendingAction({ kind: 'REJECT_REPORT', id: report.id })}
                     disabled={actionLoading === report.id}
                     className="rounded-xl bg-red-950/40 border border-red-800/50 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-900/60 transition-colors"
                   >

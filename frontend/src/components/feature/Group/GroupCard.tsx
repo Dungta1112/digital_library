@@ -23,11 +23,11 @@ export function getGroupGradient(id: string): string {
   return GRADIENTS[index];
 }
 
-export function GroupCard({ group }: { group: StudyGroup }) {
+export function GroupCard({ group, currentUserId }: { group: StudyGroup; currentUserId?: string }) {
   const gradient = getGroupGradient(group.id);
   const initial = group.name.trim().charAt(0).toUpperCase() || 'N';
 
-  const isOwner = group.membershipStatus === 'APPROVED' && group.ownerId && group.isJoined;
+  const isOwner = Boolean(currentUserId && group.ownerId === currentUserId);
 
   return (
     <div className="relative group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 transition-all duration-300 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/5 dark:hover:shadow-emerald-500/5 flex flex-col justify-between">
@@ -42,7 +42,11 @@ export function GroupCard({ group }: { group: StudyGroup }) {
             </div>
             <div>
               <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-md">
-                {group.visibility === 'PRIVATE' ? 'Hạn chế truy cập' : 'Công khai'}
+                {group.visibility === 'PUBLIC'
+                  ? 'Công khai'
+                  : group.visibility === 'UNKNOWN'
+                    ? 'Chưa rõ quyền truy cập'
+                    : 'Hạn chế truy cập'}
               </span>
             </div>
           </div>

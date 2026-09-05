@@ -151,7 +151,7 @@ export function useGroupWorkspace(groupId: string): GroupWorkspaceState {
               }
             : null
         );
-      } else {
+      } else if (res.status === 'PENDING') {
         setGroup((prev) =>
           prev
             ? {

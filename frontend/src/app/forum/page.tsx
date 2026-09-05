@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForumStore } from '@/hooks/useForumStore';
 import { SidebarLeft } from '@/components/feature/Forum/SidebarLeft';
-import { SidebarRight } from '@/components/feature/Forum/SidebarRight';
 import { PostCreator } from '@/components/feature/Forum/PostCreator';
 import { PostCard } from '@/components/feature/Forum/PostCard';
 import { 
@@ -37,7 +36,7 @@ export default function ForumPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight transition-colors duration-300">
             Diễn đàn Học thuật
           </h1>
-          <p className="text-xs md:text-sm text-slate-550 dark:text-slate-400 font-light tracking-tight leading-relaxed transition-colors duration-300">
+          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 font-light tracking-tight leading-relaxed transition-colors duration-300">
             Trao đổi nghiên cứu, thảo luận học tập và kết nối cộng đồng học thuật số.
           </p>
         </div>
@@ -76,14 +75,14 @@ export default function ForumPage() {
           <SidebarLeft />
 
           {/* Center Main Feed Area */}
-          <main className="flex-grow w-full max-w-full lg:max-w-[640px] space-y-6">
+          <main className="min-w-0 flex-grow w-full space-y-6">
             
             {/* Post Creator Section */}
             <PostCreator />
 
             {/* Error fallback alert */}
             {error && (
-              <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900/30 text-xs font-semibold text-red-650 dark:text-red-400 flex items-center justify-between">
+              <div role="alert" className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-xs font-semibold text-red-700 dark:text-red-400 flex items-center justify-between">
                 <span>{error}</span>
                 <button onClick={() => fetchPosts(activeCategory === 'All' ? undefined : activeCategory)} className="underline">Thử lại</button>
               </div>
@@ -107,7 +106,7 @@ export default function ForumPage() {
                       <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded"></div>
                       <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800 rounded"></div>
                     </div>
-                    <div className="h-8 w-full bg-slate-50 dark:bg-slate-850/50 rounded-xl"></div>
+                    <div className="h-8 w-full bg-slate-50 dark:bg-slate-800/50 rounded-xl"></div>
                   </div>
                 ))
               ) : (
@@ -131,9 +130,6 @@ export default function ForumPage() {
               )}
             </div>
           </main>
-
-          {/* Right Info Widget Sidebar */}
-          <SidebarRight />
 
         </div>
       </div>

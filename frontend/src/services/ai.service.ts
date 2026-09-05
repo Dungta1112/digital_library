@@ -38,10 +38,6 @@ interface AIAskResponse {
 }
 
 export const AIService = {
-  async getInitialHistory(): Promise<AIChatMessage[]> {
-    return [];
-  },
-
   async sendMessage(
     message: string,
     contextDocId?: string,
@@ -65,14 +61,20 @@ export const AIService = {
 
       const rawSources = data.sources || data.citations || [];
 
-      const citations: AICitation[] = rawSources.map((item, idx) => {
-        const docId = item.document_id || item.documentId || contextDocId;
+      if (!data.answer?.trim()) {
+        throw new Error('Máy chủ AI không trả về nội dung câu trả lời.');
+      }
+
+      const citations: AICitation[] = rawSources
+        .filter((item) => Boolean((item.document_id || item.documentId) && (item.title || item.documentTitle)))
+        .map((item, idx) => {
+        const docId = item.document_id || item.documentId;
         const pageNumber = typeof item.page === 'number' ? item.page : typeof item.pageNumber === 'number' ? item.pageNumber : undefined;
 
         return {
           id: `${docId}:${item.chunk_index ?? idx}`,
-          documentId: docId,
-          documentTitle: item.title || item.documentTitle || 'Tài liệu tham chiếu',
+          documentId: docId!,
+          documentTitle: (item.title || item.documentTitle)!,
           pageNumber,
           textSnippet: item.snippet || item.textSnippet || '',
         };
@@ -81,7 +83,7 @@ export const AIService = {
       return {
         id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         role: 'assistant',
-        content: data.answer || 'Không tìm thấy câu trả lời phù hợp trong tài liệu này.',
+        content: data.answer,
         timestamp: new Date().toISOString(),
         status: 'success',
         citations: citations.length > 0 ? citations : undefined,
@@ -97,13 +99,19 @@ export const AIService = {
       { signal }
     );
 
-    const citations: AICitation[] = (data.results || []).map((r, idx) => {
+    if (!data.answer?.trim()) {
+      throw new Error('Máy chủ AI không trả về nội dung câu trả lời.');
+    }
+
+    const citations: AICitation[] = (data.results || [])
+      .filter((result) => Boolean(result.id && result.title))
+      .map((r, idx) => {
       const pageNumber = typeof r.page === 'number' ? r.page : typeof r.pageNumber === 'number' ? r.pageNumber : undefined;
 
       return {
         id: r.id || `search-res-${idx}`,
         documentId: r.id,
-        documentTitle: r.title || 'Tài liệu liên quan',
+        documentTitle: r.title,
         pageNumber,
         textSnippet: r.description || r.abstract || '',
       };
@@ -112,7 +120,7 @@ export const AIService = {
     return {
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       role: 'assistant',
-      content: data.answer || 'Không tìm thấy câu trả lời phù hợp trong kho tài liệu.',
+      content: data.answer,
       timestamp: new Date().toISOString(),
       status: 'success',
       citations: citations.length > 0 ? citations : undefined,

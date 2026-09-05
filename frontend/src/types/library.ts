@@ -48,26 +48,8 @@ export interface LibraryQueryState {
   scope: 'all' | 'saved';
 }
 
-export interface SavedDocumentItem {
-  id: string;
-  title: string;
-  authors?: string[];
-  category: string;
-  fileType?: 'pdf' | 'docx';
-  coverImageUrl?: string;
-  savedAt: string;
-}
-
-export interface ReadingProgressItem {
-  documentId: string;
-  pageNumber: number;
-  totalPdfPages?: number;
-  updatedAt: string;
-}
-
 export interface Category {
   id: string;
   name: string;
   description?: string;
 }
-

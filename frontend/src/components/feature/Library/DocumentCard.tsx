@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Document } from '@/types/library';
 import { DocumentCover } from './DocumentCover';
-import { LibraryLocalStorage } from '@/lib/library-local-storage';
-import { useAuth } from '@/hooks/useAuth';
 import {
   BookOpen,
   BookmarkSimple,
@@ -16,40 +14,22 @@ import {
 
 interface DocumentCardProps {
   document: Document;
+  isFavorite?: boolean;
+  favoritePending?: boolean;
+  onToggleFavorite?: (document: Document) => Promise<boolean>;
 }
 
-export function DocumentCard({ document }: DocumentCardProps) {
-  const { user } = useAuth();
-  const userId = user?.id || 'guest_user';
-
-  const [isSaved, setIsSaved] = useState(() =>
-    LibraryLocalStorage.isDocumentSaved(userId, document.id)
-  );
+export function DocumentCard({ document, isFavorite = false, favoritePending = false, onToggleFavorite }: DocumentCardProps) {
 
   const authorText =
     document.authors && document.authors.length > 0
       ? document.authors.join(', ')
       : 'Chưa cập nhật tác giả';
 
-  const handleToggleSave = (e: React.MouseEvent) => {
+  const handleToggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (isSaved) {
-      LibraryLocalStorage.removeSavedDocument(userId, document.id);
-      setIsSaved(false);
-    } else {
-      LibraryLocalStorage.saveDocument(userId, {
-        id: document.id,
-        title: document.title,
-        authors: document.authors,
-        category: document.category,
-        fileType: document.fileType,
-        coverImageUrl: document.coverImageUrl,
-        savedAt: new Date().toISOString(),
-      });
-      setIsSaved(true);
-    }
+    await onToggleFavorite?.(document);
   };
 
   return (
@@ -73,18 +53,21 @@ export function DocumentCard({ document }: DocumentCardProps) {
               {document.category}
             </span>
 
-            <button
+            {onToggleFavorite && <button
               type="button"
               onClick={handleToggleSave}
-              title={isSaved ? 'Xóa khỏi kệ tài liệu' : 'Lưu tài liệu trên thiết bị'}
+              disabled={favoritePending}
+              title={isFavorite ? 'Xóa khỏi danh sách đã lưu' : 'Lưu tài liệu'}
+              aria-label={isFavorite ? `Bỏ lưu ${document.title}` : `Lưu ${document.title}`}
+              aria-busy={favoritePending}
               className={`flex h-7 w-7 items-center justify-center rounded-lg border transition-colors ${
-                isSaved
+                isFavorite
                   ? 'border-emerald-300 bg-emerald-50 text-emerald-600 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
                   : 'border-slate-200 dark:border-slate-700 text-slate-400 hover:text-emerald-600 hover:border-emerald-300'
               }`}
             >
-              <BookmarkSimple weight={isSaved ? 'fill' : 'bold'} className="h-3.5 w-3.5" />
-            </button>
+              <BookmarkSimple weight={isFavorite ? 'fill' : 'bold'} className="h-3.5 w-3.5" />
+            </button>}
           </div>
 
           {/* Title */}

@@ -219,7 +219,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© 2026 Trường Đại học Trưng Vương. Bảo lưu mọi quyền.</p>
           <div className="flex items-center gap-6">
-            <span>Phiên bản số hóa TV-DigitalLibrary v2.5</span>
+            <span>TV-DigitalLibrary</span>
             <Link href="/terms" className="hover:text-slate-300 transition-colors">
               Điều khoản dịch vụ
             </Link>

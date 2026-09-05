@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfileService } from '@/services/profile.service';
@@ -8,6 +8,7 @@ import { AVATAR_PRESETS, getFullAvatarUrl } from '@/data/avatar-catalog';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { Button } from '@/components/ui/Button';
 import type { AvatarTheme } from '@/types/profile';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import {
   X,
   Check,
@@ -37,13 +38,22 @@ export function AvatarPickerDialog({
   onClose,
   onSuccess,
 }: AvatarPickerDialogProps) {
-  const { user, updateUser, refreshUser } = useAuth();
-
+  const { user, updateUser } = useAuth();
   const [selectedUrl, setSelectedUrl] = useState<string | null>(() => user?.avatarUrl || null);
   const [activeTheme, setActiveTheme] = useState<'all' | AvatarTheme>('all');
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, saving);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- reset the dialog from the latest server-confirmed user */
+  useEffect(() => {
+    if (!isOpen) return;
+    setSelectedUrl(user?.avatarUrl || '');
+    setErrorMsg('');
+    setSuccessMsg('');
+  }, [isOpen, user?.avatarUrl]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen || !user) return null;
 
@@ -52,6 +62,8 @@ export function AvatarPickerDialog({
     : AVATAR_PRESETS.filter((p) => p.theme === activeTheme);
 
   const isInitialsSelected = selectedUrl === null || selectedUrl === '';
+  const canUseInitials = !user.avatarUrl;
+  const hasChanged = (selectedUrl || '') !== (user.avatarUrl || '');
 
   const handleSelectPreset = (url: string) => {
     setSelectedUrl(url);
@@ -59,6 +71,7 @@ export function AvatarPickerDialog({
   };
 
   const handleSelectInitials = () => {
+    if (!canUseInitials) return;
     setSelectedUrl('');
     setErrorMsg('');
   };
@@ -71,7 +84,8 @@ export function AvatarPickerDialog({
     try {
       // Backend UpdateProfileDto uses @IsUrl().
       // If user chose a preset, construct absolute URL if needed.
-      let finalAvatarUrl: string | undefined = undefined;
+      if (!hasChanged) return;
+      let finalAvatarUrl: string | undefined;
 
       if (selectedUrl && selectedUrl.trim() !== '') {
         finalAvatarUrl = getFullAvatarUrl(selectedUrl);
@@ -81,9 +95,11 @@ export function AvatarPickerDialog({
         avatarUrl: finalAvatarUrl,
       });
 
-      // Update Auth context
-      updateUser({ avatarUrl: updatedUser.avatarUrl });
-      await refreshUser();
+      if (updatedUser.avatarUrl !== finalAvatarUrl) {
+        throw new Error('Máy chủ chưa xác nhận ảnh đại diện đã chọn. Vui lòng thử lại.');
+      }
+
+      updateUser(updatedUser);
 
       setSuccessMsg('Đã cập nhật ảnh đại diện thành công!');
 
@@ -108,6 +124,7 @@ export function AvatarPickerDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
       <div
+        ref={dialogRef}
         className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
@@ -141,14 +158,14 @@ export function AvatarPickerDialog({
         {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
           {errorMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
+            <div role="alert" className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
               <WarningCircle weight="fill" className="w-4 h-4 shrink-0 text-red-500" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
+            <div role="status" className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
               <CheckCircle weight="fill" className="w-4 h-4 shrink-0 text-emerald-500" />
               <span>{successMsg}</span>
             </div>
@@ -185,11 +202,18 @@ export function AvatarPickerDialog({
               variant="secondary"
               size="sm"
               onClick={handleSelectInitials}
+              disabled={!canUseInitials}
+              title={canUseInitials ? 'Dùng chữ cái tên' : 'Backend hiện chưa hỗ trợ xóa ảnh đại diện'}
               className={`text-xs font-bold rounded-xl border ${isInitialsSelected ? 'border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700'}`}
             >
               <UserSwitch weight="bold" className="w-4 h-4 mr-1.5" />
               Dùng chữ cái tên
             </Button>
+            {!canUseInitials && (
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 sm:max-w-40">
+                Chưa thể bỏ ảnh hiện tại vì backend chưa hỗ trợ giá trị rỗng.
+              </p>
+            )}
           </div>
 
           {/* Theme Filters */}
@@ -264,7 +288,8 @@ export function AvatarPickerDialog({
               type="button"
               variant="secondary"
               onClick={onClose}
-              disabled={saving}
+              disabled={saving || !hasChanged}
+              aria-busy={saving}
               className="px-5 rounded-xl font-semibold text-xs border-slate-200 dark:border-slate-800"
             >
               Hủy

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GroupService } from '@/services/group.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import {
   X,
   GraduationCap,
@@ -75,6 +76,7 @@ export function CreateGroupDialog({ isOpen, onClose, onCreated }: CreateGroupDia
   const [description, setDescription] = useState<string>(TEMPLATES[0].defaultDescription);
   const [creating, setCreating] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, creating);
 
   if (!isOpen) return null;
 
@@ -127,11 +129,11 @@ export function CreateGroupDialog({ isOpen, onClose, onCreated }: CreateGroupDia
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900 transition-all max-h-[90vh] flex flex-col">
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="create-group-title" className="relative w-full max-w-xl overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl outline-none dark:border dark:border-slate-800 dark:bg-slate-900 transition-all max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+          <h2 id="create-group-title" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
               Tạo phòng học nhóm
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -140,8 +142,9 @@ export function CreateGroupDialog({ isOpen, onClose, onCreated }: CreateGroupDia
           </div>
           <button
             type="button"
-            onClick={handleClose}
-            disabled={creating}
+          onClick={handleClose}
+          disabled={creating}
+          aria-label="Đóng hộp thoại tạo nhóm"
             className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
           >
             <X weight="bold" className="w-5 h-5" />
@@ -239,6 +242,7 @@ export function CreateGroupDialog({ isOpen, onClose, onCreated }: CreateGroupDia
             <Button
               type="submit"
               disabled={creating || !name.trim()}
+              aria-busy={creating}
               className="h-11 px-6 rounded-xl text-sm font-bold shadow-md shadow-emerald-600/10 flex items-center gap-2"
             >
               <Plus weight="bold" className="w-4 h-4" />

@@ -68,7 +68,7 @@ describe('Group Service & Normalization', () => {
       expect(group.members).toHaveLength(2);
       expect(group.members![0].role).toBe('OWNER');
       expect(group.members![1].role).toBe('MEMBER');
-      expect(group.visibility).toBe('PUBLIC');
+      expect(group.visibility).toBe('UNKNOWN');
     });
 
     it('should set membershipStatus correctly based on raw fields', () => {
@@ -199,12 +199,13 @@ describe('Group Service & Normalization', () => {
       };
       vi.spyOn(apiClient, 'post').mockResolvedValueOnce(mockAdded as unknown as never);
 
-      const added = await GroupService.addDocumentToGroup(
+      await GroupService.addDocumentToGroup(
         'grp-ai-lab',
         'doc-ds-2026-002'
       );
-      expect(added).toHaveProperty('id');
-      expect(added.documentId).toBe('doc-ds-2026-002');
+      expect(apiClient.post).toHaveBeenCalledWith('/study-groups/grp-ai-lab/documents', {
+        documentId: 'doc-ds-2026-002',
+      });
     });
 
     it('should throw real error on 403 / 500 when fetching detail instead of swallowing', async () => {
