@@ -308,7 +308,7 @@ export function AIChatSidebar({
                 {user?.fullName || 'Người dùng'}
               </p>
               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                {user?.role || 'STUDENT'}
+                {user?.role || 'Chưa xác định'}
               </span>
             </div>
 

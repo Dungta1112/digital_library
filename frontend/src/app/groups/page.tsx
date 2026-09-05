@@ -310,7 +310,7 @@ function GroupsCatalogContent() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredGroups.map((g) => (
-              <GroupCard key={g.id} group={g} />
+              <GroupCard key={g.id} group={g} currentUserId={user?.id} />
             ))}
           </div>
         )}

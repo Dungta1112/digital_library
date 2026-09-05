@@ -5,6 +5,7 @@ import { StudyGroup } from '@/types/group';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Warning, Trash, X } from '@phosphor-icons/react';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 
 interface DeleteConfirmModalProps {
   group: StudyGroup;
@@ -22,6 +23,7 @@ export function DeleteConfirmModal({
   loading = false,
 }: DeleteConfirmModalProps) {
   const [typedName, setTypedName] = useState('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, loading);
   const isMatch = typedName.trim().toLowerCase() === group.name.trim().toLowerCase();
 
   if (!isOpen) return null;
@@ -40,12 +42,13 @@ export function DeleteConfirmModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 md:p-8 shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900 transition-all">
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="delete-group-title" className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 md:p-8 shadow-2xl outline-none dark:border dark:border-slate-800 dark:bg-slate-900 transition-all">
         {/* Close button */}
         <button
           type="button"
           onClick={handleClose}
           disabled={loading}
+          aria-label="Đóng hộp thoại giải tán nhóm"
           className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           <X weight="bold" className="h-5 w-5" />
@@ -57,7 +60,7 @@ export function DeleteConfirmModal({
         </div>
 
         {/* Title & Warning description */}
-        <h3 className="mb-2 text-xl sm:text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+        <h3 id="delete-group-title" className="mb-2 text-xl sm:text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">
           Giải tán phòng học nhóm?
         </h3>
         <p className="mb-6 text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-400">
@@ -93,6 +96,7 @@ export function DeleteConfirmModal({
             <Button
               type="submit"
               disabled={!isMatch || loading}
+              aria-busy={loading}
               className="w-full sm:w-auto h-11 px-5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <Trash weight="bold" className="h-4 w-4" />

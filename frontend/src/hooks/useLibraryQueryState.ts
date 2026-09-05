@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { LibraryViewMode } from '@/types/library';
 
@@ -19,6 +19,12 @@ export function useLibraryQueryState() {
 
   // Draft search query typed in input before submission
   const [draftQuery, setDraftQuery] = useState(query);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- browser back/forward is the source of truth */
+  useEffect(() => {
+    setDraftQuery(query);
+  }, [query]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const updateUrl = useCallback(
     (newParams: Record<string, string | number | null | undefined>) => {

@@ -5,21 +5,36 @@ import { ForumService } from '@/services/forum.service';
 import { ForumPost } from '@/types/forum';
 import { CommentItem, CommentForm } from '@/components/feature/Forum/ForumComponents';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { ArrowLeft, User, Chats, ChatCircleText } from '@phosphor-icons/react';
+import { ArrowLeft, User, Chats, ChatCircleText, WarningCircle, ArrowClockwise } from '@phosphor-icons/react';
 
 export default function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [post, setPost] = useState<ForumPost | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [notFound, setNotFound] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
 
+    /* eslint-disable react-hooks/set-state-in-effect -- reset request state when route/retry changes */
     useEffect(() => {
-        ForumService.getPostById(id).then(p => {
-            if (!p) notFound();
-            setPost(p);
-            setLoading(false);
-        });
-    }, [id]);
+        const controller = new AbortController();
+        setLoading(true);
+        setError('');
+        setNotFound(false);
+        ForumService.getPostById(id, controller.signal)
+          .then(p => {
+              if (!p) setNotFound(true);
+              setPost(p);
+              setLoading(false);
+          })
+          .catch((err: unknown) => {
+              if (controller.signal.aborted) return;
+              setError(err instanceof Error ? err.message : 'Không thể tải bài viết.');
+              setLoading(false);
+          });
+        return () => controller.abort();
+    }, [id, reloadKey]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleAddComment = async (text: string) => {
         if (!post) return;
@@ -41,8 +56,16 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
         });
     };
 
-    if (loading || !post) {
+    if (loading) {
         return <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 py-12 transition-colors duration-300"><div className="container mx-auto px-4 max-w-3xl animate-pulse h-[500px] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 transition-colors duration-300"></div></div>;
+    }
+
+    if (error) {
+        return <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 py-12"><div className="container mx-auto px-4 max-w-xl text-center rounded-3xl border border-red-200 dark:border-red-900 bg-white dark:bg-slate-900 p-10"><WarningCircle className="mx-auto mb-3 h-10 w-10 text-red-500" /><h1 className="font-bold text-slate-900 dark:text-white">Không thể tải bài viết</h1><p role="alert" className="my-3 text-sm text-slate-500">{error}</p><button onClick={() => setReloadKey(key => key + 1)} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white"><ArrowClockwise />Thử lại</button></div></div>;
+    }
+
+    if (notFound || !post) {
+        return <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 py-12"><div className="container mx-auto px-4 max-w-xl text-center rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10"><h1 className="font-bold text-slate-900 dark:text-white">Không tìm thấy bài viết</h1><Link href="/forum" className="mt-4 inline-flex text-sm font-bold text-emerald-600">Quay lại diễn đàn</Link></div></div>;
     }
 
     return (
@@ -60,7 +83,7 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
                             {post.category}
                         </span>
                         <span className="text-sm font-medium text-slate-500 dark:text-slate-400 transition-colors duration-300">
-                            {new Date(post.createdAt).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {post.createdAt ? new Date(post.createdAt).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Chưa cập nhật'}
                         </span>
                     </div>
 

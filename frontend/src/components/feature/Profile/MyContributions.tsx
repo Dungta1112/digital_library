@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { LecturerDocumentItem } from '@/types/profile';
 import { ProfileService } from '@/services/profile.service';
 import { Button } from '@/components/ui/Button';
+import { DeleteConfirmModal } from '@/components/ui/delete-confirm-modal';
 import {
   UploadSimple,
   Files,
@@ -39,6 +40,7 @@ export function MyContributions({
 }: MyContributionsProps) {
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
+  const [documentToDelete, setDocumentToDelete] = useState<LecturerDocumentItem | null>(null);
 
   const formatDateTime = (dateStr?: string): string => {
     if (!dateStr) return '';
@@ -89,17 +91,17 @@ export function MyContributions({
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa tài liệu "${title}"?`)) {
-      return;
-    }
-    setActionInProgress(id);
+  const handleDelete = async () => {
+    if (!documentToDelete) return false;
+    setActionInProgress(documentToDelete.id);
     setActionError('');
     try {
-      await ProfileService.deleteLecturerDocument(id);
+      await ProfileService.deleteLecturerDocument(documentToDelete.id);
       onRefresh();
+      return true;
     } catch (e: unknown) {
       setActionError(e instanceof Error ? e.message : 'Không thể xóa tài liệu.');
+      return false;
     } finally {
       setActionInProgress(null);
     }
@@ -157,6 +159,14 @@ export function MyContributions({
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs">
+      <DeleteConfirmModal
+        isOpen={documentToDelete !== null}
+        onClose={() => setDocumentToDelete(null)}
+        onConfirm={handleDelete}
+        itemName={documentToDelete?.title}
+        loading={Boolean(documentToDelete && actionInProgress === documentToDelete.id)}
+        title="Xóa tài liệu đóng góp?"
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
@@ -257,7 +267,7 @@ export function MyContributions({
                   <div className="flex items-center gap-2 self-start md:self-center shrink-0">
                     {doc.status === 'APPROVED' && (
                       <Link
-                        href={`/library/${doc.id}`}
+                        href={`/library/document/${doc.id}`}
                         className="p-2 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-slate-300 dark:hover:text-emerald-400 transition-colors shadow-2xs"
                         title="Xem trang tài liệu"
                         aria-label="Xem trang tài liệu"
@@ -279,7 +289,7 @@ export function MyContributions({
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(doc.id, doc.title)}
+                      onClick={() => setDocumentToDelete(doc)}
                       disabled={isWorking}
                       className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/40 dark:text-slate-300 dark:hover:text-red-400 transition-colors disabled:opacity-50"
                       title="Xóa tài liệu"

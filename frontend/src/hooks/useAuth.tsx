@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/auth';
+import { getErrorStatus } from '@/services/api-client';
 
 interface AuthContextType {
   user: User | null;
@@ -30,19 +31,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { AuthService } = await import('@/services/auth.service');
           const userData = await AuthService.getCurrentUser();
           setUser(userData);
-        } else if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCK_API === 'true') {
-          const { AuthService } = await import('@/services/auth.service');
-          const userData = await AuthService.getCurrentUser();
-          setUser(userData);
-          setToken('mock-access-token-active');
         }
       } catch (e) {
         console.warn('Failed to init auth', e);
-        // If fetch fails (e.g., 401), clear tokens
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        setToken(null);
-        setUser(null);
+        if (getErrorStatus(e) === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setIsLoading(false);
       }

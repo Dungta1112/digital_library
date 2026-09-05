@@ -90,7 +90,7 @@ export function ReadingHistory({
           Lịch sử đọc đang trống
         </h4>
         <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-5 leading-relaxed">
-          Bạn chưa mở tài liệu nào trong thư viện số. Hãy duyệt qua kho giáo trình, luận văn và bài giảng học thuật.
+          Máy chủ chưa trả về bản ghi lịch sử. Việc tự động ghi nhận khi mở tài liệu đang chờ backend hỗ trợ đầy đủ.
         </p>
         <Link
           href="/library"
@@ -120,7 +120,7 @@ export function ReadingHistory({
       <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
         {history.map((item) => {
           const docId = item.document?.id || item.documentId;
-          const docTitle = item.document?.title || 'Tài liệu Thư viện';
+          const docTitle = item.document?.title || 'Chưa cập nhật tiêu đề';
           const docDesc = item.document?.description;
           const views = item.document?.viewCount;
           const downloads = item.document?.downloadCount;
@@ -136,7 +136,7 @@ export function ReadingHistory({
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
                   <Link
-                    href={`/library/${docId}`}
+                    href={`/library/document/${docId}`}
                     className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1 block"
                   >
                     {docTitle}
@@ -169,7 +169,7 @@ export function ReadingHistory({
 
               <div className="flex items-center gap-2 sm:self-center shrink-0">
                 <Link
-                  href={`/library/${docId}`}
+                  href={`/library/read/${docId}`}
                   className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 dark:bg-slate-800 dark:hover:bg-emerald-950/40 dark:text-slate-300 dark:hover:text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
                   <ArrowSquareOut weight="bold" className="w-3.5 h-3.5" />

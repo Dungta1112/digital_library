@@ -2,7 +2,7 @@ export type GroupTabType = 'discussion' | 'documents' | 'members' | 'about';
 
 export type GroupMemberRole = 'OWNER' | 'MEMBER' | 'ADMIN';
 
-export type GroupMembershipStatus = 'APPROVED' | 'PENDING' | 'REMOVED' | 'NONE';
+export type GroupMembershipStatus = 'APPROVED' | 'PENDING' | 'REMOVED' | 'NONE' | 'UNKNOWN';
 
 export interface GroupMember {
   id: string;
@@ -19,7 +19,7 @@ export interface StudyGroup {
   name: string;
   description: string;
   topic?: string;
-  visibility?: 'PUBLIC' | 'REQUEST_TO_JOIN' | 'PRIVATE';
+  visibility: 'PUBLIC' | 'REQUEST_TO_JOIN' | 'PRIVATE' | 'UNKNOWN';
   ownerId?: string;
   ownerName?: string;
   membersCount: number;
@@ -37,13 +37,13 @@ export interface ChatMessage {
   senderId: string;
   senderName: string;
   content: string;
-  timestamp: string;
+  timestamp?: string;
   status?: 'pending' | 'confirmed' | 'failed' | 'unknown';
 }
 
 export interface GroupDocumentItem {
   id: string;
-  title: string;
+  title?: string;
   author?: string;
   description?: string;
   category?: string;
@@ -62,7 +62,7 @@ export interface GroupDocumentWrapper {
   id: string;
   groupId: string;
   documentId: string;
-  addedAt: string;
+  addedAt?: string;
   addedBy?: string;
   document: GroupDocumentItem;
 }

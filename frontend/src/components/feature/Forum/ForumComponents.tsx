@@ -18,9 +18,11 @@ export function PostCard({ post }: { post: ForumPost }) {
                     <span className="text-[11px] font-bold tracking-wider uppercase px-3.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-100 dark:border-emerald-800/50 transition-colors duration-300">
                         {post.category}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300">
-                        {new Date(post.createdAt).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
+                    {post.createdAt && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300">
+                            {new Date(post.createdAt).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                    )}
                 </div>
 
                 <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors tracking-tight">
@@ -90,16 +92,18 @@ export function CommentItem({ comment, onDelete }: { comment: ForumComment; onDe
                                 {comment.authorRole === 'LECTURER' ? 'Giảng viên' : comment.authorRole}
                             </span>
                         </div>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300">
-                            {new Date(comment.createdAt).toLocaleString('vi-VN')}
-                        </span>
+                        {comment.createdAt && (
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300">
+                                {new Date(comment.createdAt).toLocaleString('vi-VN')}
+                            </span>
+                        )}
                     </div>
                 </div>
 
-                {!can('MODERATE_FORUM') && (
-                    <button className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors text-sm font-semibold p-1">
-                        <Heart weight="duotone" className="w-5 h-5" /> {comment.likes}
-                    </button>
+                {!can('MODERATE_FORUM') && comment.likes > 0 && (
+                    <span className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-sm font-semibold p-1">
+                        <Heart weight="duotone" className="w-5 h-5" aria-hidden="true" /> {comment.likes}
+                    </span>
                 )}
             </div>
 

@@ -2,7 +2,7 @@ import { config as appConfig } from './config';
 
 export const API_BASE_URL = appConfig.API_BASE_URL;
 
-interface RequestOptions extends Omit<RequestInit, 'body'> {
+export interface RequestOptions extends Omit<RequestInit, 'body'> {
   data?: unknown;
   params?: Record<string, string | number | boolean | undefined | null>;
   _retry?: boolean;
@@ -13,6 +13,42 @@ interface ApiResponseWrapper<T> {
   data?: T;
   message?: string;
   statusCode?: number;
+  code?: string;
+  error?: string;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code?: string;
+  readonly details?: unknown;
+
+  constructor(
+    message: string,
+    options: { status: number; code?: string; details?: unknown; cause?: unknown }
+  ) {
+    super(message, { cause: options.cause });
+    this.name = 'ApiError';
+    this.status = options.status;
+    this.code = options.code;
+    this.details = options.details;
+  }
+}
+
+export function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
+export function getErrorStatus(error: unknown): number | undefined {
+  return error instanceof ApiError ? error.status : undefined;
+}
+
+function getErrorMessage(body: unknown, fallback: string): string {
+  if (!body || typeof body !== 'object') return fallback;
+  const value = body as { message?: unknown; error?: unknown };
+  if (Array.isArray(value.message)) return value.message.map(String).join(', ');
+  if (typeof value.message === 'string' && value.message.trim()) return value.message;
+  if (typeof value.error === 'string' && value.error.trim()) return value.error;
+  return fallback;
 }
 
 class ApiClient {
@@ -45,10 +81,20 @@ class ApiClient {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  private async refreshAccessToken(): Promise<string | null> {
-    if (typeof window === 'undefined') return null;
+  private async refreshAccessToken(): Promise<string> {
+    if (typeof window === 'undefined') {
+      throw new ApiError('Không thể làm mới phiên đăng nhập.', {
+        status: 401,
+        code: 'SESSION_EXPIRED',
+      });
+    }
     const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) return null;
+    if (!refreshToken) {
+      throw new ApiError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
+        status: 401,
+        code: 'SESSION_EXPIRED',
+      });
+    }
 
     try {
       const response = await fetch(`${this.baseURL}/auth/refresh`, {
@@ -57,7 +103,25 @@ class ApiClient {
         body: JSON.stringify({ refreshToken }),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        let errorBody: unknown;
+        try {
+          errorBody = await response.json();
+        } catch {
+          errorBody = undefined;
+        }
+        throw new ApiError(
+          getErrorMessage(errorBody, `Không thể làm mới phiên đăng nhập (${response.status}).`),
+          {
+            status: response.status,
+            code:
+              errorBody && typeof errorBody === 'object' && 'code' in errorBody
+                ? String(errorBody.code)
+                : 'REFRESH_FAILED',
+            details: errorBody,
+          }
+        );
+      }
 
       const body = (await response.json()) as ApiResponseWrapper<{
         accessToken?: string;
@@ -72,9 +136,18 @@ class ApiClient {
         }
         return tokenData.accessToken;
       }
-      return null;
-    } catch {
-      return null;
+      throw new ApiError('Máy chủ không trả về access token mới.', {
+        status: 502,
+        code: 'INVALID_REFRESH_RESPONSE',
+        details: body,
+      });
+    } catch (error) {
+      if (error instanceof ApiError || isAbortError(error)) throw error;
+      throw new ApiError('Không thể kết nối đến máy chủ để làm mới phiên đăng nhập.', {
+        status: 0,
+        code: 'NETWORK_ERROR',
+        cause: error,
+      });
     }
   }
 
@@ -112,16 +185,26 @@ class ApiClient {
     }
 
     try {
+      const {
+        data: _data,
+        params: _params,
+        _retry: retrying,
+        headers: _requestHeaders,
+        ...fetchOptions
+      } = options;
+      void _data;
+      void _params;
+      void _requestHeaders;
       const res = await fetch(targetUrl, {
-        ...options,
+        ...fetchOptions,
         headers,
         body,
       });
 
       // Handle 401 Unauthorized with token refresh
-      if (res.status === 401 && !options._retry) {
-        const newToken = await this.refreshAccessToken();
-        if (newToken) {
+      if (res.status === 401 && !retrying) {
+        try {
+          const newToken = await this.refreshAccessToken();
           return this.request<T>(url, {
             ...options,
             _retry: true,
@@ -130,10 +213,22 @@ class ApiClient {
               Authorization: `Bearer ${newToken}`,
             },
           });
-        } else {
-          this.handleUnauthorizedLogout();
-          throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        } catch (refreshError) {
+          const refreshStatus = getErrorStatus(refreshError);
+          if (refreshStatus === 400 || refreshStatus === 401 || refreshStatus === 403) {
+            this.handleUnauthorizedLogout();
+            throw new ApiError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
+              status: 401,
+              code: 'SESSION_EXPIRED',
+              cause: refreshError,
+            });
+          }
+          throw refreshError;
         }
+      }
+
+      if (res.status === 401 && retrying) {
+        this.handleUnauthorizedLogout();
       }
 
       const contentType = res.headers.get('content-type') || '';
@@ -141,16 +236,26 @@ class ApiClient {
 
       if (!res.ok) {
         let errorMessage = `Yêu cầu thất bại (${res.status} ${res.statusText})`;
+        let errorBody: unknown;
         if (isJson) {
           try {
-            const errorBody = await res.json();
-            errorMessage = errorBody.message || errorBody.error || errorMessage;
+            errorBody = await res.json();
+            errorMessage = getErrorMessage(errorBody, errorMessage);
           } catch {
             // keep default error
           }
         }
-        throw new Error(errorMessage);
+        throw new ApiError(errorMessage, {
+          status: res.status,
+          code:
+            errorBody && typeof errorBody === 'object' && 'code' in errorBody
+              ? String(errorBody.code)
+              : undefined,
+          details: errorBody,
+        });
       }
+
+      if (res.status === 204) return undefined as T;
 
       if (isJson) {
         const responseData = (await res.json()) as ApiResponseWrapper<T>;
@@ -160,7 +265,11 @@ class ApiClient {
           'success' in responseData
         ) {
           if (responseData.success === false) {
-            throw new Error(responseData.message || 'Lỗi API từ máy chủ');
+            throw new ApiError(responseData.message || 'Lỗi API từ máy chủ', {
+              status: responseData.statusCode || res.status,
+              code: responseData.code,
+              details: responseData,
+            });
           }
           return (responseData.data !== undefined ? responseData.data : responseData) as T;
         }
@@ -169,10 +278,12 @@ class ApiClient {
 
       return (await res.text()) as unknown as T;
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Không thể kết nối đến máy chủ.');
+      if (error instanceof ApiError || isAbortError(error)) throw error;
+      throw new ApiError('Không thể kết nối đến máy chủ.', {
+        status: 0,
+        code: 'NETWORK_ERROR',
+        cause: error,
+      });
     }
   }
 

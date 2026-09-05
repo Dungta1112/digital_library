@@ -17,6 +17,9 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -28,7 +31,7 @@ export default function AdminUsersPage() {
         }
       })
       .catch((e) => {
-        console.error('Lỗi tải danh sách người dùng:', e);
+        if (active) setLoadError(e instanceof Error ? e.message : 'Không thể tải danh sách người dùng.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -36,10 +39,11 @@ export default function AdminUsersPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleRoleChange = async (userId: string, newRoleId: string) => {
     setUpdatingId(userId);
+    setActionError('');
     try {
       await AdminService.updateUserRole(userId, newRoleId);
       const roleObj = roles.find((r) => r.id === newRoleId);
@@ -47,7 +51,7 @@ export default function AdminUsersPage() {
         prev.map((u) => (u.id === userId ? { ...u, role: roleObj?.code || u.role } : u))
       );
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Không thể đổi vai trò người dùng.');
+      setActionError(e instanceof Error ? e.message : 'Không thể đổi vai trò người dùng.');
     } finally {
       setUpdatingId(null);
     }
@@ -55,6 +59,7 @@ export default function AdminUsersPage() {
 
   const handleToggleLock = async (user: AdminUserRecord) => {
     setUpdatingId(user.id);
+    setActionError('');
     const isLocked = user.status === 'LOCKED';
     try {
       if (isLocked) {
@@ -69,7 +74,7 @@ export default function AdminUsersPage() {
         );
       }
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Lỗi thay đổi trạng thái khóa.');
+      setActionError(e instanceof Error ? e.message : 'Lỗi thay đổi trạng thái khóa.');
     } finally {
       setUpdatingId(null);
     }
@@ -94,6 +99,13 @@ export default function AdminUsersPage() {
           Xem danh sách tài khoản, phân quyền vai trò (Admin, Giảng viên, Sinh viên) và quản lý trạng thái hoạt động.
         </p>
       </div>
+
+      {(loadError || actionError) && (
+        <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-red-900/60 bg-red-950/40 p-4 text-xs font-semibold text-red-300">
+          <span>{loadError || actionError}</span>
+          {loadError && <button type="button" onClick={() => { setLoadError(''); setLoading(true); setReloadKey((value) => value + 1); }} className="font-bold underline">Thử lại</button>}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-md">
@@ -142,7 +154,7 @@ export default function AdminUsersPage() {
                     Đang tải danh sách người dùng...
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : loadError ? null : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-500">
                     Không tìm thấy người dùng nào.
@@ -186,12 +198,12 @@ export default function AdminUsersPage() {
                           <Lock weight="fill" className="h-3 w-3" />
                           Đã khóa
                         </span>
-                      ) : (
+                      ) : user.status === 'ACTIVE' ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/80 px-2.5 py-1 text-[10px] font-bold text-emerald-400 border border-emerald-800/60">
                           <CheckCircle weight="fill" className="h-3 w-3" />
                           Hoạt động
                         </span>
-                      )}
+                      ) : <span className="text-[10px] font-bold text-slate-400">{user.status}</span>}
                     </td>
                     <td className="px-5 py-4 text-slate-400">
                       {user.createdAt}
@@ -199,7 +211,7 @@ export default function AdminUsersPage() {
                     <td className="px-5 py-4 text-right">
                       <button
                         onClick={() => handleToggleLock(user)}
-                        disabled={updatingId === user.id}
+                        disabled={updatingId === user.id || !['ACTIVE', 'LOCKED'].includes(user.status)}
                         className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-50 ${
                           user.status === 'LOCKED'
                             ? 'bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 hover:bg-emerald-900/60'

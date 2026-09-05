@@ -17,7 +17,7 @@ export interface AdminUserRecord {
   email: string;
   fullName: string;
   role: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED' | 'DISABLED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'LOCKED' | 'DISABLED' | 'UNKNOWN';
   joinedAt?: string;
   createdAt?: string;
 }
@@ -38,7 +38,7 @@ export interface AdminForumPost {
   authorName: string;
   contentSnippet?: string;
   createdAt: string;
-  status: 'ACTIVE' | 'LOCKED' | 'DELETED';
+  status: 'ACTIVE' | 'LOCKED' | 'DELETED' | 'UNKNOWN';
   reportsCount?: number;
 }
 

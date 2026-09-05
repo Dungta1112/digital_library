@@ -10,6 +10,7 @@ import {
   CheckCircle,
   WarningCircle,
 } from '@phosphor-icons/react';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 
 interface DocumentFormModalProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ export function DocumentFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [categoriesError, setCategoriesError] = useState('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, isSubmitting);
 
   useEffect(() => {
     async function loadCategories() {
@@ -41,7 +44,7 @@ export function DocumentFormModal({
           setCategories(cats);
         }
       } catch (e) {
-        console.error('Lỗi khi tải danh mục:', e);
+        setCategoriesError(e instanceof Error ? e.message : 'Không thể tải danh mục.');
       }
     }
     loadCategories();
@@ -59,7 +62,7 @@ export function DocumentFormModal({
     } else {
       setTitle('');
       setAuthor('');
-      setCategoryName(categories[0]?.name || 'Công nghệ thông tin');
+      setCategoryName('');
       setDescription('');
       setFile(null);
       setError('');
@@ -78,8 +81,8 @@ export function DocumentFormModal({
       return;
     }
 
-    if (!categoryName.trim()) {
-      setError('Vui lòng nhập chuyên ngành đào tạo.');
+    if (!categoryName.trim() || categoriesError) {
+      setError(categoriesError || 'Vui lòng chọn một chuyên ngành từ hệ thống.');
       return;
     }
 
@@ -88,11 +91,14 @@ export function DocumentFormModal({
       return;
     }
 
-    // Find category ID if matched, or generate slug id
     const matchedCategory = categories.find(
       (c) => c.name.toLowerCase().trim() === categoryName.toLowerCase().trim()
     );
-    const resolvedCategoryId = matchedCategory ? matchedCategory.id : `cat-${categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    if (!matchedCategory) {
+      setError('Chuyên ngành đã chọn không tồn tại trong danh mục của hệ thống.');
+      return;
+    }
+    const resolvedCategoryId = matchedCategory.id;
 
     setIsSubmitting(true);
     try {
@@ -135,9 +141,14 @@ export function DocumentFormModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" role="dialog">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
+          ref={dialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="document-form-title"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -150,24 +161,25 @@ export function DocumentFormModal({
           initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
-          className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 p-6 sm:p-8 text-slate-100 shadow-2xl z-10"
+          className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 p-6 sm:p-8 text-slate-100 shadow-2xl z-10 outline-none"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-white tracking-tight">
+              <h3 id="document-form-title" className="text-lg font-bold text-white tracking-tight">
                 {initialData ? '✏️ Chỉnh Sửa Thông Tin Giáo Trình' : '➕ Thêm Giáo Trình / Tài Liệu Mới'}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 {initialData
                   ? 'Cập nhật metadata hiển thị trong kho tài liệu số'
-                  : 'Tải tệp số hóa lên MinIO và tự động kích hoạt Vector Embeddings'}
+                  : 'Tải tệp tài liệu lên hệ thống để chờ xử lý'}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
+              aria-label="Đóng biểu mẫu tài liệu"
               className="rounded-full p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
             >
               <X weight="bold" className="h-5 w-5" />

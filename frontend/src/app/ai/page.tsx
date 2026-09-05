@@ -28,6 +28,7 @@ function AIContent() {
   const router = useRouter();
   const docId = searchParams.get('doc');
   const [contextDocTitle, setContextDocTitle] = useState<string | null>(null);
+  const [contextDocError, setContextDocError] = useState('');
   const { can, isLoading } = usePermissions();
 
   useEffect(() => {
@@ -38,20 +39,29 @@ function AIContent() {
 
   /* eslint-disable react-hooks/set-state-in-effect -- Synchronizing context document title with search params */
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
+    setContextDocError('');
     if (docId) {
-      LibraryService.getDocumentById(docId).then((doc) => {
-        if (mounted) {
-          setContextDocTitle(doc?.title || docId);
-        }
-      });
+      LibraryService.getDocumentById(docId, controller.signal)
+        .then((doc) => {
+          if (!controller.signal.aborted) {
+            setContextDocTitle(doc?.title || null);
+            if (!doc) setContextDocError('Không tìm thấy tài liệu ngữ cảnh.');
+          }
+        })
+        .catch((reason: unknown) => {
+          if (!controller.signal.aborted) {
+            setContextDocTitle(null);
+            setContextDocError(
+              reason instanceof Error ? reason.message : 'Không thể tải tài liệu ngữ cảnh.'
+            );
+          }
+        });
     } else {
       setContextDocTitle(null);
     }
 
-    return () => {
-      mounted = false;
-    };
+    return () => controller.abort();
   }, [docId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -60,10 +70,17 @@ function AIContent() {
   };
 
   return (
-    <AIChatShell
-      initialDocId={docId}
-      contextDocTitle={contextDocTitle}
-      onClearContextDoc={docId ? handleClearContextDoc : undefined}
-    />
+    <div className="relative h-screen w-screen">
+      {contextDocError && (
+        <div role="alert" className="absolute left-1/2 top-4 z-50 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl border border-amber-700 bg-amber-950 px-4 py-2 text-xs font-semibold text-amber-200 shadow-lg">
+          {contextDocError}
+        </div>
+      )}
+      <AIChatShell
+        initialDocId={contextDocTitle ? docId : null}
+        contextDocTitle={contextDocTitle}
+        onClearContextDoc={docId ? handleClearContextDoc : undefined}
+      />
+    </div>
   );
 }

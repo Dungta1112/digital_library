@@ -27,15 +27,19 @@ export default function AdminDocumentsPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const canManageDocs = user?.role === 'ADMIN' || user?.role === 'LECTURER';
 
   const fetchDocs = async () => {
+    setLoading(true);
+    setLoadError('');
     try {
       const data = await AdminService.getDocuments();
       setDocuments(data);
     } catch (e) {
-      console.error('Lỗi tải danh sách tài liệu:', e);
+      setLoadError(e instanceof Error ? e.message : 'Không thể tải danh sách tài liệu.');
     } finally {
       setLoading(false);
     }
@@ -48,7 +52,7 @@ export default function AdminDocumentsPage() {
         if (active) setDocuments(data);
       })
       .catch((e) => {
-        console.error('Lỗi tải danh sách tài liệu:', e);
+        if (active) setLoadError(e instanceof Error ? e.message : 'Không thể tải danh sách tài liệu.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -81,15 +85,17 @@ export default function AdminDocumentsPage() {
 
   // Xử lý Xóa thực tế qua API
   const handleConfirmDelete = async () => {
-    if (!selectedDoc || !canManageDocs) return;
+    if (!selectedDoc || !canManageDocs) return false;
     setDeleting(true);
+    setActionError('');
     try {
       await AdminService.deleteDocument(selectedDoc.id);
       setDocuments((prev) => prev.filter((d) => d.id !== selectedDoc.id));
-      setIsDeleteModalOpen(false);
+      return true;
     } catch (err: unknown) {
       console.error('Lỗi xóa tài liệu:', err);
-      alert(err instanceof Error ? err.message : 'Không thể xóa tài liệu. Vui lòng thử lại!');
+      setActionError(err instanceof Error ? err.message : 'Không thể xóa tài liệu. Vui lòng thử lại!');
+      return false;
     } finally {
       setDeleting(false);
     }
@@ -134,6 +140,13 @@ export default function AdminDocumentsPage() {
           </button>
         )}
       </div>
+
+      {(loadError || actionError) && (
+        <div role="alert" className="flex items-center justify-between gap-4 rounded-2xl border border-red-900/60 bg-red-950/40 p-4 text-xs font-semibold text-red-300">
+          <span>{loadError || actionError}</span>
+          {loadError && <button type="button" onClick={fetchDocs} className="font-bold underline">Thử lại</button>}
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 shadow-md">
@@ -181,7 +194,7 @@ export default function AdminDocumentsPage() {
                     Đang tải danh sách tài liệu...
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : loadError ? null : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-500">
                     Không tìm thấy tài liệu phù hợp.

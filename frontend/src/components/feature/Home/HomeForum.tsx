@@ -15,7 +15,7 @@ import {
 } from '@phosphor-icons/react';
 
 function formatRelativeTime(dateStr?: string) {
-  if (!dateStr) return 'Gần đây';
+  if (!dateStr) return 'Chưa cập nhật';
   try {
     const d = new Date(dateStr);
     const now = new Date();
@@ -28,29 +28,35 @@ function formatRelativeTime(dateStr?: string) {
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} ngày trước`;
   } catch {
-    return 'Gần đây';
+    return 'Chưa cập nhật';
   }
 }
 
 export function HomeForum() {
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchForumPosts() {
+      setLoading(true);
+      setError('');
       try {
-        const data = await ForumService.getPosts();
-        if (data && data.length > 0) {
-          setPosts(data.slice(0, 3));
+        const data = await ForumService.getPosts(undefined, controller.signal);
+        if (!controller.signal.aborted) setPosts(data.slice(0, 3));
+      } catch (reason: unknown) {
+        if (!controller.signal.aborted) {
+          setError(reason instanceof Error ? reason.message : 'Không thể tải bài viết diễn đàn.');
         }
-      } catch (err) {
-        console.error('Lỗi khi tải bài đăng diễn đàn:', err);
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     fetchForumPosts();
-  }, []);
+    return () => controller.abort();
+  }, [reloadKey]);
 
   return (
     <section className="relative bg-slate-900 py-20 lg:py-28 text-white border-t border-slate-800 overflow-hidden">
@@ -92,6 +98,11 @@ export function HomeForum() {
                 className="h-36 rounded-3xl bg-slate-950/60 border border-slate-800 animate-pulse"
               />
             ))}
+          </div>
+        ) : error ? (
+          <div role="alert" className="rounded-3xl border border-red-900/60 bg-red-950/30 p-10 text-center">
+            <p className="mb-4 text-sm text-red-300">{error}</p>
+            <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="rounded-xl bg-red-700 px-5 py-2.5 text-xs font-bold hover:bg-red-600">Thử lại</button>
           </div>
         ) : posts.length === 0 ? (
           <div className="rounded-3xl border border-slate-800 bg-slate-950/50 p-12 text-center">

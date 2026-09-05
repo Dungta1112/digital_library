@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { GroupService } from '@/services/group.service';
 import { ChatMessage } from '@/types/group';
 import { useAuth } from './useAuth';
+import { getErrorStatus } from '@/services/api-client';
 
 export interface UseGroupMessagesReturn {
   messages: ChatMessage[];
@@ -78,7 +79,9 @@ export function useGroupMessages(groupId: string): UseGroupMessagesReturn {
       .then((data) => {
         if (!ignore) {
           setMessages((prev) => {
-            const pending = prev.filter((m) => m.status === 'pending' || m.status === 'failed');
+            const pending = prev.filter(
+              (m) => m.status === 'pending' || m.status === 'failed' || m.status === 'unknown'
+            );
             const serverMap = new Map(data.map((m) => [m.id, m]));
             const merged = [...data];
             for (const p of pending) {
@@ -125,7 +128,7 @@ export function useGroupMessages(groupId: string): UseGroupMessagesReturn {
     const tempMsg: ChatMessage = {
       id: tempId,
       groupId,
-      senderId: user.id || 'user',
+      senderId: user.id,
       senderName: user.fullName || 'Bạn',
       content: trimmed,
       timestamp: new Date().toISOString(),
@@ -151,20 +154,27 @@ export function useGroupMessages(groupId: string): UseGroupMessagesReturn {
       );
       setLastSyncedAt(new Date());
       return true;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Lỗi khi gửi tin nhắn:', err);
-      // Mark as failed instead of silently vanishing
+      const status = getErrorStatus(err);
+      const outcomeIsUnknown = status === 0 || status === undefined || status >= 500;
       setMessages((prev) =>
         prev.map((m) =>
           m.id === tempId
             ? {
                 ...m,
-                status: 'failed',
+                status: outcomeIsUnknown ? 'unknown' : 'failed',
               }
             : m
         )
       );
-      setError('Gửi tin nhắn thất bại. Vui lòng kiểm tra kết nối.');
+      setError(
+        outcomeIsUnknown
+          ? 'Chưa xác định được tin nhắn đã được gửi hay chưa. Hãy làm mới trước khi gửi lại.'
+          : err instanceof Error
+            ? err.message
+            : 'Không thể gửi tin nhắn.'
+      );
       return false;
     } finally {
       setSending(false);

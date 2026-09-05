@@ -109,22 +109,10 @@ Sử dụng cơ chế định tuyến của Next.js App Router (định tuyến 
 
 ---
 
-### 3.4. Thư mục Dữ liệu mẫu (`src/mocks`)
-
-Lưu trữ các tệp tin `.json` chứa dữ liệu mẫu chuẩn cấu trúc của Backend. Phục vụ cho chế độ kiểm thử (Mock Mode):
-*   `library.json`: Danh sách tài liệu và danh mục mẫu.
-*   `forum.json`: Danh sách bài viết và bình luận diễn đàn mẫu.
-*   `group.json`: Danh sách nhóm học tập và bài viết trong nhóm mẫu.
-*   `ai.json`: Lịch sử trò chuyện mẫu với AI.
-*   `admin.json`: Danh sách tài khoản người dùng giả lập phục vụ việc kiểm tra dashboard Admin.
-
----
-
-### 3.5. Thư mục Lớp dịch vụ API (`src/services`)
+### 3.4. Thư mục Lớp dịch vụ API (`src/services`)
 
 Lớp xử lý trao đổi dữ liệu với máy chủ:
 *   **`api.client.ts`**: Khởi tạo cấu hình Axios dùng chung. Đính kèm `access_token` vào tiêu đề (Header). Tự động phát hiện lỗi token hết hạn và thực hiện yêu cầu cấp lại tự động (silent refresh) bằng `refresh_token` mà người dùng không hề hay biết.
-*   **`config.ts`**: Cung cấp hàm `fetchWithMock`. Nếu tùy chọn giả lập được kích hoạt (`NEXT_PUBLIC_USE_MOCKS=true`), nó sẽ đọc dữ liệu từ thư mục `mocks/` sau một khoảng trễ (mặc định 800ms) để mô phỏng độ trễ mạng thực tế.
 *   **`auth.service.ts`**: Gọi các API login, register, logout, forgot-password.
 *   **`library.service.ts`**: Gọi các API tìm tài liệu, lấy danh mục, lấy chi tiết tài liệu.
 *   **`ai.service.ts`**: Gọi API lấy lịch sử chat và gửi tin nhắn tới AI.
@@ -134,7 +122,7 @@ Lớp xử lý trao đổi dữ liệu với máy chủ:
 
 ---
 
-### 3.6. Thư mục Khai báo kiểu TypeScript (`src/types`)
+### 3.5. Thư mục Khai báo kiểu TypeScript (`src/types`)
 
 Đảm bảo tính chặt chẽ về dữ liệu (Type-safety):
 *   `auth.ts`: Định nghĩa kiểu dữ liệu `User` và các token thông tin.

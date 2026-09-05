@@ -12,6 +12,7 @@ import {
   X,
   Sparkle,
 } from '@phosphor-icons/react';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 
 interface QuickSearchModalProps {
   isOpen: boolean;
@@ -23,24 +24,13 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<'document' | 'ai'>('document');
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -71,6 +61,11 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20 sm:pt-28 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
       <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tìm kiếm nhanh"
         className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 transition-all"
         onClick={(e) => e.stopPropagation()}
       >
@@ -106,6 +101,7 @@ export function QuickSearchModal({ isOpen, onClose }: QuickSearchModalProps) {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Đóng tìm kiếm nhanh"
             className="rounded-full p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
           >
             <X weight="bold" className="h-4 w-4" />

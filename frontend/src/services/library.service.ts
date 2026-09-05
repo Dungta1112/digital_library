@@ -1,4 +1,4 @@
-import { apiClient } from './api-client';
+import { apiClient, getErrorStatus } from './api-client';
 import { toBackendUrl } from './config';
 import type { Document, LibraryFilter, PaginatedResult } from '../types/library';
 
@@ -88,7 +88,7 @@ export function normalizeApiDocument(document: ApiDocument): Document {
   const category =
     typeof document.category === 'string'
       ? document.category
-      : document.category?.name || 'Tài liệu chung';
+      : document.category?.name || 'Chưa cập nhật';
 
   const categoryId =
     typeof document.category === 'object' && document.category
@@ -121,7 +121,7 @@ export function normalizeApiDocument(document: ApiDocument): Document {
     title: document.title,
     authors: authors && authors.length > 0 ? authors : undefined,
     ownerName: document.owner?.fullName || document.owner?.email,
-    abstract: document.abstract || document.description || document.metadata?.abstract || 'Chưa có phần tóm tắt cho tài liệu này.',
+    abstract: document.abstract || document.description || document.metadata?.abstract || '',
     description: document.description || undefined,
     publicationYear: year,
     category,
@@ -145,17 +145,15 @@ export function normalizeApiDocuments(documents: ApiDocument[]): Document[] {
 }
 
 export const LibraryService = {
-  async getCategories(): Promise<Category[]> {
-    try {
-      const response = await apiClient.get<Category[] | { data: Category[] } | { items: Category[] }>('/categories');
-      if (Array.isArray(response)) return response;
-      if (response && 'data' in response && Array.isArray(response.data)) return response.data;
-      if (response && 'items' in response && Array.isArray(response.items)) return response.items;
-      return [];
-    } catch (e) {
-      console.error('Lỗi khi tải danh mục:', e);
-      return [];
-    }
+  async getCategories(signal?: AbortSignal): Promise<Category[]> {
+    const response = await apiClient.get<Category[] | { data: Category[] } | { items: Category[] }>(
+      '/categories',
+      { signal }
+    );
+    if (Array.isArray(response)) return response;
+    if (response && 'data' in response && Array.isArray(response.data)) return response.data;
+    if (response && 'items' in response && Array.isArray(response.items)) return response.items;
+    return [];
   },
 
   async getDocuments(
@@ -207,29 +205,28 @@ export const LibraryService = {
     };
   },
 
-  async getDocumentById(id: string): Promise<Document | null> {
+  async getDocumentById(id: string, signal?: AbortSignal): Promise<Document | null> {
     try {
-      const response = await apiClient.get<ApiDocument>(`/documents/${id}`);
+      const response = signal
+        ? await apiClient.get<ApiDocument>(`/documents/${id}`, { signal })
+        : await apiClient.get<ApiDocument>(`/documents/${id}`);
       return response ? normalizeApiDocument(response) : null;
     } catch (error) {
-      console.error(`Lỗi khi lấy thông tin tài liệu ${id}:`, error);
-      return null;
+      if (getErrorStatus(error) === 404) return null;
+      throw error;
     }
   },
 
-  async getFavoriteDocuments(): Promise<Document[]> {
-    try {
-      const response = await apiClient.get<{ items?: ApiDocument[] } | ApiDocument[]>('/documents/me/favorites');
-      const items = Array.isArray(response)
-        ? response
-        : response?.items && Array.isArray(response.items)
-          ? response.items
-          : [];
-      return normalizeApiDocuments(items);
-    } catch (e) {
-      console.error('Lỗi tải danh sách tài liệu đã lưu:', e);
-      return [];
-    }
+  async getFavoriteDocuments(signal?: AbortSignal): Promise<Document[]> {
+    const response = signal
+      ? await apiClient.get<{ items?: ApiDocument[] } | ApiDocument[]>('/documents/me/favorites', { signal })
+      : await apiClient.get<{ items?: ApiDocument[] } | ApiDocument[]>('/documents/me/favorites');
+    const items = Array.isArray(response)
+      ? response
+      : response?.items && Array.isArray(response.items)
+        ? response.items
+        : [];
+    return normalizeApiDocuments(items);
   },
 
   async favoriteDocument(id: string): Promise<void> {
@@ -256,15 +253,11 @@ export const LibraryService = {
   },
 
   async getDocumentDownloadUrl(documentId: string): Promise<string> {
-    try {
-      const response = await apiClient.get<{ url: string }>(`/documents/${documentId}/download`);
-      if (response?.url) {
-        return toBackendUrl(response.url);
-      }
-    } catch {
-      // ignore
+    const response = await apiClient.get<{ url: string }>(`/documents/${documentId}/download`);
+    if (response?.url) {
+      return toBackendUrl(response.url);
     }
-    return toBackendUrl(`/api/v1/documents/${documentId}/download`);
+    throw new Error('Không nhận được liên kết tải từ máy chủ.');
   },
 };
 

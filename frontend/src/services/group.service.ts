@@ -79,7 +79,7 @@ interface RawApiDocumentWrapper {
 
 export function normalizeGroupMember(raw: RawApiMember, ownerId?: string): GroupMember {
   const memberId = raw.userId || raw.user?.id || raw.id || '';
-  const memberName = raw.user?.fullName || raw.fullName || raw.name || 'Thành viên';
+  const memberName = raw.user?.fullName || raw.fullName || raw.name || 'Chưa cập nhật';
   const memberEmail = raw.user?.email || raw.email;
   const memberAvatar = raw.user?.avatar || raw.avatar;
 
@@ -133,10 +133,10 @@ export function normalizeGroup(raw: RawApiGroup): StudyGroup {
 
   return {
     id: raw.id,
-    name: raw.name || 'Nhóm học tập',
+    name: raw.name,
     description: raw.description || '',
     topic: raw.topic,
-    visibility: raw.visibility || (raw.topic === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC'),
+    visibility: raw.visibility || 'UNKNOWN',
     ownerId,
     ownerName,
     membersCount: Math.max(0, membersCount),
@@ -212,11 +212,17 @@ export const GroupService = {
     const response = await apiClient.post<{ status?: string; isJoined?: boolean } | void>(
       `/study-groups/${id}/join`
     );
-    const statusStr = response && typeof response === 'object' && 'status' in response ? response.status : 'APPROVED';
-    const isApproved = statusStr === 'APPROVED' || statusStr === undefined;
+    const statusStr = response && typeof response === 'object' && 'status' in response
+      ? response.status
+      : undefined;
+    const status: GroupMembershipStatus = statusStr === 'APPROVED'
+      ? 'APPROVED'
+      : statusStr === 'PENDING'
+        ? 'PENDING'
+        : 'UNKNOWN';
     return {
-      status: isApproved ? 'APPROVED' : 'PENDING',
-      isJoined: isApproved,
+      status,
+      isJoined: status === 'APPROVED',
     };
   },
 
@@ -240,9 +246,9 @@ export const GroupService = {
       id: post.id,
       groupId: post.groupId || groupId,
       senderId: post.senderId || post.authorId || post.author?.id || '',
-      senderName: post.senderName || post.author?.fullName || 'Thành viên',
+      senderName: post.senderName || post.author?.fullName || 'Chưa cập nhật',
       content: post.content,
-      timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+      timestamp: post.timestamp || post.createdAt,
       status: 'confirmed',
     }));
   },
@@ -260,9 +266,9 @@ export const GroupService = {
       id: post.id,
       groupId: post.groupId || groupId,
       senderId: post.senderId || post.authorId || post.author?.id || '',
-      senderName: post.senderName || post.author?.fullName || 'Bạn',
+      senderName: post.senderName || post.author?.fullName || 'Chưa cập nhật',
       content: post.content,
-      timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+      timestamp: post.timestamp || post.createdAt,
       status: 'confirmed',
     };
   },
@@ -277,7 +283,7 @@ export const GroupService = {
     );
     const list = Array.isArray(response) ? response : response?.items || [];
     return list
-      .filter((item) => item && (item.document || item.documentId))
+      .filter((item) => item && item.document?.id)
       .map((item) => {
         const catName =
           typeof item.document?.category === 'object'
@@ -289,22 +295,22 @@ export const GroupService = {
         return {
           id: item.id,
           groupId: item.groupId || item.studyGroupId || groupId,
-          documentId: item.documentId || item.document?.id || '',
-          addedAt: item.addedAt || item.createdAt || new Date().toISOString(),
+          documentId: item.documentId || item.document!.id,
+          addedAt: item.addedAt || item.createdAt,
           addedBy: item.addedBy,
           document: {
-            id: item.document?.id || item.documentId || '',
-            title: item.document?.title || 'Tài liệu thư viện',
-            author: item.document?.author || 'Tác giả thư viện',
+            id: item.document!.id,
+            title: item.document?.title,
+            author: item.document?.author,
             description: item.document?.description || '',
             category: catName,
             categoryId: item.document?.categoryId,
-            fileType: item.document?.fileType || 'PDF',
+            fileType: item.document?.fileType,
             coverUrl: item.document?.coverUrl || item.document?.thumbnail,
             thumbnail: item.document?.thumbnail,
-            status: item.document?.status || 'APPROVED',
-            viewCount: item.document?.viewCount || 0,
-            downloadCount: item.document?.downloadCount || 0,
+            status: item.document?.status,
+            viewCount: item.document?.viewCount,
+            downloadCount: item.document?.downloadCount,
             rating: item.document?.rating,
             createdAt: item.document?.createdAt,
           },
@@ -315,46 +321,10 @@ export const GroupService = {
   /**
    * Chia sẻ tài liệu từ Thư viện số vào nhóm học tập (dành cho Trưởng nhóm)
    */
-  async addDocumentToGroup(groupId: string, documentId: string): Promise<GroupDocumentWrapper> {
-    const res = await apiClient.post<RawApiDocumentWrapper>(`/study-groups/${groupId}/documents`, {
+  async addDocumentToGroup(groupId: string, documentId: string): Promise<void> {
+    await apiClient.post<RawApiDocumentWrapper>(`/study-groups/${groupId}/documents`, {
       documentId,
     });
-    const catName =
-      typeof res.document?.category === 'object'
-        ? res.document?.category?.name
-        : typeof res.document?.category === 'string'
-        ? res.document?.category
-        : undefined;
-
-    return {
-      id: res.id,
-      groupId: res.groupId || groupId,
-      documentId: res.documentId || documentId,
-      addedAt: res.addedAt || res.createdAt || new Date().toISOString(),
-      addedBy: res.addedBy,
-      document: {
-        id: res.document?.id || documentId,
-        title: res.document?.title || 'Tài liệu thư viện',
-        author: res.document?.author || 'Tác giả thư viện',
-        description: res.document?.description || '',
-        category: catName,
-        fileType: res.document?.fileType || 'PDF',
-        coverUrl: res.document?.coverUrl || res.document?.thumbnail,
-        status: res.document?.status || 'APPROVED',
-      },
-    };
-  },
-
-  /**
-   * Lấy danh sách thành viên nhóm
-   */
-  async getGroupMembers(groupId: string, signal?: AbortSignal): Promise<GroupMember[]> {
-    const response = await apiClient.get<RawApiMember[] | { items: RawApiMember[] }>(
-      `/study-groups/${groupId}/members`,
-      { signal }
-    );
-    const list = Array.isArray(response) ? response : response?.items || [];
-    return list.map((m) => normalizeGroupMember(m));
   },
 
   /**

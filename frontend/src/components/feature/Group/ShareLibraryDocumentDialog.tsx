@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { LibraryService } from '@/services/library.service';
 import { GroupService } from '@/services/group.service';
 import { Document } from '@/types/library';
-import { GroupDocumentWrapper } from '@/types/group';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import {
   X,
   MagnifyingGlass,
@@ -21,7 +21,7 @@ interface ShareLibraryDocumentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   existingDocIds: string[];
-  onDocumentAdded: (docWrapper: GroupDocumentWrapper) => void;
+  onDocumentAdded: () => void;
 }
 
 export function ShareLibraryDocumentDialog({
@@ -36,6 +36,7 @@ export function ShareLibraryDocumentDialog({
   const [loading, setLoading] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, addingId !== null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -76,8 +77,8 @@ export function ShareLibraryDocumentDialog({
     setAddingId(doc.id);
     setError('');
     try {
-      const addedWrapper = await GroupService.addDocumentToGroup(groupId, doc.id);
-      onDocumentAdded(addedWrapper);
+      await GroupService.addDocumentToGroup(groupId, doc.id);
+      onDocumentAdded();
     } catch (err: unknown) {
       console.error('Lỗi khi chia sẻ tài liệu:', err);
       setError(
@@ -92,11 +93,11 @@ export function ShareLibraryDocumentDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900 transition-all max-h-[85vh] flex flex-col">
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="share-document-title" className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl outline-none dark:border dark:border-slate-800 dark:bg-slate-900 transition-all max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+            <h2 id="share-document-title" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
               Thêm tài liệu từ Thư viện
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -106,6 +107,8 @@ export function ShareLibraryDocumentDialog({
           <button
             type="button"
             onClick={onClose}
+            disabled={addingId !== null}
+            aria-label="Đóng hộp thoại chia sẻ tài liệu"
             className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
           >
             <X weight="bold" className="w-5 h-5" />
@@ -130,7 +133,7 @@ export function ShareLibraryDocumentDialog({
         </div>
 
         {error && (
-          <div className="p-3 mb-2 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/50 text-xs text-red-600 dark:text-red-400 font-medium">
+          <div role="alert" className="p-3 mb-2 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/50 text-xs text-red-600 dark:text-red-400 font-medium">
             {error}
           </div>
         )}
@@ -175,7 +178,7 @@ export function ShareLibraryDocumentDialog({
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {doc.authors && doc.authors.length > 0
                         ? doc.authors.join(', ')
-                        : 'Thư viện số'}
+                        : 'Chưa cập nhật tác giả'}
                     </p>
                   </div>
 
@@ -189,6 +192,7 @@ export function ShareLibraryDocumentDialog({
                       type="button"
                       onClick={() => handleShare(doc)}
                       disabled={isAdding}
+                      aria-busy={isAdding}
                       className="h-9 px-3.5 text-xs font-bold rounded-xl shrink-0 flex items-center gap-1.5 shadow-sm"
                     >
                       {isAdding ? (

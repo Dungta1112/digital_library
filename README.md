@@ -332,8 +332,7 @@ AI_SYSTEM_PROMPT="Bạn là trợ lý AI học thuật của Thư viện số. T
 
 | Biến | Mô tả | Giá trị mặc định |
 |---|---|---|
-| `NEXT_PUBLIC_USE_MOCKS` | Dùng dữ liệu mock thay vì gọi API thật | `true` |
-| `NEXT_PUBLIC_API_BASE_URL` | URL gốc của Backend API | `http://localhost:3000/api` |
+| `NEXT_PUBLIC_API_BASE_URL` | URL gốc của Backend API | `http://localhost:3000/api/v1` |
 
 ---
 
@@ -516,7 +515,7 @@ npm run seed
 ### Frontend báo lỗi API
 
 1. Kiểm tra biến `NEXT_PUBLIC_API_BASE_URL` trong `frontend/.env.local`
-2. Nếu chưa có backend, đặt `NEXT_PUBLIC_USE_MOCKS=true` để dùng mock data
+2. Kiểm tra backend đang chạy và endpoint `/api/v1` có thể truy cập được
 
 ---
 

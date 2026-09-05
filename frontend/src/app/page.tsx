@@ -5,7 +5,6 @@ import { HomeCategories } from '@/components/feature/Home/HomeCategories';
 import { HomeAIShowcase } from '@/components/feature/Home/HomeAIShowcase';
 import { HomeDocuments } from '@/components/feature/Home/HomeDocuments';
 import { HomeForum } from '@/components/feature/Home/HomeForum';
-import { HomeTrust } from '@/components/feature/Home/HomeTrust';
 import { HomeCTA } from '@/components/feature/Home/HomeCTA';
 
 export default function HomePage() {
@@ -29,9 +28,6 @@ export default function HomePage() {
 
         {/* 6. Thảo luận Sôi Nổi Trên Diễn Đàn */}
         <HomeForum />
-
-        {/* 7. Thống Kê Hệ Thống & Độ Tin Cậy Học Thuật */}
-        <HomeTrust />
 
         {/* Bắt Đầu & Khám Phá */}
         <HomeCTA />

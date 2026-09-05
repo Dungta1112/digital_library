@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { apiClient } from '@/services/api-client';
 import { LibraryService } from '@/services/library.service';
+import { ProfileService } from '@/services/profile.service';
 import type { Document } from '@/types/library';
+import type { LecturerDocumentItem } from '@/types/profile';
 import { Button } from '@/components/ui/Button';
 import { IngestStatusBadge } from '@/components/feature/Library/IngestStatusBadge';
 import { UploadDocumentDialog } from '@/components/feature/Document/UploadDocumentDialog';
+import { DeleteConfirmModal } from '@/components/ui/delete-confirm-modal';
 import { 
   UploadSimple, 
   Folder, 
@@ -21,28 +23,23 @@ import {
   BookOpen,
 } from '@phosphor-icons/react';
 
-interface LecturerDocument {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'APPROVED' | 'PENDING_REVIEW' | 'REJECTED' | 'DRAFT';
-  viewCount: number;
-  downloadCount: number;
-  createdAt: string;
-  category?: { id: string; name: string };
-}
-
 export default function MyDocumentsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   
   const canUpload = user?.role === 'LECTURER' || user?.role === 'ADMIN';
   const [activeTab, setActiveTab] = useState<'uploaded' | 'saved'>('saved');
-  const [uploadedDocs, setUploadedDocs] = useState<LecturerDocument[]>([]);
+  const [uploadedDocs, setUploadedDocs] = useState<LecturerDocumentItem[]>([]);
   const [favoriteDocs, setFavoriteDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [showUpload, setShowUpload] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<LecturerDocumentItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- load the selected server-backed tab */
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login');
@@ -53,60 +50,66 @@ export default function MyDocumentsPage() {
 
   const fetchUploaded = async () => {
     if (!canUpload) return;
+    setLoading(true);
+    setError('');
     try {
-      const res = await apiClient.get<LecturerDocument[] | { items?: LecturerDocument[] }>('/lecturer/documents');
-      const items = Array.isArray(res) ? res : (res?.items || []);
-      setUploadedDocs(items);
-    } catch (e) {
-      console.error(e);
-      setUploadedDocs([]);
+      setUploadedDocs(await ProfileService.getLecturerDocuments());
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : 'Không thể tải tài liệu đã đăng.');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
     if (!user) return;
+    setLoading(true);
+    setError('');
 
     const promise = (currentTab === 'uploaded' && canUpload)
-      ? apiClient.get<LecturerDocument[] | { items?: LecturerDocument[] }>('/lecturer/documents').then((res) => {
-          const items = Array.isArray(res) ? res : (res?.items || []);
-          if (active) setUploadedDocs(items);
-        }).catch((e) => {
-          console.error(e);
-          if (active) setUploadedDocs([]);
+      ? ProfileService.getLecturerDocuments(controller.signal).then((items) => {
+          if (!controller.signal.aborted) setUploadedDocs(items);
+        }).catch((reason: unknown) => {
+          if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Không thể tải tài liệu đã đăng.');
         })
-      : LibraryService.getFavoriteDocuments().then((favs) => {
-          if (active) setFavoriteDocs(favs);
-        }).catch((e) => {
-          console.error(e);
-          if (active) setFavoriteDocs([]);
+      : LibraryService.getFavoriteDocuments(controller.signal).then((favs) => {
+          if (!controller.signal.aborted) setFavoriteDocs(favs);
+        }).catch((reason: unknown) => {
+          if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Không thể tải tài liệu đã lưu.');
         });
 
     promise.finally(() => {
-      if (active) setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     });
 
-    return () => {
-      active = false;
-    };
-  }, [user, currentTab, canUpload]);
+    return () => controller.abort();
+  }, [user, currentTab, canUpload, reloadKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleDelete = async (docId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
+  const handleDelete = async () => {
+    if (!documentToDelete) return false;
+    setDeleting(true);
     try {
-      await apiClient.delete(`/lecturer/documents/${docId}`);
-      fetchUploaded();
-    } catch (e) {
-      console.error(e);
+      setActionError('');
+      await ProfileService.deleteLecturerDocument(documentToDelete.id);
+      await fetchUploaded();
+      return true;
+    } catch (reason: unknown) {
+      setActionError(reason instanceof Error ? reason.message : 'Không thể xóa tài liệu.');
+      return false;
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleUnfavorite = async (docId: string) => {
     try {
+      setActionError('');
       await LibraryService.unfavoriteDocument(docId);
       setFavoriteDocs((prev) => prev.filter((d) => d.id !== docId));
-    } catch (e) {
-      console.error(e);
+    } catch (reason: unknown) {
+      setActionError(reason instanceof Error ? reason.message : 'Không thể bỏ lưu tài liệu.');
     }
   };
 
@@ -179,10 +182,27 @@ export default function MyDocumentsPage() {
           onClose={() => setShowUpload(false)}
           onSuccess={fetchUploaded}
         />
+        <DeleteConfirmModal
+          isOpen={documentToDelete !== null}
+          onClose={() => setDocumentToDelete(null)}
+          onConfirm={handleDelete}
+          itemName={documentToDelete?.title}
+          loading={deleting}
+          title="Xóa tài liệu đã tải lên?"
+        />
 
         {/* Content list */}
+        {(error || actionError) && (
+          <div role="alert" className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+            {error || actionError}
+          </div>
+        )}
         {loading ? (
           <div className="text-center py-20 text-slate-400 dark:text-slate-500 font-medium">Đang tải danh sách tài liệu...</div>
+        ) : error ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+            <Button onClick={() => currentTab === 'uploaded' ? fetchUploaded() : setReloadKey((value) => value + 1)}>Thử lại</Button>
+          </div>
         ) : activeTab === 'uploaded' && canUpload ? (
           uploadedDocs.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-16 flex flex-col items-center text-center transition-colors duration-300">
@@ -222,7 +242,8 @@ export default function MyDocumentsPage() {
                         </div>
                       </div>
                       <button 
-                        onClick={() => handleDelete(doc.id)}
+                        onClick={() => setDocumentToDelete(doc)}
+                        aria-label={`Xóa tài liệu ${doc.title}`}
                         className="text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0"
                         title="Xóa tài liệu"
                       >
@@ -274,12 +295,12 @@ export default function MyDocumentsPage() {
                       )}
                       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-slate-500 dark:text-slate-400 font-medium">
                         <span className="flex items-center gap-1.5"><Eye weight="bold" className="w-4 h-4 text-slate-400" /> {doc.viewCount} lượt đọc</span>
-                        <span className="flex items-center gap-1.5"><BookmarkSimple weight="bold" className="w-4 h-4 text-emerald-500" /> {doc.saveCount} lượt lưu</span>
+                        <span className="flex items-center gap-1.5"><BookmarkSimple weight="bold" className="w-4 h-4 text-emerald-500" /> {doc.saveCount ?? 0} lượt lưu</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Link
-                        href={`/library/document/${doc.id}`}
+                        href={`/library/read/${doc.id}`}
                         className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 px-3 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
                       >
                         <BookOpen weight="bold" className="w-3.5 h-3.5" />

@@ -6,6 +6,7 @@ import { LibraryService } from '@/services/library.service';
 import type { Category } from '@/types/library';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { 
   X, 
   UploadSimple, 
@@ -15,6 +16,18 @@ import {
   Trash,
   FolderOpen
 } from '@phosphor-icons/react';
+
+export const MAX_PDF_BYTES = 50 * 1024 * 1024;
+
+export function validatePdfFile(file: File): string | null {
+  if (!file.name.toLowerCase().endsWith('.pdf') || file.type !== 'application/pdf') {
+    return 'Chỉ chấp nhận tệp định dạng PDF.';
+  }
+  if (file.size > MAX_PDF_BYTES) {
+    return 'Tệp PDF không được vượt quá 50 MB.';
+  }
+  return null;
+}
 
 interface UploadDocumentDialogProps {
   isOpen: boolean;
@@ -32,28 +45,39 @@ export function UploadDocumentDialog({
   const [categoryId, setCategoryId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, uploading);
 
   // Fetch categories
+  /* eslint-disable react-hooks/set-state-in-effect -- reset request feedback when opening */
   useEffect(() => {
-    if (isOpen) {
-      LibraryService.getCategories()
-        .then((cats) => setCategories(cats || []))
-        .catch(() => setCategories([]));
-    }
+    if (!isOpen) return;
+    const controller = new AbortController();
+    setCategoriesError('');
+    LibraryService.getCategories(controller.signal)
+      .then((cats) => setCategories(cats))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setCategoriesError(error instanceof Error ? error.message : 'Không thể tải danh mục.');
+      });
+    return () => controller.abort();
   }, [isOpen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
 
-    if (!selected.name.toLowerCase().endsWith('.pdf') && selected.type !== 'application/pdf') {
-      setErrorMsg('Chỉ chấp nhận tệp định dạng PDF.');
+    const validationError = validatePdfFile(selected);
+    if (validationError) {
+      setErrorMsg(validationError);
       setFile(null);
+      e.target.value = '';
       return;
     }
 
@@ -92,6 +116,11 @@ export function UploadDocumentDialog({
     }
     if (!file) {
       setErrorMsg('Vui lòng chọn tệp tài liệu PDF để tải lên.');
+      return;
+    }
+    const validationError = validatePdfFile(file);
+    if (validationError) {
+      setErrorMsg(validationError);
       return;
     }
 
@@ -144,7 +173,9 @@ export function UploadDocumentDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
       <div
-        className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp outline-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby="upload-doc-title"
@@ -177,14 +208,14 @@ export function UploadDocumentDialog({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(85vh-120px)] overflow-y-auto custom-scrollbar">
           {errorMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
+            <div role="alert" className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 text-xs font-semibold border border-red-200/60 dark:border-red-900/50">
               <WarningCircle weight="fill" className="w-4 h-4 shrink-0 text-red-500" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
+            <div role="status" className="flex items-center gap-2 p-3.5 rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-900/50">
               <CheckCircle weight="fill" className="w-4 h-4 shrink-0 text-emerald-500" />
               <span>{successMsg}</span>
             </div>
@@ -291,6 +322,11 @@ export function UploadDocumentDialog({
                 </option>
               ))}
             </select>
+            {categoriesError && (
+              <p role="alert" className="text-[11px] font-medium text-red-600 dark:text-red-400">
+                Không thể tải danh mục: {categoriesError}
+              </p>
+            )}
           </div>
 
           {/* Description */}
@@ -327,6 +363,7 @@ export function UploadDocumentDialog({
               <Button
                 type="submit"
                 disabled={uploading || !title.trim() || !file}
+                aria-busy={uploading}
                 className="px-6 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95 transition-all flex items-center gap-2"
               >
                 {uploading ? (

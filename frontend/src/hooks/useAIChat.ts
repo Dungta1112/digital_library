@@ -12,7 +12,7 @@ export function useAIChat(initialDocId?: string | null) {
 
   const [conversations, setConversations] = useState<AIConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [citationPanelState, setCitationPanelState] = useState<{
@@ -25,9 +25,24 @@ export function useAIChat(initialDocId?: string | null) {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeRequestIdRef = useRef<string | null>(null);
+  const conversationsRef = useRef<AIConversation[]>([]);
+  const activeConversationIdRef = useRef<string | null>(null);
+  const isHydrated = hydratedUserId === userId;
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   // 1. Initial Hydration from Storage
   useEffect(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    activeRequestIdRef.current = null;
+    setLoading(false);
     const loaded = AIChatStorage.readConversations(userId);
     if (loaded.length > 0) {
       // Find matching doc conversation or pick most recent
@@ -52,14 +67,19 @@ export function useAIChat(initialDocId?: string | null) {
       setConversations([initialConv]);
       setActiveConversationId(initialConv.id);
     }
-    setIsHydrated(true);
+    setHydratedUserId(userId);
+    return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+      activeRequestIdRef.current = null;
+    };
   }, [userId, initialDocId]);
 
   // 2. Persist to storage whenever conversations change (only after hydrated)
   useEffect(() => {
-    if (!isHydrated) return;
+    if (hydratedUserId !== userId) return;
     AIChatStorage.saveConversations(userId, conversations);
-  }, [conversations, isHydrated, userId]);
+  }, [conversations, hydratedUserId, userId]);
 
   // Active conversation object
   const activeConversation = useMemo(() => {
@@ -82,6 +102,7 @@ export function useAIChat(initialDocId?: string | null) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
+      activeRequestIdRef.current = null;
       setLoading(false);
 
       const newConv: AIConversation = {
@@ -108,6 +129,7 @@ export function useAIChat(initialDocId?: string | null) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    activeRequestIdRef.current = null;
     setLoading(false);
     setActiveConversationId(convId);
     setCitationPanelState({ isOpen: false, citations: [] });
@@ -206,10 +228,10 @@ export function useAIChat(initialDocId?: string | null) {
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || loading || !activeConversationId) return;
+      const currentConvId = activeConversationIdRef.current;
+      if (!trimmed || activeRequestIdRef.current || !currentConvId) return;
 
-      const currentConvId = activeConversationId;
-      const targetConv = conversations.find((c) => c.id === currentConvId);
+      const targetConv = conversationsRef.current.find((c) => c.id === currentConvId);
       if (!targetConv) return;
 
       const requestId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -320,7 +342,7 @@ export function useAIChat(initialDocId?: string | null) {
         }
       }
     },
-    [loading, activeConversationId, conversations]
+    []
   );
 
   // Retry failed/canceled message
@@ -345,13 +367,12 @@ export function useAIChat(initialDocId?: string | null) {
         (m, idx) => idx !== msgIndex && (msgIndex > 0 ? idx !== msgIndex - 1 : true)
       );
 
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === activeConversation.id ? { ...c, messages: cleanedMessages } : c
-        )
+      const nextConversations = conversationsRef.current.map((c) =>
+        c.id === activeConversation.id ? { ...c, messages: cleanedMessages } : c
       );
-
-      sendMessage(userMsg.content);
+      conversationsRef.current = nextConversations;
+      setConversations(nextConversations);
+      queueMicrotask(() => sendMessage(userMsg!.content));
     },
     [activeConversation, sendMessage]
   );

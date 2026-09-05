@@ -7,10 +7,8 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { 
   ChatCircleText, 
   Trash, 
-  Heart, 
   ArrowElbowDownRight, 
-  PaperPlaneRight, 
-  Image as ImageIcon 
+  PaperPlaneRight
 } from '@phosphor-icons/react';
 
 interface CommentSectionProps {
@@ -23,6 +21,7 @@ export function CommentSection({ post }: CommentSectionProps) {
 
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [replyingTo, setReplyingTo] = useState<ForumComment | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,6 +39,7 @@ export function CommentSection({ post }: CommentSectionProps) {
     if (!text.trim() || loading) return;
 
     setLoading(true);
+    setSubmitError('');
     try {
       let finalContent = text.trim();
       if (replyingTo) {
@@ -50,9 +50,8 @@ export function CommentSection({ post }: CommentSectionProps) {
       setText('');
       setReplyingTo(null);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    } catch (err) {
-      console.error(err);
-      alert('Không thể gửi bình luận');
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Không thể gửi bình luận');
     } finally {
       setLoading(false);
     }
@@ -123,7 +122,7 @@ export function CommentSection({ post }: CommentSectionProps) {
         {parsedComments.map(comment => (
           <div key={comment.id} className="space-y-4">
             {/* Root Comment */}
-            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100 dark:border-slate-850 hover:shadow-sm transition-all group relative">
+            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-sm transition-all group relative">
               {/* Delete trigger for moderators */}
               {can('MODERATE_FORUM') && (
                 <button 
@@ -150,11 +149,19 @@ export function CommentSection({ post }: CommentSectionProps) {
                         ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                     }`}>
-                      {comment.authorRole === 'LECTURER' ? 'Giảng viên' : 'Sinh viên'}
+                      {comment.authorRole === 'LECTURER'
+                        ? 'Giảng viên'
+                        : comment.authorRole === 'STUDENT'
+                          ? 'Sinh viên'
+                          : comment.authorRole === 'ADMIN'
+                            ? 'Quản trị viên'
+                            : 'Chưa cập nhật'}
                     </span>
-                    <span className="text-[10px] text-slate-400">
-                      {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
-                    </span>
+                    {comment.createdAt && (
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                      </span>
+                    )}
                   </div>
 
                   <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed whitespace-pre-wrap">
@@ -163,9 +170,6 @@ export function CommentSection({ post }: CommentSectionProps) {
 
                   {/* Comment interaction controls */}
                   <div className="flex items-center gap-4 mt-3 text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                    <button className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                      <Heart size={13} /> Thích
-                    </button>
                     {isLoggedIn && (
                       <button 
                         onClick={() => handleReplyClick(comment)}
@@ -199,15 +203,17 @@ export function CommentSection({ post }: CommentSectionProps) {
                     
                     <div className="flex-grow">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                        <span className="font-bold text-slate-850 dark:text-slate-200 text-xs">
+                        <span className="font-bold text-slate-900 dark:text-slate-200 text-xs">
                           {reply.authorName}
                         </span>
-                        <span className="text-[9px] text-slate-400">
-                          {new Date(reply.createdAt).toLocaleDateString('vi-VN')}
-                        </span>
+                        {reply.createdAt && (
+                          <span className="text-[9px] text-slate-400">
+                            {new Date(reply.createdAt).toLocaleDateString('vi-VN')}
+                          </span>
+                        )}
                       </div>
 
-                      <p className="text-slate-650 dark:text-slate-350 text-xs leading-relaxed">
+                      <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed">
                         <span className="text-emerald-600 dark:text-emerald-400 font-bold mr-1.5">
                           @{comment.authorName}
                         </span>
@@ -215,9 +221,6 @@ export function CommentSection({ post }: CommentSectionProps) {
                       </p>
 
                       <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                        <button className="flex items-center gap-1 hover:text-emerald-600">
-                          <Heart size={12} /> Thích
-                        </button>
                         {isLoggedIn && (
                           <button 
                             onClick={() => handleReplyClick(comment)}
@@ -245,6 +248,11 @@ export function CommentSection({ post }: CommentSectionProps) {
       {/* Comment Form Input */}
       {isLoggedIn ? (
         <form onSubmit={handleSubmit} className="space-y-3">
+          {submitError && (
+            <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-400">
+              {submitError}
+            </p>
+          )}
           {/* Replying indicator banner */}
           {replyingTo && (
             <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30 px-4 py-2 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
@@ -272,17 +280,12 @@ export function CommentSection({ post }: CommentSectionProps) {
             />
             
             <div className="flex items-center gap-1 text-slate-400 shrink-0">
-              <button 
-                type="button" 
-                className="p-1.5 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                title="Đính kèm ảnh"
-              >
-                <ImageIcon size={18} />
-              </button>
               <button
                 type="submit"
                 disabled={loading || !text.trim()}
                 className="p-2 rounded-full bg-slate-900 dark:bg-emerald-600 text-white disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 transition-all active:scale-95"
+                aria-label="Gửi bình luận"
+                aria-busy={loading}
               >
                 <PaperPlaneRight size={15} weight="bold" />
               </button>

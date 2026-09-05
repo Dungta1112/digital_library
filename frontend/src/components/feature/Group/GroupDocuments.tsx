@@ -56,12 +56,10 @@ export function GroupDocuments({ groupId, canManageDocs }: GroupDocumentsProps) 
     };
   }, [groupId, reloadKey]);
 
-  const handleDocumentAdded = (newDoc: GroupDocumentWrapper) => {
-    setDocuments((prev) => {
-      if (prev.some((d) => d.documentId === newDoc.documentId)) return prev;
-      return [newDoc, ...prev];
-    });
+  const handleDocumentAdded = () => {
     setIsShareModalOpen(false);
+    setLoading(true);
+    setReloadKey((key) => key + 1);
   };
 
   const handleRefresh = () => {
@@ -157,7 +155,7 @@ export function GroupDocuments({ groupId, canManageDocs }: GroupDocumentsProps) 
                     {/* Category & Badge */}
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded">
-                        {doc.fileType?.toUpperCase() || 'PDF'}
+                        {doc.fileType?.toUpperCase() || 'TÀI LIỆU'}
                       </span>
                       {doc.category && (
                         <span className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
@@ -168,21 +166,23 @@ export function GroupDocuments({ groupId, canManageDocs }: GroupDocumentsProps) 
 
                     {/* Title */}
                     <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug mb-1 line-clamp-2">
-                      {doc.title}
+                      {doc.title || 'Chưa cập nhật tiêu đề'}
                     </h4>
 
                     {/* Author */}
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-3">
-                      {doc.author || 'Tác giả thư viện'}
+                      {doc.author || 'Chưa cập nhật tác giả'}
                     </p>
 
                     {/* Shared date */}
-                    <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-4">
-                      <BookBookmark weight="duotone" className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>
-                        Chia sẻ ngày {new Date(wrapper.addedAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                    {wrapper.addedAt && (
+                      <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-4">
+                        <BookBookmark weight="duotone" className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>
+                          Chia sẻ ngày {new Date(wrapper.addedAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions Bar */}

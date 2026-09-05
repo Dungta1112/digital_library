@@ -3,11 +3,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Warning, Trash, X } from '@phosphor-icons/react';
+import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => Promise<boolean | void>;
   title?: string;
   itemName?: string;
   description?: string;
@@ -23,20 +24,23 @@ export function DeleteConfirmModal({
   description = 'Khi xóa, dữ liệu sẽ bị gỡ vĩnh viễn khỏi hệ thống và không thể khôi phục.',
   loading = false,
 }: DeleteConfirmModalProps) {
+  const dialogRef = useDialogAccessibility<HTMLDivElement>(isOpen, onClose, loading);
   if (!isOpen) return null;
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-    await onConfirm();
-    onClose();
+    const result = await onConfirm();
+    if (result !== false) onClose();
   };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title">
         {/* Backdrop */}
         <motion.div
+          ref={dialogRef}
+          tabIndex={-1}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -49,7 +53,7 @@ export function DeleteConfirmModal({
           initial={{ scale: 0.95, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 10 }}
-          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-100 shadow-2xl z-10"
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-100 shadow-2xl z-10 outline-none"
         >
           {/* Close button */}
           <button
@@ -57,6 +61,7 @@ export function DeleteConfirmModal({
             onClick={onClose}
             disabled={loading}
             className="absolute right-5 top-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            aria-label="Đóng hộp thoại xác nhận"
           >
             <X weight="bold" className="h-4 w-4" />
           </button>
@@ -66,7 +71,7 @@ export function DeleteConfirmModal({
             <Warning weight="duotone" className="h-6 w-6" />
           </div>
 
-          <h3 className="mb-2 text-lg font-bold text-white tracking-tight">
+          <h3 id="delete-confirm-title" className="mb-2 text-lg font-bold text-white tracking-tight">
             {title}
           </h3>
 
@@ -93,6 +98,7 @@ export function DeleteConfirmModal({
               type="button"
               onClick={handleConfirm}
               disabled={loading}
+              aria-busy={loading}
               className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-600/30 hover:bg-red-500 disabled:opacity-50 transition-colors"
             >
               <Trash weight="bold" className="h-3.5 w-3.5" />
