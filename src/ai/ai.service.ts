@@ -3,10 +3,11 @@ import {
   ForbiddenException,
   HttpException,
   Injectable,
-  NotFoundException
+  NotFoundException,
+  ServiceUnavailableException
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { AxiosError, AxiosResponse } from 'axios';
 import { RequestUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
@@ -23,17 +24,13 @@ export class AiService {
   ) {}
 
   async syncDocuments(documents: { id: string; title: string; description: string }[]) {
-    const { data } = await firstValueFrom<AxiosResponse>(
-      this.httpService.post(`${this.aiServiceUrl}/api/ai/sync-books`, documents)
-    );
-    return data;
+    return this.proxy(this.httpService.post(`${this.aiServiceUrl}/api/ai/sync-books`, documents));
   }
 
   async searchDocuments(query: string, topK = 3) {
-    const { data } = await firstValueFrom<AxiosResponse>(
+    return this.proxy(
       this.httpService.post(`${this.aiServiceUrl}/api/ai/search-books`, { query, top_k: topK })
     );
-    return data;
   }
 
   async ingestDocument(user: RequestUser, documentId: string) {
@@ -109,7 +106,7 @@ export class AiService {
     return document;
   }
 
-  private async proxy(request: ReturnType<HttpService['post']>) {
+  private async proxy(request: Observable<AxiosResponse>) {
     try {
       const { data } = await firstValueFrom<AxiosResponse>(request);
       return data;
@@ -121,7 +118,8 @@ export class AiService {
           axiosError.response.status
         );
       }
-      throw error;
+      // Không có response: ai_service không khả dụng (chết/timeout/sai URL AI_SERVICE_URL).
+      throw new ServiceUnavailableException('Dịch vụ AI hiện không khả dụng, vui lòng thử lại sau.');
     }
   }
 }
